@@ -28,7 +28,7 @@ export default class matrix {
     height(): number {
         return this.h;
     }
-    static identity(size): matrix {
+    static identity(size:number): matrix {
         let data: number[];
         (data = []).length = size * size;
         data.fill(0);

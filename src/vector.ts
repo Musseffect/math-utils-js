@@ -1,8 +1,8 @@
 import { assert, clamp } from "./utils";
 
 export default class vector {
-    data;
-    constructor(data) {
+    data:number[];
+    constructor(data:number[]) {
         this.data = data;
     }
     copy(): vector {
@@ -12,55 +12,55 @@ export default class vector {
         return new vector(this.data.slice());
     }
     static empty(length: number): vector {
-        let data;
+        let data:number[];
         (data = []).length = length;
         data.fill(0);
         return new vector(data);
     }
-    static dot(a, b) {
+    static dot(a:vector, b:vector) {
         let result = 0;
-        for (let i = 0; i < a.length(); i++) {
+        for (let i = 0; i < a.size(); i++) {
             result += a.data[i] * b.data[i];
         }
         return result;
     }
-    static add(a, b) {
+    static add(a:vector, b:vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] + b.data[i]);
         return new vector(result);
     }
-    static sub(a, b) {
+    static sub(a:vector, b:vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] - b.data[i]);
         return new vector(result);
     }
-    static mul(a, b) {
+    static mul(a:vector, b:vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] * b.data[i]);
         return new vector(result);
     }
-    static scale(a, b) {
+    static scale(a:vector, s:number) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
-            result.push(a.data[i] * b);
+            result.push(a.data[i] * s);
         return new vector(result);
     }
-    addSelf(b) {
+    addSelf(b:vector) {
         for (let i = 0; i < this.data.length; i++)
             this.data[i] += b.data[i];
         return this;
     }
-    subSelf(b) {
+    subSelf(b:vector) {
         for (let i = 0; i < this.data.length; i++)
             this.data[i] -= b.data[i];
         return this;
     }
-    scaleSelf(b) {
+    scaleSelf(s:number) {
         for (let i = 0; i < this.data.length; i++)
-            this.data[i] *= b;
+            this.data[i] *= s;
         return this;
     }
     get(i:number):number {
@@ -72,7 +72,7 @@ export default class vector {
     size(): number {
         return this.data.length;
     }
-    getSubVector(offset, length) {
+    getSubVector(offset:number, length:number) {
         let resultData = new Array(length);
         for (let i = 0; i < length; i++)
             resultData[i] = this.data[offset + i];

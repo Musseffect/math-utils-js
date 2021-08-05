@@ -6,14 +6,13 @@ module.exports = {
     'math-utils.min': './src/index.ts'
   },
   devtool:"source-map",
-  node: { module: "empty", net: "empty", fs: "empty" },
   optimization:{
       minimize:true
   },
   output: {
     path: path.resolve(__dirname, 'dist'),
     filename: '[name].js',
-    library: 'Exp',
+    library: 'math',
     libraryTarget: 'var'
   },
   resolve:{
