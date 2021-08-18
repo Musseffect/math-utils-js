@@ -1,5 +1,6 @@
 import mat3 from "./mat3";
 import mat4 from "./mat4";
+import matrix from "./matrix";
 import { determinant2x2, Epsilon } from "./utils";
 import vec2 from "./vec2";
 
@@ -44,7 +45,31 @@ export default class mat2 {
     }
     determinant(): number {
         return determinant2x2(this.data[0][0], this.data[0][1], this.data[1][0], this.data[1][1]);
-    }  
+    }
+    static scale(a: mat2, l: number): mat2 {
+        return a.scale(l);
+    }
+    scale(l: number, out?: mat2): mat2 {
+        if (!out) {
+            out = this.clone();
+        }
+        for (let i = 0; i < 2; i++) {
+            for (let j = 0; j < 2; j++) {
+                out.set(i, j, this.get(i, j) * l);
+            }
+        }
+        return out;
+    }
+    scaleSelf(l: number): mat2 {
+        return this.scale(l, this);
+    }
+    inverse(): mat2 {
+        let d = this.determinant();
+        return new mat2(
+            this.data[1][1], -this.data[0][1],
+            -this.data[1][0], this.data[0][0]
+        ).scaleSelf(1.0 / d);
+    }
     toString(): string {
         return `[
     [${this.get(0, 0).toFixed(4)}, ${this.get(0, 1).toFixed(4)}]
@@ -56,6 +81,15 @@ export default class mat2 {
     }
     postMulVec(v: vec2): vec2 {
         return new vec2(v.x * this.data[0][0] + v.y * this.data[0][1], v.x * this.data[1][0] + v.y * this.data[1][1]);
+    }
+    toMatrix(): matrix {
+        let data = [];
+        for (let j = 0; j < 4; ++j) {
+            for (let i = 0; i < 4; ++i) {
+                data.push(this.get(i, j));
+            }
+        }
+        return new matrix(data, 4, 4);
     }
     static rotation(angle: number): mat2 {
         let ca = Math.cos(angle);
@@ -69,5 +103,4 @@ export default class mat2 {
             0., 0., 1.
         );
     }
-
 }

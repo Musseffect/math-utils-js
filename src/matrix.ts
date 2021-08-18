@@ -1,4 +1,4 @@
-import { assert } from "./utils";
+import { assert, Epsilon } from "./utils";
 import vector from "./vector";
 
 export default class matrix {
@@ -9,6 +9,25 @@ export default class matrix {
         this.data = data;
         this.w = w;
         this.h = h;
+    }
+    static near(a: matrix, b: matrix, threshold?: number): boolean {
+        assert(a.w == b.w && a.h == b.h, "Matrices should have equal sizes");
+        if (!threshold)
+            threshold = Epsilon;
+
+        for (let i = 0; i < a.w; i++) {
+            for (let j = 0; j < a.h; j++) {
+                if (Math.abs(a.get(j, i) - b.get(j, i)) > threshold)
+                    return false;
+            }
+        }
+        return true;
+    }
+    static random(w: number, h: number): matrix {
+        let data = [];
+        for (let i = 0; i < w * h; i++)
+            data.push(Math.random());
+        return new matrix(data, w, h);
     }
     static empty(w: number, h: number): matrix {
         let data: number[];
@@ -47,12 +66,12 @@ export default class matrix {
                 for (let k = 0; k < a.w; k++) {
                     value += a.get(j, k) * b.get(k, i);
                 }
-                result.set(value, j, i);
+                result.set(j, i, value);
             }
         }
         return result;
     }
-    static multVec(a: matrix, b: vector): vector {
+    static postMulVec(a: matrix, b: vector): vector {
         assert(a.w == b.data.length, "Width of matrix isn't compatible with vector's length");
         let result = vector.empty(a.h);
         for (let j = 0; j < a.h; j++) {
@@ -64,11 +83,23 @@ export default class matrix {
         }
         return result;
     }
+    static preMulVec(a: matrix, b: vector): vector {
+        assert(a.w == b.data.length, "Width of matrix isn't compatible with vector's length");
+        let result = vector.empty(a.h);
+        for (let i = 0; i < a.w; i++) {
+            let v = 0;
+            for (let j = 0; j < a.h; j++) {
+                v += a.get(j, i) * b.get(j);
+            }
+            result.set(i, v);
+        }
+        return result;
+    }
     get(row: number, column: number): number {
         return this.data[row * this.w + column];
     }
-    // todo: reverse order of arguments
-    set(value: number, row: number, column: number): void {
+    // TODO: reverse order of arguments
+    set(row: number, column: number, value:number): void {
         this.data[row * this.w + column] = value;
     }
     transpose(): matrix {
@@ -107,15 +138,15 @@ export default class matrix {
                 return x;
             }
             for (var i = l + 1; i < rang; i++)
-                A.set(A.get(indexes[l], i) / A.get(indexes[l], l), indexes[l], i);
+                A.set(indexes[l], i, A.get(indexes[l], i) / A.get(indexes[l], l));
             b.set(indexes[l], b.get(indexes[l]) / A.get(indexes[l], l));
-            A.set(1, indexes[l], l);
+            A.set(indexes[l], l, 1);
 
             for (var i = l + 1; i < rang; i++) {
                 for (var k = l + 1; k < rang; k++)
-                    A.set(A.get(indexes[i], k) - A.get(indexes[i], l) * A.get(indexes[l], k), indexes[i], k);
+                    A.set(indexes[i], k, A.get(indexes[i], k) - A.get(indexes[i], l) * A.get(indexes[l], k));
                 b.set(indexes[i], b.get(indexes[i]) - A.get(indexes[i], l) * b.get(indexes[l]));
-                A.set(0, indexes[i], l);
+                A.set(indexes[i], l, 0);
             }
         }
         x.set(rang - 1, b.get(indexes[rang - 1]));
@@ -136,7 +167,7 @@ export default class matrix {
             v.set(i, 1);
             let column = matrix.solve(this.copy(), v);
             for (let j = 0; j < this.h; j++) {
-                result.set(column.get(j), j, i);
+                result.set(j, i, column.get(j));
             }
         }
         return result;
@@ -152,5 +183,21 @@ export default class matrix {
             result += "|";
         }
         return result;
+    }
+    toString(): string {
+        let result = "[";
+        for (let j = 0; j < this.h; ++j) {
+            if (j != 0)
+                result += ",";
+            result += "\n\t[";
+            for (let i = 0; i < this.w; ++i) {
+                if (i != 0) {
+                    result += ", "
+                }
+                result += this.get(j, i).toFixed(4);
+            }
+            result += "]";
+        }
+        return result + "\n]";
     }
 }

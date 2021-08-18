@@ -1,4 +1,5 @@
-import { Epsilon } from "./utils";
+import { Epsilon, lerp } from "./utils";
+import vector from "./vector";
 
 export default class vec2 {
     x: number;
@@ -7,17 +8,45 @@ export default class vec2 {
         this.x = x;
         this.y = y;
     }
+    toArray(): number[] {
+        return [this.x, this.y];
+    }
+    toVector(): vector {
+        return new vector(this.toArray());
+    }
     static near(a:vec2, b:vec2, threshold?:number):boolean{
         if(!threshold){
             threshold = Epsilon;
         }
         return vec2.sub(a, b).lInfnorm() <= threshold;
     }
+    static lerp(a:vec2, b:vec2, t: number):vec2{
+        return new vec2(
+            lerp(a.x, b.x, t),
+            lerp(a.y, b.y, t)
+        );
+    }
+    static empty():vec2{
+        return new vec2(0., 0.);
+    }
+    normalize():vec2{
+        let l = this.l2norm();
+        return this.scaleSelf(1./l);
+    }
+    normalized():vec2{
+        return this.clone().normalize();
+    }
+    inverse():vec2 {
+        return new vec2(-this.x, -this.y);
+    }
     length(): number {
         return Math.sqrt(this.squaredLength());
     }
     squaredLength(): number {
         return this.x * this.x + this.y * this.y;
+    }
+    l2norm():number{
+        return Math.sqrt(this.squaredLength());
     }
     l1norm(): number {
         return Math.max(Math.abs(this.x), Math.abs(this.y));
@@ -67,7 +96,7 @@ export default class vec2 {
         return this.mul(v, this);
     }
     divSelf(v: vec2): vec2 {
-        return this.mul(v, this);
+        return this.div(v, this);
     }
     addSelf(v: vec2): vec2 {
         return this.add(v, this);
@@ -96,10 +125,16 @@ export default class vec2 {
     static dot(a: vec2, b: vec2): number {
         return a.x * b.x + a.y * b.y;
     }
+    dot(v:vec2):number{
+        return vec2.dot(this, v); 
+    }
     static cross(a: vec2, b: vec2): number {
         return a.x * b.y - a.y * b.x;
     }
     clone(): vec2 {
         return new vec2(this.x, this.y);
+    }
+    toString():string{
+        return `[${this.x.toFixed(4)}, ${this.y.toFixed(4)}]`;
     }
 }

@@ -210,6 +210,7 @@ export default class quat{
         return new axisAngle(axis, angle);
     }
     toEulerAngles():vec3{
+        // TODO
         throw new Error("Not implemented");
     }
     rotate(v:vec3):vec3{

@@ -5,7 +5,7 @@ import mat3 from "./mat3";
 import mat4 from "./mat4";
 import matrix from "./matrix";
 import quat from "./quat";
-import transform from "./transform";
+import transform from "./transform3D";
 import vec2 from "./vec2";
 import vec3 from "./vec3";
 import vec4 from "./vec4";

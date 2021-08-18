@@ -1,9 +1,10 @@
 import mat4 from "./mat4";
 import quat from "./quat";
 import { assert, near } from "./utils";
+import vec2 from "./vec2";
 import vec3 from "./vec3";
 
-export default class transform{
+export default class transform3D{
     translation:vec3;
     rotation:quat;
     scale:vec3;
@@ -13,13 +14,15 @@ export default class transform{
         this.scale = scale;
     }
     hasUniformScale(): boolean {
-        return near(this.scale.x, this.scale.y) && near(this.scale.x, this.scale.z) && near(this.scale.y, this.scale.z);
+        return near(Math.abs(this.scale.x), Math.abs(this.scale.y))
+            && near(Math.abs(this.scale.x), Math.abs(this.scale.z))
+            && near(Math.abs(this.scale.y), Math.abs(this.scale.z));
     }
-    clone():transform{
-        return new transform(this.translation.clone(), this.rotation.clone(), this.scale.clone());
+    clone():transform3D{
+        return new transform3D(this.translation.clone(), this.rotation.clone(), this.scale.clone());
     }
-    static identity(): transform{
-        return new transform(new vec3(0, 0, 0), quat.identity(), new vec3(1, 1, 1));
+    static identity(): transform3D{
+        return new transform3D(new vec3(0, 0, 0), quat.identity(), new vec3(1, 1, 1));
     }
     toAffine():mat4{
         return mat4.fromTRS(this.translation, this.rotation, this.scale);
@@ -30,18 +33,17 @@ export default class transform{
     transformVector(vector:vec3):vec3{
         return this.rotation.rotate(vec3.mul(vector, this.scale));
     }
-    transformInversePoint(point:vec3):vec3 {
+    transformInversePoint(point: vec3): vec3 {
         return this.rotation.inverse().rotate(vec3.sub(point, this.translation)).divSelf(this.scale);
     }
     transformInverseVector(vector:vec3):vec3 {
         return this.rotation.inverse().rotate(vector).divSelf(this.scale);
     }
-    // todo: test
     // only possible with uniform scale
-    inverse():transform {
-        assert(this.hasUniformScale(), "can't inverse transform with non-uniform scale");
+    inverse():transform3D {
+        assert(this.hasUniformScale(), "can't inverse transform3D with non-uniform scale");
         let invRot = this.rotation.inverse();
-        return new transform(
+        return new transform3D(
             invRot.rotate(vec3.div(this.translation.inverse(), this.scale)),
             invRot,
             new vec3(1.0 / this.scale.x, 1.0 / this.scale.y, 1.0 / this.scale.z)

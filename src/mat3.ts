@@ -1,6 +1,7 @@
 import axisAngle from "./axisAngle";
 import mat2 from "./mat2";
 import mat4 from "./mat4";
+import matrix from "./matrix";
 import quat from "./quat";
 import { assert, determinant2x2, determinant3x3, Epsilon, near, SmallEpsilon } from "./utils";
 import vec2 from "./vec2";
@@ -59,40 +60,30 @@ export default class mat3 {
             c + x * x * (1 - c), x * y * (1 - c) - z * s, x * z * (1 - c) + y * s,
             y * x * (1 - c) + z * s, c + y * y * (1 - c), y * z * (1 - c) - x * s,
             z * x * (1 - c) - y * s, z * y * (1 - c) + x * s, c + z * z * (1 - c));
-
-
-        return new mat3(
-            c + x * x * (1 - c), x * y * (1 - c) - z * s, x * z * (1 - c) + y * s,
-            y * x * (1 - c) + z * s, c + y * y * (1 - c), y * z * (1 - c) - x * s,
-            z * x * (1 - c) - y * s, z * y * (1 - c) + x * s, c + z * z * (1 - c));
     }
     trace(): number {
         return this.get(0, 0) + this.get(1, 1) + this.get(2, 2);
     }
     toAxisAngle(): axisAngle {
         let trace = this.trace();
+        let axis = new vec3(
+            this.get(2, 1) - this.get(1, 2),
+            this.get(0, 2) - this.get(2, 0),
+            this.get(1, 0) - this.get(0, 1)
+        );
+        let angle = 0;
         if (near(trace, 3, SmallEpsilon)) {
-            let axis = new vec3(
-                this.get(2, 1) - this.get(1, 2),
-                this.get(0, 2) - this.get(2, 0),
-                this.get(1, 0) - this.get(0, 1)
-            );
-            let angle = Math.acos((trace - 1) / 2);
-            return new axisAngle(axis, angle);
+            angle = Math.acos((trace - 1) / 2);
         } else {
-            let axis = new vec3(
-                this.get(2, 1) - this.get(1, 2),
-                this.get(0, 2) - this.get(2, 0),
-                this.get(1, 0) - this.get(0, 1)
-            );
             let length = axis.l2norm();
-            let angle = Math.atan2(length, trace - 1);
+            angle = Math.atan2(length, trace - 1);
             if (Math.abs(angle) < SmallEpsilon)
                 axis = new vec3(1., 0., 0.);
-            return new axisAngle(axis, angle);
         }
+        return new axisAngle(axis.normalize(), angle);
     }
     toEulerAngles(): vec3 {
+        // TODO
         throw new Error("Not implemented");
     }
     //TODO: rewrite
@@ -178,7 +169,23 @@ export default class mat3 {
         return this.data[i][j];
     }
     toQuat(): quat {
-        throw new Error("Not implemented");
+        let trace = this.trace();
+        let axis = new vec3(
+            this.get(2, 1) - this.get(1, 2),
+            this.get(0, 2) - this.get(2, 0),
+            this.get(1, 0) - this.get(0, 1)
+        );
+        let angle = 0.0;
+        if (near(trace, 3, SmallEpsilon)) {
+            angle = Math.acos((trace - 1) / 2);
+        } else {
+            let length = axis.l2norm();
+            angle = Math.atan2(length, trace - 1);
+            if (Math.abs(angle) < SmallEpsilon)
+                axis = new vec3(1., 0., 0.);
+        }
+        axis.normalize();
+        return new quat(axis.scaleSelf(Math.sin(angle / 2.0)), Math.cos(angle / 2.0));
     }
     toMat4(): mat4 {
         return new mat4(
@@ -303,14 +310,40 @@ export default class mat3 {
             this.get(0, 2), this.get(1, 2), this.get(2, 2)
         );
     }
-    transform(point: vec3): vec3 {
+    toMatrix(): matrix {
+        let data = [];
+        for (let j = 0; j < 3; ++j) {
+            for (let i = 0; i < 3; ++i) {
+                data.push(this.get(i, j));
+            }
+        }
+        return new matrix(data, 4, 4);
+    }
+    transform3D(p: vec3): vec3 {
         let result = [0, 0, 0];
         for (let i = 0; i < 3; i++) {
-            result[i] += this.get(i, 0) * point.x;
-            result[i] += this.get(i, 1) * point.y;
-            result[i] += this.get(i, 2) * point.z;
+            result[i] += this.get(i, 0) * p.x;
+            result[i] += this.get(i, 1) * p.y;
+            result[i] += this.get(i, 2) * p.z;
         }
         return new vec3(result[0], result[1], result[2]);
+    }
+    transformPoint2D(p: vec2): vec2 {
+        let result = [0, 0, 0];
+        for (let i = 0; i < 3; i++) {
+            result[i] += this.get(i, 0) * p.x;
+            result[i] += this.get(i, 1) * p.y;
+            result[i] += this.get(i, 2);
+        }
+        return new vec2(result[0] / result[2], result[1] / result[2]);
+    }
+    transformVector2D(v: vec2): vec2 {
+        let result = [0, 0];
+        for (let i = 0; i < 2; i++) {
+            result[i] += this.get(i, 0) * v.x;
+            result[i] += this.get(i, 1) * v.y;
+        }
+        return new vec2(result[0], result[1]);
     }
     toString(): string {
         return `[
@@ -319,27 +352,72 @@ export default class mat3 {
     [${this.get(2, 0).toFixed(4)}, ${this.get(2, 1).toFixed(4)}, ${this.get(2, 2).toFixed(4)}]
 ]`;
     }
-    // todo:
-    static from2DRotation(angle:number, axis:number = 2): mat3 {
+    static fromRotationAroundAxis(angle:number, axis:number = 2): mat3 {
         let ca = Math.cos(angle);
         let sa = Math.sin(angle);
         assert(axis >= 0 && axis < 3, "Wrong axis");
         let result = mat3.empty();
-        let f = 2 - axis;
-        let s = (f + 1) % 3;
+        let f = (axis + 1) % 3;
+        let s = (axis + 2) % 3;
         result.set(f, f, ca);
         result.set(f, s, -sa);
         result.set(s, f, sa);
         result.set(s, s, ca);
         return result;
     }
-    static fromTRS(t:vec2, r:number, s:vec2):mat3 {
-        throw new Error("Not implemented");
+    static fromRotation2D(angle: number): mat3 {
+        let ca = Math.cos(angle);
+        let sa = Math.sin(angle);
+        return new mat3(
+            ca, -sa, 0,
+            sa, ca, 0,
+            0, 0, 1
+        );
+    }
+    static fromScale2D(scale: vec2): mat3 {
+        return new mat3(
+            scale.x, 0, 0,
+            0, scale.y, 0,
+            0, 0, 1);
+    }
+    static fromTranslation2D(translation: vec2): mat3 {
+        return new mat3(
+            1, 0, translation.x,
+            0, 1, translation.y,
+            0, 0, 1
+        );
+    }
+    static fromTRS(t: vec2, r: number, s: vec2): mat3 {
+        let ca = Math.cos(r);
+        let sa = Math.sin(r);
+        return new mat3(
+            ca * s.x, -sa * s.y, t.x,
+            sa * s.x, ca * s.y, t.y,
+            0, 0, 1
+        );
     }
     extractMat2(): mat2 {
         return new mat2(
             this.get(0, 0), this.get(0, 1),
             this.get(1, 0), this.get(1, 1)
         );
+    }
+    preMulVec(p: vec3): vec3 {
+        let result = [0, 0, 0,];
+        for (let i = 0; i < 3; i++) {
+            result[i] += this.get(0, i) * p.x;
+            result[i] += this.get(1, i) * p.y;
+            result[i] += this.get(2, i) * p.z;
+        }
+        return new vec3(result[0], result[1], result[2]);
+    }
+    postMulVec(p: vec3): vec3 {
+        let result = [0, 0, 0];
+        for (let i = 0; i < 3; i++) {
+            result[i] += this.get(i, 0) * p.x;
+            result[i] += this.get(i, 1) * p.y;
+            result[i] += this.get(i, 2) * p.z;
+        }
+        return new vec3(result[0], result[1], result[2]);
     }
 }

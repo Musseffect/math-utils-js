@@ -1,5 +1,6 @@
 import axisAngle from "./axisAngle";
 import { lerp, Epsilon } from "./utils";
+import vector from "./vector";
 
 export default class vec3{
     x: number;
@@ -10,8 +11,14 @@ export default class vec3{
         this.y = y;
         this.z = z;
     }
+    toArray(): number[] {
+        return [this.x, this.y, this.z];
+    }
+    toVector(): vector {
+        return new vector(this.toArray());
+    }
     inverse():vec3 {
-        return new vec3(this.x, this.y, this.z);
+        return new vec3(-this.x, -this.y, -this.z);
     }
     static lerp(a:vec3, b:vec3, t: number):vec3{
         return new vec3(
@@ -131,7 +138,6 @@ export default class vec3{
     cross(v:vec3):vec3{
         return vec3.cross(this, v);
     }
-    //normalization
     normalize():vec3{
         let l = this.l2norm();
         return this.scaleSelf(1./l);

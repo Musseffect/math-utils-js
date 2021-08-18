@@ -3,6 +3,7 @@ import quat from "./quat";
 import vec3 from "./vec3";
 import { determinant3x3, determinant4x4, Epsilon } from "./utils";
 import vec4 from "./vec4";
+import matrix from "./matrix";
 
 
 export default class mat4 {
@@ -76,7 +77,7 @@ export default class mat4 {
     extractTranslation(): vec3 {
         return new vec3(this.get(0, 3), this.get(1, 3), this.get(2, 3));
     }
-    transformPoint(p: vec3): vec3 {
+    transformPoint3D(p: vec3): vec3 {
         let result = [0, 0, 0, 0];
         for (let i = 0; i < 4; i++) {
             result[i] += this.get(i, 0) * p.x;
@@ -86,7 +87,7 @@ export default class mat4 {
         }
         return new vec3(result[0] / result[3], result[1] / result[3], result[2] / result[3]);
     }
-    transformVector(v: vec3): vec3 {
+    transformVector3D(v: vec3): vec3 {
         let result = [0, 0, 0];
         for (let i = 0; i < 3; i++) {
             result[i] += this.get(i, 0) * v.x;
@@ -94,6 +95,16 @@ export default class mat4 {
             result[i] += this.get(i, 2) * v.z;
         }
         return new vec3(result[0], result[1], result[2]);
+    }
+    preMulVec(p: vec4): vec4 {
+        let result = [0, 0, 0, 0];
+        for (let i = 0; i < 4; i++) {
+            result[i] += this.get(0, i) * p.x;
+            result[i] += this.get(1, i) * p.y;
+            result[i] += this.get(2, i) * p.z;
+            result[i] += this.get(3, i) * p.w;
+        }
+        return new vec4(result[0], result[1], result[2], result[3]);
     }
     postMulVec(p: vec4): vec4 {
         let result = [0, 0, 0, 0];
@@ -112,6 +123,15 @@ export default class mat4 {
             this.get(0, 2), this.get(1, 2), this.get(2, 2), this.get(3, 2),
             this.get(0, 3), this.get(1, 3), this.get(2, 3), this.get(3, 3)
         );
+    }
+    toMatrix(): matrix {
+        let data = [];
+        for (let j = 0; j < 4; ++j) {
+            for (let i = 0; i < 4; ++i) {
+                data.push(this.get(j, i));
+            }
+        }
+        return new matrix(data, 4, 4);
     }
     static scale(a: mat4, l: number): mat4 {
         return a.scale(l);
@@ -153,13 +173,6 @@ export default class mat4 {
     mulSelf(m: mat4): mat4 {
         return this.clone().mul(m, this);
     }
-    static translation(t: vec3): mat4 {
-        return new mat4(
-            1, 0, 0, t.x,
-            0, 1, 0, t.y,
-            0, 0, 1, t.z,
-            0, 0, 0, 1);
-    }
     static fromMat3(m: mat3): mat4 {
         return new mat4(
             m.get(0, 0), m.get(0, 1), m.get(0, 2), 0,
@@ -167,10 +180,17 @@ export default class mat4 {
             m.get(2, 0), m.get(2, 1), m.get(2, 2), 0,
             0, 0, 0, 1);
     }
-    static rotation(r: quat): mat4 {
+    static fromTranslation3D(t: vec3): mat4 {
+        return new mat4(
+            1, 0, 0, t.x,
+            0, 1, 0, t.y,
+            0, 0, 1, t.z,
+            0, 0, 0, 1);
+    }
+    static fromRotation3D(r: quat): mat4 {
         return r.toMat4();
     }
-    static fromScale(s: vec3): mat4 {
+    static fromScale3D(s: vec3): mat4 {
         return new mat4(
             s.x, 0, 0, 0,
             0, s.y, 0, 0,

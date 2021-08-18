@@ -20,5 +20,5 @@ export default class axisAngle{
     toString():string{
         return `{ axis:${this.axis.toString()}, angle:${this.angle.toFixed(4)} }`;
     }
-    // todo: euler angles to axis angle
+    // TODO: euler angles to axis angle
 }

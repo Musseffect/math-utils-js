@@ -1,9 +1,20 @@
-import { assert, clamp } from "./utils";
+import { assert, clamp, Epsilon } from "./utils";
 
 export default class vector {
     data:number[];
     constructor(data:number[]) {
         this.data = data;
+    }
+    static near(a: vector, b: vector, threshold?: number): boolean {
+        assert(a.size() == b.size(), "Vectors should have equal sizes");
+        if (!threshold)
+            threshold = Epsilon;
+
+        for (let i = 0; i < a.size(); i++) {
+            if (Math.abs(a.get(i) - b.get(i)) > threshold)
+                return false;
+        }
+        return true;
     }
     copy(): vector {
         return new vector(this.data.slice());
@@ -160,6 +171,11 @@ export default class vector {
             fractionDigits = 4;
         let result = "[ ";
         this.data.forEach((item) => result += item.toFixed(fractionDigits) + " ");
+        return result + "]";
+    }
+    toString(): string {
+        let result = "[";
+        this.data.forEach((item, i) => {result += `${i != 0 ? ", " : ""}${item}`});
         return result + "]";
     }
 }
