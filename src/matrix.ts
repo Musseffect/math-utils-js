@@ -98,7 +98,6 @@ export default class matrix {
     get(row: number, column: number): number {
         return this.data[row * this.w + column];
     }
-    // TODO: reverse order of arguments
     set(row: number, column: number, value:number): void {
         this.data[row * this.w + column] = value;
     }

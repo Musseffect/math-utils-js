@@ -1,5 +1,5 @@
 import axisAngle from "./axisAngle";
-import { lerp, Epsilon } from "./utils";
+import { lerp, Epsilon, SmallEpsilon } from "./utils";
 import vector from "./vector";
 
 export default class vec3{
@@ -140,6 +140,12 @@ export default class vec3{
     }
     normalize():vec3{
         let l = this.l2norm();
+        if (l < SmallEpsilon) {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+            return this;
+        }
         return this.scaleSelf(1./l);
     }
     normalized():vec3{
@@ -174,6 +180,6 @@ export default class vec3{
         let ax = new axisAngle(new vec3(1, 0, 0), this.x);
         let ay = new axisAngle(new vec3(0, 1, 0), this.y);
         let az = new axisAngle(new vec3(0, 0, 1), this.z);
-        return az.rotate(ay.rotate(ax.rotate(point)));
+        return ay.rotate(ax.rotate(az.rotate(point)));
     }
 }

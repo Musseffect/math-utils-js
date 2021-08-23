@@ -128,22 +128,35 @@ test('Matrix-vector operations', () => {
     expect(matrix.near(mat.transpose(), m4D.transpose().toMatrix(), SmallEpsilon)).toBeTruthy();
 });
 
-test("Rotation conversions test", () => {
+test("Rotation conversions", () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
 
     let quatRotation = quat.fromAxisAngle(axisAngleRotation);
     let matRotation = mat3.fromAxisAngle(axisAngleRotation);
-    let point = new vec3(0.3, -0.5, -0.2);
+    expect(matRotation.determinant()).toBeCloseTo(1);
     expect(mat3.near(quatRotation.toMat3(), matRotation, SmallEpsilon)).toBeTruthy();
     expect(quat.near(quatRotation, matRotation.toQuat(), SmallEpsilon)).toBeTruthy();
     expect(axisAngle.near(quatRotation.toAxisAngle(), axisAngleRotation, SmallEpsilon)).toBeTruthy();
     expect(axisAngle.near(matRotation.toAxisAngle(), axisAngleRotation, SmallEpsilon)).toBeTruthy();
 
-    let eulerRotation = new vec3(radians(30), radians(55), radians(72));
-    quatRotation = quat.fromEulerAngles(eulerRotation.x, eulerRotation.y, eulerRotation.z);
-    matRotation = mat3.fromEulerAngles(eulerRotation.x, eulerRotation.y, eulerRotation.z);
+    let point = new vec3(0.3, -0.5, -0.2);
+    let eulerRotation = { yaw: radians(10), pitch: radians(25), roll:radians(62) };
+    matRotation = mat3.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
+    quatRotation = quat.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
+    let matRotationEuler = mat3.yaw(eulerRotation.yaw).mulSelf(mat3.pitch(eulerRotation.pitch)).mulSelf(mat3.roll(eulerRotation.roll));
     expect(vec3.near(quatRotation.toMat3().transform3D(point), matRotation.transform3D(point), SmallEpsilon)).toBeTruthy();
     expect(vec3.near(quatRotation.rotate(point), matRotation.toQuat().rotate(point), SmallEpsilon)).toBeTruthy();
+    expect(vec3.near(matRotation.transform3D(point), matRotationEuler.transform3D(point), SmallEpsilon)).toBeTruthy();
+    expect(mat3.near(matRotation, matRotationEuler, SmallEpsilon)).toBeTruthy();
+    
+    matRotation = mat3.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
+    let ea = matRotation.toEulerAngles();
+    let eaMat = mat3.fromEulerAngles(ea.x, ea.y, ea.z);
+    
+    expect(vec3.near(eaMat.transform3D(point), matRotation.transform3D(point), SmallEpsilon)).toBeTruthy();
+
+    matRotation = mat3.fromEulerAngles(radians(180), 0, 0);
+    expect(Math.abs(vec3.dot(matRotation.axis(), new vec3(0, 1, 0)))).toBeCloseTo(1, 4);
 });
 
 test("Rotations", () => {
@@ -161,8 +174,8 @@ test("Rotations", () => {
     expect(vec3.near(quatRotation.rotate(point), axisAngleRotation.rotate(point), Epsilon)).toBeTruthy();
 
     let eulerRotation = new vec3(radians(30), radians(55), radians(72));
-    quatRotation = quat.fromEulerAngles(eulerRotation.x, eulerRotation.y, eulerRotation.z);
-    matRotation = mat3.fromEulerAngles(eulerRotation.x, eulerRotation.y, eulerRotation.z);
+    quatRotation = quat.fromEulerAngles(eulerRotation.y, eulerRotation.x, eulerRotation.z);
+    matRotation = mat3.fromEulerAngles(eulerRotation.y, eulerRotation.x, eulerRotation.z);
     axisAngleRotation = quatRotation.toAxisAngle();
     expect(vec3.near(quatRotation.rotate(point), matRotation.transform3D(point), Epsilon)).toBeTruthy();
     expect(vec3.near(quatRotation.rotate(point), eulerRotation.rotateEuler(point), Epsilon)).toBeTruthy();
@@ -266,6 +279,3 @@ test("Transform components", () => {
     expect(vec2.near(pTRS1_2D, pTRS2_2D, SmallEpsilon)).toBeTruthy();
     expect(vec2.near(pTRS1_2D, trs_2D.transformPoint2D(point2D), SmallEpsilon)).toBeTruthy();
 });
-
-
-// todo: add tests for matrix.ts and vector.ts

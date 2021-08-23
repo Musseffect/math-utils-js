@@ -1,4 +1,4 @@
-import { Epsilon, lerp } from "./utils";
+import { Epsilon, lerp, SmallEpsilon } from "./utils";
 import vector from "./vector";
 
 export default class vec2 {
@@ -31,6 +31,11 @@ export default class vec2 {
     }
     normalize():vec2{
         let l = this.l2norm();
+        if (l < SmallEpsilon) {
+            this.x = 0;
+            this.y = 0;
+            return this;
+        }
         return this.scaleSelf(1./l);
     }
     normalized():vec2{

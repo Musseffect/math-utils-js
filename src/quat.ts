@@ -41,7 +41,8 @@ export default class quat{
     static fromComponents(x:number, y:number, z:number, w:number):quat{
         return new quat(new vec3(x, y, z), w);
     }
-    // rotate around x, rotate around y, rotate around z
+    // ZXY rotations - opengl coordinate system with z - forward, y - up, x - left
+    // rotate around z(roll), rotate around x(pitch), rotate around y(yaw)
     static fromEulerAngles(yaw:number, pitch:number, roll:number):quat{
         let cy = Math.cos(yaw / 2);
         let sy = Math.sin(yaw / 2);
@@ -50,8 +51,8 @@ export default class quat{
         let cr = Math.cos(roll / 2);
         let sr = Math.sin(roll / 2);
         return new quat(new vec3(
-                sy * cp * cr - cy * sp * sr,
                 cy * sp * cr + sy * cp * sr,
+                sy * cp * cr - cy * sp * sr,
                 cy * cp * sr - sy * sp * cr
             ),
             cy * cp * cr + sy * sp * sr
@@ -110,8 +111,7 @@ export default class quat{
         out.v.x = s * q.v.x + x * q.s + y * q.v.z - z * q.v.y;
         out.v.y = s * q.v.y - x * q.v.z + y * q.s + z * q.v.x;
         out.v.z = s * q.v.z + x * q.v.y - y * q.v.x + z * q.s;
-        //out.v = vec3.cross(this.v, q.v).addSelf(q.v.scale(s)).addSelf(this.v.scale(q.s));
-        return out;
+       return out;
     }
     mulSelf(q:quat):quat{
         return this.mul(q, this);
@@ -148,6 +148,13 @@ export default class quat{
     }
     normalize():quat{
         let l = this.l2norm();
+        if (l < SmallEpsilon) {
+            this.v.x = 0;
+            this.v.y = 0;
+            this.v.z = 0;
+            this.s = 1;
+            return this;
+        }
         return this.scaleSelf(1./l);
     }
     normalized():quat{
@@ -208,10 +215,6 @@ export default class quat{
             axis = new vec3(1., 0., 0.);
         }
         return new axisAngle(axis, angle);
-    }
-    toEulerAngles():vec3{
-        // TODO
-        throw new Error("Not implemented");
     }
     rotate(v:vec3):vec3{
         return this.mul(new quat(v.clone(), 0.0)).mulSelf(this.conj()).v;

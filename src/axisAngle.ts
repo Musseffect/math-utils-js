@@ -1,3 +1,4 @@
+import mat3 from "./mat3";
 import { Epsilon, near } from "./utils";
 import vec3 from "./vec3";
 
@@ -20,5 +21,23 @@ export default class axisAngle{
     toString():string{
         return `{ axis:${this.axis.toString()}, angle:${this.angle.toFixed(4)} }`;
     }
-    // TODO: euler angles to axis angle
+    toMat3(): mat3 {
+        const { x, y, z } = this.axis;
+        let c = Math.cos(this.angle);
+        let s = Math.sin(this.angle);
+        let t = 1 - c;
+        return new mat3(
+            t * x * x + c,
+            t * x * y - s * z,
+            t * x * z + s * y,
+
+            t * x * y + s * z,
+            t * y * y + c,
+            t * y * z - s * x,
+
+            t * x * z - s * y,
+            t * y * z + s * x,
+            t * z * z + c
+        );
+    }
 }

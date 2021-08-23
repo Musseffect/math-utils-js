@@ -51,82 +51,106 @@ export default class mat3 {
             0, 0, 1);
     }
     static fromAxisAngle(aa: axisAngle): mat3 {
-        let c = Math.cos(aa.angle);
-        let s = Math.sin(aa.angle);
-        let x = aa.axis.x;
-        let y = aa.axis.y;
-        let z = aa.axis.z;
-        return new mat3(
-            c + x * x * (1 - c), x * y * (1 - c) - z * s, x * z * (1 - c) + y * s,
-            y * x * (1 - c) + z * s, c + y * y * (1 - c), y * z * (1 - c) - x * s,
-            z * x * (1 - c) - y * s, z * y * (1 - c) + x * s, c + z * z * (1 - c));
+        return aa.toMat3();
     }
     trace(): number {
         return this.get(0, 0) + this.get(1, 1) + this.get(2, 2);
     }
-    toAxisAngle(): axisAngle {
+    // return normalized axis of rotation matrix
+    axis(): vec3 {
         let trace = this.trace();
         let axis = new vec3(
             this.get(2, 1) - this.get(1, 2),
             this.get(0, 2) - this.get(2, 0),
             this.get(1, 0) - this.get(0, 1)
         );
-        let angle = 0;
         if (near(trace, 3, SmallEpsilon)) {
-            angle = Math.acos((trace - 1) / 2);
-        } else {
-            let length = axis.l2norm();
-            angle = Math.atan2(length, trace - 1);
-            if (Math.abs(angle) < SmallEpsilon)
-                axis = new vec3(1., 0., 0.);
+            axis = new vec3(1., 0., 0.);
+        } else if (near(axis.l1norm(), 0, SmallEpsilon)) {
+            let values = [this.get(0, 0),
+                this.get(1, 1), this.get(2, 2)];
+            if (values[0] > values[1]) {
+                if (values[0] > values[2]) {
+                    axis.x = 0.5 * Math.sqrt(values[0] - values[1] - values[2] + 1);
+                    axis.y = this.get(0, 1) / (2 * axis.x);
+                    axis.z = this.get(0, 2) / (2 * axis.x);
+                    return axis;
+                }
+            } else {
+                if (values[1] > values[2]) {
+                    axis.y = 0.5 * Math.sqrt(values[1] - values[2] - values[0] + 1);
+                    axis.x = this.get(0, 1) / (2 * axis.y);
+                    axis.z = this.get(1, 2) / (2 * axis.y);
+                    return axis;
+                }
+            }
+            axis.z = 0.5 * Math.sqrt(values[2] - values[0] - values[1] + 1)
+            axis.x = this.get(0, 2) / (2 * axis.z);
+            axis.y = this.get(1, 2) / (2 * axis.z);
         }
-        return new axisAngle(axis.normalize(), angle);
+        return axis.normalize();
+    }
+    toAxisAngle(): axisAngle {
+        let trace = this.trace();
+        let axis = this.axis();
+        let angle = Math.acos((trace - 1) / 2);
+        return new axisAngle(axis, angle);
     }
     toEulerAngles(): vec3 {
-        // TODO
-        throw new Error("Not implemented");
+        let sp = -this.get(1, 2);
+        let cp = Math.sqrt(1 - sp * sp);
+        let sr = 0.0;
+        let cr = 1.0;
+        let cy = 0.5 * (this.get(0, 0) + this.get(0, 1) + this.get(2, 0) + this.get(2, 1));
+        let sy = 0.5 * (this.get(0, 0) + this.get(0, 1) - this.get(2, 0) - this.get(2, 1));
+        if (cp > SmallEpsilon) {
+            sr = this.get(1, 0) / cp;
+            cr = this.get(1, 1) / cp;
+            sy = this.get(0, 2) / cp;
+            cy = this.get(2, 2) / cp;
+        }
+        return new vec3(Math.atan2(sy, cy), Math.atan2(sp, cp), Math.atan2(sr, cr));
     }
-    //TODO: rewrite
-    //y - up
-    //x - left
-    //z - dir 
+    // rotation around y
     static yaw(yaw: number): mat3 {
         let cy = Math.cos(yaw);
-        let sy = Math.cos(yaw);
-        let m11 = 1;
+        let sy = Math.sin(yaw);
+        let m11 = cy;
         let m12 = 0;
-        let m13 = 0;
+        let m13 = sy;
         let m21 = 0;
-        let m22 = cy;
-        let m23 = -sy;
-        let m31 = 0;
-        let m32 = sy;
+        let m22 = 1;
+        let m23 = 0;
+        let m31 = -sy;
+        let m32 = 0;
         let m33 = cy;
         return new mat3(
             m11, m12, m13,
             m21, m22, m23,
             m31, m32, m33);
     }
+    // rotation around x
     static pitch(pitch: number): mat3 {
         let cp = Math.cos(pitch);
-        let sp = Math.cos(pitch);
-        let m11 = cp;
+        let sp = Math.sin(pitch);
+        let m11 = 1;
         let m12 = 0;
-        let m13 = sp;
+        let m13 = 0;
         let m21 = 0;
-        let m22 = 1;
-        let m23 = 0;
-        let m31 = -sp;
-        let m32 = 0;
+        let m22 = cp;
+        let m23 = -sp;
+        let m31 = 0;
+        let m32 = sp;
         let m33 = cp;
         return new mat3(
             m11, m12, m13,
             m21, m22, m23,
             m31, m32, m33);
     }
+    // rotation around z
     static roll(roll: number): mat3 {
         let cr = Math.cos(roll);
-        let sr = Math.cos(roll);
+        let sr = Math.sin(roll);
         let m11 = cr;
         let m12 = -sr;
         let m13 = 0;
@@ -141,6 +165,8 @@ export default class mat3 {
             m21, m22, m23,
             m31, m32, m33);
     }
+    // ZXY rotations - opengl coordinate system with z - forward, y - up, x - left
+    // rotate around z(roll), rotate around x(pitch), rotate around y(yaw)
     static fromEulerAngles(yaw: number, pitch: number, roll: number): mat3 {
         let cy = Math.cos(yaw);
         let sy = Math.sin(yaw);
@@ -148,15 +174,17 @@ export default class mat3 {
         let sp = Math.sin(pitch);
         let cr = Math.cos(roll);
         let sr = Math.sin(roll);
-        let m11 = cr * cp;
-        let m12 = - sr * cy + cr * sp * sy;
-        let m13 = sr * sy + cr * sp * cy;
-        let m21 = sr * cp;
-        let m22 = cr * cy + sr * sp * sy;
-        let m23 = -cr * sy + sr * sp * cy;
-        let m31 = -sp;
-        let m32 = cp * sy;
-        let m33 = cp * cy;
+
+        let m11 = cy * cr + sy * sp * sr;
+        let m12 = sy * sp * cr - cy * sr;
+        let m13 = sy * cp;
+        let m21 = cp * sr;
+        let m22 = cp * cr;
+        let m23 = -sp;
+        let m31 = cy * sp * sr - sy * cr;
+        let m32 = sy * sr + cy * sp * cr;
+        let m33 = cy * cp;
+        
         return new mat3(
             m11, m12, m13,
             m21, m22, m23,
@@ -170,21 +198,8 @@ export default class mat3 {
     }
     toQuat(): quat {
         let trace = this.trace();
-        let axis = new vec3(
-            this.get(2, 1) - this.get(1, 2),
-            this.get(0, 2) - this.get(2, 0),
-            this.get(1, 0) - this.get(0, 1)
-        );
-        let angle = 0.0;
-        if (near(trace, 3, SmallEpsilon)) {
-            angle = Math.acos((trace - 1) / 2);
-        } else {
-            let length = axis.l2norm();
-            angle = Math.atan2(length, trace - 1);
-            if (Math.abs(angle) < SmallEpsilon)
-                axis = new vec3(1., 0., 0.);
-        }
-        axis.normalize();
+        let axis = this.axis();
+        let angle = Math.acos((trace - 1) / 2);
         return new quat(axis.scaleSelf(Math.sin(angle / 2.0)), Math.cos(angle / 2.0));
     }
     toMat4(): mat4 {
