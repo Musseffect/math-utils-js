@@ -1,19 +1,15 @@
-
-name: build
+name: "tagged-release"
 
 on:
-  pull_request:
-    types:
-      - "opened"
-      - "closed"
-      - "reopened"
-      - "synchronize"
-    paths-ignore: dist/**
+  push:
+    tags:
+      - "v*"
 
 jobs:
-  build:
-    runs-on: ubuntu-latest
-    name: "Build and test"
+  tagged-release:
+    name: "Tagged Release"
+    runs-on: "ubuntu-latest"
+
     steps:
       - name: Git checkout
         uses: actions/checkout@v2
@@ -30,8 +26,9 @@ jobs:
         run: npm test
       - name: Build
         run: npm run bundle-min 
-      - name: Upload Artifact
-        uses: actions/upload-artifact@v2
-        with: 
-          name: build
-          path: dist
+      - uses: "marvinpinto/action-automatic-releases@latest"
+        with:
+          repo_token: "${{ secrets.GITHUB_TOKEN }}"
+          prerelease: false
+          files: |
+            dist/*
