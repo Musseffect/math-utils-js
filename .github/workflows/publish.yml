@@ -3,8 +3,9 @@ on:
     types: [published]
     
 jobs:
-  build:
+  publish:
     runs-on: ubuntu-latest
+    steps:
       - name: Git checkout
         uses: actions/checkout@v2
 
