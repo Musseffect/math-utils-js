@@ -27,16 +27,16 @@ export default class transform3D{
     toAffine():mat4{
         return mat4.fromTRS(this.translation, this.rotation, this.scale);
     }
-    transformPoint(point:vec3):vec3{
+    transformPoint3D(point:vec3):vec3{
         return this.rotation.rotate(vec3.mul(point, this.scale)).addSelf(this.translation);
     }
-    transformVector(vector:vec3):vec3{
+    transformVector3D(vector:vec3):vec3{
         return this.rotation.rotate(vec3.mul(vector, this.scale));
     }
-    transformInversePoint(point: vec3): vec3 {
+    transformInversePoint3D(point: vec3): vec3 {
         return this.rotation.inverse().rotate(vec3.sub(point, this.translation)).divSelf(this.scale);
     }
-    transformInverseVector(vector:vec3):vec3 {
+    transformInverseVector3D(vector:vec3):vec3 {
         return this.rotation.inverse().rotate(vector).divSelf(this.scale);
     }
     // only possible with uniform scale

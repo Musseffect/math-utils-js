@@ -123,7 +123,7 @@ test('Matrix-vector operations', () => {
     
     expect(matrix.near(mat.inverse(), m4D.inverse().toMatrix(), SmallEpsilon)).toBeTruthy();
 
-    expect(matrix.near(matrix.mult(mat, mat.inverse()), matrix.identity(4), SmallEpsilon)).toBeTruthy();
+    expect(matrix.near(matrix.mul(mat, mat.inverse()), matrix.identity(4), SmallEpsilon)).toBeTruthy();
     expect(vector.near(m4D.inverse().postMulVec(p4D).toVector(), matrix.solve(mat.clone(), rhs), SmallEpsilon)).toBeTruthy();
     expect(matrix.near(mat.transpose(), m4D.transpose().toMatrix(), SmallEpsilon)).toBeTruthy();
 });
@@ -144,16 +144,16 @@ test("Rotation conversions", () => {
     matRotation = mat3.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
     quatRotation = quat.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
     let matRotationEuler = mat3.yaw(eulerRotation.yaw).mulSelf(mat3.pitch(eulerRotation.pitch)).mulSelf(mat3.roll(eulerRotation.roll));
-    expect(vec3.near(quatRotation.toMat3().transform3D(point), matRotation.transform3D(point), SmallEpsilon)).toBeTruthy();
+    expect(vec3.near(quatRotation.toMat3().transformPoint3D(point), matRotation.transformPoint3D(point), SmallEpsilon)).toBeTruthy();
     expect(vec3.near(quatRotation.rotate(point), matRotation.toQuat().rotate(point), SmallEpsilon)).toBeTruthy();
-    expect(vec3.near(matRotation.transform3D(point), matRotationEuler.transform3D(point), SmallEpsilon)).toBeTruthy();
+    expect(vec3.near(matRotation.transformPoint3D(point), matRotationEuler.transformPoint3D(point), SmallEpsilon)).toBeTruthy();
     expect(mat3.near(matRotation, matRotationEuler, SmallEpsilon)).toBeTruthy();
     
     matRotation = mat3.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
     let ea = matRotation.toEulerAngles();
     let eaMat = mat3.fromEulerAngles(ea.x, ea.y, ea.z);
     
-    expect(vec3.near(eaMat.transform3D(point), matRotation.transform3D(point), SmallEpsilon)).toBeTruthy();
+    expect(vec3.near(eaMat.transformPoint3D(point), matRotation.transformPoint3D(point), SmallEpsilon)).toBeTruthy();
 
     matRotation = mat3.fromEulerAngles(radians(180), 0, 0);
     expect(Math.abs(vec3.dot(matRotation.axis(), new vec3(0, 1, 0)))).toBeCloseTo(1, 4);
@@ -165,19 +165,19 @@ test("Rotations", () => {
     let point = new vec3(0.3, -0.5, -0.2);
     let vector = new vec3(0.3, -0.5, -0.2);
     let affineTransform = trans.toAffine();
-    expect(vec3.near(affineTransform.transformPoint3D(point), trans.transformPoint(point), Epsilon)).toBeTruthy();
-    expect(vec3.near(affineTransform.transformVector3D(vector), trans.transformVector(vector), Epsilon)).toBeTruthy();
+    expect(vec3.near(affineTransform.transformPoint3D(point), trans.transformPoint3D(point), Epsilon)).toBeTruthy();
+    expect(vec3.near(affineTransform.transformVector3D(vector), trans.transformVector3D(vector), Epsilon)).toBeTruthy();
 
     let quatRotation = quat.fromAxisAngle(axisAngleRotation);
     let matRotation = mat3.fromAxisAngle(axisAngleRotation);
-    expect(vec3.near(quatRotation.rotate(point), matRotation.transform3D(point), Epsilon)).toBeTruthy();
+    expect(vec3.near(quatRotation.rotate(point), matRotation.transformPoint3D(point), Epsilon)).toBeTruthy();
     expect(vec3.near(quatRotation.rotate(point), axisAngleRotation.rotate(point), Epsilon)).toBeTruthy();
 
     let eulerRotation = new vec3(radians(30), radians(55), radians(72));
     quatRotation = quat.fromEulerAngles(eulerRotation.y, eulerRotation.x, eulerRotation.z);
     matRotation = mat3.fromEulerAngles(eulerRotation.y, eulerRotation.x, eulerRotation.z);
     axisAngleRotation = quatRotation.toAxisAngle();
-    expect(vec3.near(quatRotation.rotate(point), matRotation.transform3D(point), Epsilon)).toBeTruthy();
+    expect(vec3.near(quatRotation.rotate(point), matRotation.transformPoint3D(point), Epsilon)).toBeTruthy();
     expect(vec3.near(quatRotation.rotate(point), eulerRotation.rotateEuler(point), Epsilon)).toBeTruthy();
     expect(vec3.near(axisAngleRotation.rotate(point), eulerRotation.rotateEuler(point), Epsilon)).toBeTruthy();
 
@@ -199,18 +199,18 @@ test("Transformations", () => {
     let transformation3D = new transform3D(translation3D, rotation3D, scale3D);
     let point3D = new vec3(0.6, -1.2, 1.6);
     expect(mat4.near(affine3D, t3D.mul(r3D).mul(s3D), Epsilon)).toBeTruthy();
-    expect(vec3.near(transformation3D.transformPoint(point3D), affine3D.transformPoint3D(point3D), Epsilon)).toBeTruthy();
-    expect(vec3.near(transformation3D.transformVector(point3D), affine3D.transformVector3D(point3D), Epsilon)).toBeTruthy();
-    expect(vec3.near(transformation3D.transformInversePoint(point3D), inverseAffine3D.transformPoint3D(point3D), Epsilon)).toBeTruthy();
-    expect(vec3.near(transformation3D.transformInverseVector(point3D), inverseAffine3D.transformVector3D(point3D), Epsilon)).toBeTruthy();
+    expect(vec3.near(transformation3D.transformPoint3D(point3D), affine3D.transformPoint3D(point3D), Epsilon)).toBeTruthy();
+    expect(vec3.near(transformation3D.transformVector3D(point3D), affine3D.transformVector3D(point3D), Epsilon)).toBeTruthy();
+    expect(vec3.near(transformation3D.transformInversePoint3D(point3D), inverseAffine3D.transformPoint3D(point3D), Epsilon)).toBeTruthy();
+    expect(vec3.near(transformation3D.transformInverseVector3D(point3D), inverseAffine3D.transformVector3D(point3D), Epsilon)).toBeTruthy();
     expect(transformation3D.hasUniformScale()).toBeFalsy();
 
 
     let rigidTransform3D = new transform3D(translation3D, rotation3D, new vec3(1., 1., 1.));
     let inverseRigidTransform3D = rigidTransform3D.inverse();
     expect(vec3.near(point3D, affine3D.transformPoint3D(inverseAffine3D.transformPoint3D(point3D)), Epsilon)).toBeTruthy();
-    expect(vec3.near(rigidTransform3D.transformInversePoint(point3D),
-        inverseRigidTransform3D.transformPoint(point3D), SmallEpsilon)).toBeTruthy();
+    expect(vec3.near(rigidTransform3D.transformInversePoint3D(point3D),
+        inverseRigidTransform3D.transformPoint3D(point3D), SmallEpsilon)).toBeTruthy();
 
     let translation2D = new vec2(1.0, -2.0);
     let rotation2D = radians(30);
@@ -223,19 +223,19 @@ test("Transformations", () => {
     let transformation2D = new transform2D(translation2D, rotation2D, scale2D);
     let point2D = new vec2(3.6, 1.6);
     expect(mat3.near(affine2D, t2D.mul(r2D).mul(s2D), Epsilon)).toBeTruthy();
-    expect(vec2.near(transformation2D.transformPoint(point2D), affine2D.transformPoint2D(point2D), Epsilon)).toBeTruthy();
-    expect(vec2.near(transformation2D.transformVector(point2D), affine2D.transformVector2D(point2D), Epsilon)).toBeTruthy();
+    expect(vec2.near(transformation2D.transformPoint2D(point2D), affine2D.transformPoint2D(point2D), Epsilon)).toBeTruthy();
+    expect(vec2.near(transformation2D.transformVector2D(point2D), affine2D.transformVector2D(point2D), Epsilon)).toBeTruthy();
 
     expect(vec2.near(point2D, affine2D.transformPoint2D(inverseAffine2D.transformPoint2D(point2D)), Epsilon)).toBeTruthy();
     
-    expect(vec2.near(transformation2D.transformInversePoint(point2D), inverseAffine2D.transformPoint2D(point2D), Epsilon)).toBeTruthy();
-    expect(vec2.near(transformation2D.transformInverseVector(point2D), inverseAffine2D.transformVector2D(point2D), Epsilon)).toBeTruthy();
+    expect(vec2.near(transformation2D.transformInversePoint2D(point2D), inverseAffine2D.transformPoint2D(point2D), Epsilon)).toBeTruthy();
+    expect(vec2.near(transformation2D.transformInverseVector2D(point2D), inverseAffine2D.transformVector2D(point2D), Epsilon)).toBeTruthy();
     expect(transformation2D.hasUniformScale()).toBeFalsy();
 
     let rigidTransform2D = new transform2D(translation2D, rotation2D, new vec2(-1., -1.));
     let inverseRigidTransform2D = rigidTransform2D.inverse();
-    expect(vec2.near(rigidTransform2D.transformInversePoint(point2D),
-        inverseRigidTransform2D.transformPoint(point2D), Epsilon)).toBeTruthy();
+    expect(vec2.near(rigidTransform2D.transformInversePoint2D(point2D),
+        inverseRigidTransform2D.transformPoint2D(point2D), Epsilon)).toBeTruthy();
 });
 
 

@@ -103,4 +103,7 @@ export default class mat2 {
             0., 0., 1.
         );
     }
+    transformPoint2D(p:vec2): vec2 {
+        return this.postMulVec(p);
+    }
 }

@@ -334,14 +334,8 @@ export default class mat3 {
         }
         return new matrix(data, 4, 4);
     }
-    transform3D(p: vec3): vec3 {
-        let result = [0, 0, 0];
-        for (let i = 0; i < 3; i++) {
-            result[i] += this.get(i, 0) * p.x;
-            result[i] += this.get(i, 1) * p.y;
-            result[i] += this.get(i, 2) * p.z;
-        }
-        return new vec3(result[0], result[1], result[2]);
+    transformPoint3D(p: vec3): vec3 {
+        return this.postMulVec(p);
     }
     transformPoint2D(p: vec2): vec2 {
         let result = [0, 0, 0];

@@ -172,7 +172,13 @@ export default class vec3{
     }
     squaredLength():number{
         return this.x * this.x + this.y * this.y + this.z * this.z;
-    }    
+    }  
+    static distance(a:vec3, b:vec3): number {
+        return a.sub(b).length();
+    }
+    static squaredDistance(a:vec3, b:vec3): number {
+        return a.sub(b).squaredLength();
+    }  
     toString():string{
         return `[${this.x.toFixed(4)}, ${this.y.toFixed(4)}, ${this.z.toFixed(4)}]`;
     }
@@ -181,5 +187,11 @@ export default class vec3{
         let ay = new axisAngle(new vec3(0, 1, 0), this.y);
         let az = new axisAngle(new vec3(0, 0, 1), this.z);
         return ay.rotate(ax.rotate(az.rotate(point)));
+    }
+    apply(op: (a: number) => number): vec3{
+        return new vec3(op(this.x), op(this.y), op(this.z));
+    }
+    static apply(a:vec3, b:vec3, op: (a: number, b: number) => number): vec3 {
+        return new vec3(op(a.x, b.x), op(a.y, b.y), op(a.z, b.z));
     }
 }

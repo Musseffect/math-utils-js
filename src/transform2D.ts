@@ -23,16 +23,16 @@ export default class transform2D{
     toAffine():mat3{
         return mat3.fromTRS(this.translation, this.rotation, this.scale);
     }
-    transformPoint(point:vec2):vec2{
+    transformPoint2D(point:vec2):vec2{
         return rotate2D(vec2.mul(point, this.scale), this.rotation).addSelf(this.translation);
     }
-    transformVector(vector:vec2):vec2{
+    transformVector2D(vector:vec2):vec2{
         return rotate2D(vec2.mul(vector, this.scale), this.rotation);
     }
-    transformInversePoint(point:vec2):vec2 {
+    transformInversePoint2D(point:vec2):vec2 {
         return rotate2D(vec2.sub(point, this.translation), -this.rotation).divSelf(this.scale);
     }
-    transformInverseVector(vector:vec2):vec2 {
+    transformInverseVector2D(vector:vec2):vec2 {
         return rotate2D(vector, -this.rotation).divSelf(this.scale);
     }
     // only possible with uniform scale

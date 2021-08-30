@@ -56,7 +56,7 @@ export default class matrix {
         }
         return new matrix(data, size, size);
     }
-    static mult(a: matrix, b: matrix): matrix {
+    static mul(a: matrix, b: matrix): matrix {
         assert(a.w == b.h, "Matrix dimensions aren't compatible");
         let result = matrix.empty(b.w, a.h);
         //for each cell in the result

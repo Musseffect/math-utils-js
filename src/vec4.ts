@@ -164,6 +164,12 @@ export default class vec4 {
     squaredLength():number{
         return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
     } 
+    static distance(a:vec4, b:vec4): number {
+        return a.sub(b).length();
+    }
+    static squaredDistance(a:vec4, b:vec4): number {
+        return a.sub(b).squaredLength();
+    }
     static dot(a:vec4, b:vec4):number{
         return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     }
@@ -172,5 +178,11 @@ export default class vec4 {
     }
     toString():string{
         return `[${this.x.toPrecision(4)}, ${this.y.toPrecision(4)}, ${this.z.toPrecision(4)}, ${this.w.toPrecision(4)}]`;
+    }
+    apply(op: (a: number) => number): vec4{
+        return new vec4(op(this.x), op(this.y), op(this.z), op(this.w));
+    }
+    static apply(a:vec4, b:vec4, op: (a: number, b: number) => number): vec4 {
+        return new vec4(op(a.x, b.x), op(a.y, b.y), op(a.z, b.z), op(a.w, b.w));
     }
 }

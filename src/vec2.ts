@@ -49,7 +49,13 @@ export default class vec2 {
     }
     squaredLength(): number {
         return this.x * this.x + this.y * this.y;
+    }  
+    static distance(a:vec2, b:vec2): number {
+        return a.sub(b).length();
     }
+    static squaredDistance(a:vec2, b:vec2): number {
+        return a.sub(b).squaredLength();
+    } 
     l2norm():number{
         return Math.sqrt(this.squaredLength());
     }
@@ -141,5 +147,11 @@ export default class vec2 {
     }
     toString():string{
         return `[${this.x.toFixed(4)}, ${this.y.toFixed(4)}]`;
+    }
+    apply(op:(a: number) => number):vec2{
+        return new vec2(op(this.x), op(this.y));
+    }
+    static apply(a:vec2, b:vec2, op: (a: number, b: number) => number): vec2 {
+        return new vec2(op(a.x, b.x), op(a.y, b.y));
     }
 }
