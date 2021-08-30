@@ -1,9 +1,9 @@
 {
-	"name": "math-utils",
+	"name": "math-utils-js",
 	"version": "1.0.0",
 	"description": "",
 	"main": "index.ts",
-	"private": true,
+	"private": false,
 	"scripts": {
 		"bundle-min": "webpack --mode production --config webpack.config.js",
 		"build:dev": "webpack --mode development --config webpack.dev.js",
