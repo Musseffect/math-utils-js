@@ -32,3 +32,7 @@ jobs:
           prerelease: false
           files: |
             dist/*
+      - uses: JS-DevTools/npm-publish@v1
+        with:
+          token: ${{ secrets.NODE_AUTH_TOKEN }}
+          tag: ${{ github.event.release.tag_name }}
