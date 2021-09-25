@@ -2,13 +2,24 @@
 	"name": "math-utils-js",
 	"version": "1.0.0",
 	"description": "",
-	"main": "index.ts",
+	"main": "./dist/package/index.js",
+	"module": "./dist/package/index.js",
+	"types": "./dist/package/index.d.ts",
+	"files": ["./dist/lib/**/*", "./dist/package/**/*"],
 	"private": false,
+	"repository": {
+		"type": "git",
+		"url": "git+https://github.com/Musseffect/math-utils-js"
+	},
+	"bugs": {
+		"url": "https://Musseffect/math-utils-js/issues"
+	},
 	"scripts": {
-		"bundle-min": "webpack --mode production --config webpack.config.js",
-		"build:dev": "webpack --mode development --config webpack.dev.js",
+		"bundle:min": "webpack --mode production --config webpack.config.js",
+		"bundle:dev": "webpack --mode development --config webpack.dev.js",
 		"watch:dev": "webpack --watch --mode development --config webpack.dev.js",
-		"bundle": "webpack --mode production --config webpack.prod.js",
+		"bundle:package": "tsc",
+		"build": "tsc",
 		"test": "jest"
 	},
 	"devDependencies": {

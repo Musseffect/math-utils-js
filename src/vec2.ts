@@ -8,6 +8,15 @@ export default class vec2 {
         this.x = x;
         this.y = y;
     }
+    set(v: vec2):void {
+        this.x = v.x;
+        this.y = v.y;
+    }
+    static direction(a: number): vec2 {
+        let ca = Math.cos(a);
+        let sa = Math.sin(a);
+        return new vec2(ca, sa);
+    }
     toArray(): number[] {
         return [this.x, this.y];
     }
@@ -41,7 +50,7 @@ export default class vec2 {
     normalized():vec2{
         return this.clone().normalize();
     }
-    inverse():vec2 {
+    negate():vec2 {
         return new vec2(-this.x, -this.y);
     }
     length(): number {
@@ -130,8 +139,8 @@ export default class vec2 {
     static sub(a: vec2, b: vec2): vec2 {
         return a.sub(b);
     }
-    static scale(s: number): vec2 {
-        return this.scale(s);
+    static scale(a:vec2, s: number): vec2 {
+        return a.scale(s);
     }
     static dot(a: vec2, b: vec2): number {
         return a.x * b.x + a.y * b.y;

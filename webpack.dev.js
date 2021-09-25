@@ -1,36 +1,34 @@
-const path=require('path');
+const path = require('path');
 const webpack = require('webpack');
 
 module.exports = {
-    entry:'./src/index.ts',
-    devtool: "inline-source-map",
-    output:
-    {
-        filename:'bundle.js',
-        path:path.resolve(__dirname,'dist'),
-        /*hotUpdateChunkFilename: 'hot/hot-update.js',
-        hotUpdateMainFilename: 'hot/hot-update.json',*/
-        library: 'math',
-        libraryTarget: 'var'
-    },
-    plugins:
-    [
-	    //new webpack.HotModuleReplacementPlugin(),
-    ],
-    resolve: {
-        extensions: [".ts", ".tsx",'.js']
-    },
-    module: {
-        rules: [
-            {
-                test: /\.ts(x?)$/,
-                exclude: /node_modules/,
-                use: [
-                    {
-                        loader: "ts-loader"
-                    }
-                ]
-            } 
-        ]
-    },
+  entry: {
+    'math-utils':'./src/index.ts',
+  },
+  devtool: 'source-map',
+  optimization:{
+      minimize:false
+  },
+  output: {
+    path: path.resolve(__dirname, './dist/lib'),
+    filename: '[name].js',
+    library: 'math',
+    libraryTarget: 'var'
+  },
+  resolve:{
+      extensions: ['.ts','.tsx','.js'],
+  },
+  module: {
+      rules: [
+          {
+              test: /\.ts(x?)$/,
+              exclude: /node_modules/,
+              use: [
+                  {
+                      loader: "ts-loader"
+                  }
+              ]
+          } 
+      ]
+  }
 };

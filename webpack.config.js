@@ -10,7 +10,7 @@ module.exports = {
       minimize:true
   },
   output: {
-    path: path.resolve(__dirname, 'dist'),
+    path: path.resolve(__dirname, './dist/lib'),
     filename: '[name].js',
     library: 'math',
     libraryTarget: 'var'

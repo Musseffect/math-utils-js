@@ -44,7 +44,7 @@ export default class transform3D{
         assert(this.hasUniformScale(), "can't inverse transform3D with non-uniform scale");
         let invRot = this.rotation.inverse();
         return new transform3D(
-            invRot.rotate(vec3.div(this.translation.inverse(), this.scale)),
+            invRot.rotate(vec3.div(this.translation.negate(), this.scale)),
             invRot,
             new vec3(1.0 / this.scale.x, 1.0 / this.scale.y, 1.0 / this.scale.z)
         ); 

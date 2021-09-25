@@ -39,7 +39,7 @@ export default class transform2D{
     inverse():transform2D {
         assert(this.hasUniformScale(), "can't inverse transform2D with non-uniform scale");
         return new transform2D(
-            rotate2D(vec2.div(this.translation.inverse(), this.scale), -this.rotation),
+            rotate2D(vec2.div(this.translation.negate(), this.scale), -this.rotation),
             -this.rotation,
             new vec2(1.0 / this.scale.x, 1.0 / this.scale.y)
         ); 

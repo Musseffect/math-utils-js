@@ -11,7 +11,21 @@ import vec2 from "./vec2";
 import vec3 from "./vec3";
 import vec4 from "./vec4";
 import vector from "./vector";
-import * as utils from "./utils";
+import {
+    Epsilon,
+    SmallEpsilon,
+    SmallestEpsilon,
+    assert,
+    radians,
+    degrees,
+    clamp,
+    near,
+    lerp,
+    determinant2x2,
+    determinant3x3,
+    determinant4x4,
+    rotate2D
+} from "./utils";
 import { Axis, eulerAngles } from "./eulerAngles";
 
 export {
@@ -30,5 +44,17 @@ export {
     transform3D,
     Axis,
     eulerAngles,
-    utils
+    Epsilon,
+    SmallEpsilon,
+    SmallestEpsilon,
+    assert,
+    radians,
+    degrees,
+    clamp,
+    near,
+    lerp,
+    determinant2x2,
+    determinant3x3,
+    determinant4x4,
+    rotate2D
 };

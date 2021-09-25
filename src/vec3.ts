@@ -11,13 +11,18 @@ export default class vec3{
         this.y = y;
         this.z = z;
     }
+    set(v: vec3):void {
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
+    }
     toArray(): number[] {
         return [this.x, this.y, this.z];
     }
     toVector(): vector {
         return new vector(this.toArray());
     }
-    inverse():vec3 {
+    negate():vec3 {
         return new vec3(-this.x, -this.y, -this.z);
     }
     static lerp(a:vec3, b:vec3, t: number):vec3{

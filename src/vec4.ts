@@ -12,14 +12,20 @@ export default class vec4 {
         this.z = z;
         this.w = w;
     }
+    set(v: vec4):void {
+        this.x = v.x;
+        this.y = v.y;
+        this.z = v.z;
+        this.w = v.w;
+    }
     toArray(): number[] {
         return [this.x, this.y, this.z, this.w];
     }
     toVector(): vector {
         return new vector(this.toArray());
     }
-    inverse():vec4 {
-        return new vec4(this.x, this.y, this.z, this.w);
+    negate():vec4 {
+        return new vec4(-this.x, -this.y, -this.z, -this.w);
     }
     static lerp(a:vec4, b:vec4, t: number):vec4{
         return new vec4(
