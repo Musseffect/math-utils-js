@@ -120,7 +120,7 @@ test('Matrix-vector operations', () => {
     let rhs = p4D.toVector();
     expect(vector.near(matrix.postMulVec(mat, rhs), m4D.postMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
     expect(vector.near(matrix.preMulVec(mat, rhs), m4D.preMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
-    
+
     expect(matrix.near(mat.inverse(), m4D.inverse().toMatrix(), SmallEpsilon)).toBeTruthy();
 
     expect(matrix.near(matrix.mul(mat, mat.inverse()), matrix.identity(4), SmallEpsilon)).toBeTruthy();
@@ -140,7 +140,7 @@ test("Rotation conversions", () => {
     expect(axisAngle.near(matRotation.toAxisAngle(), axisAngleRotation, SmallEpsilon)).toBeTruthy();
 
     let point = new vec3(0.3, -0.5, -0.2);
-    let eulerRotation = { yaw: radians(10), pitch: radians(25), roll:radians(62) };
+    let eulerRotation = { yaw: radians(10), pitch: radians(25), roll: radians(62) };
     matRotation = mat3.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
     quatRotation = quat.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
     let matRotationEuler = mat3.yaw(eulerRotation.yaw).mulSelf(mat3.pitch(eulerRotation.pitch)).mulSelf(mat3.roll(eulerRotation.roll));
@@ -148,11 +148,11 @@ test("Rotation conversions", () => {
     expect(vec3.near(quatRotation.rotate(point), matRotation.toQuat().rotate(point), SmallEpsilon)).toBeTruthy();
     expect(vec3.near(matRotation.transformPoint3D(point), matRotationEuler.transformPoint3D(point), SmallEpsilon)).toBeTruthy();
     expect(mat3.near(matRotation, matRotationEuler, SmallEpsilon)).toBeTruthy();
-    
+
     matRotation = mat3.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
     let ea = matRotation.toEulerAngles();
     let eaMat = mat3.fromEulerAngles(ea.x, ea.y, ea.z);
-    
+
     expect(vec3.near(eaMat.transformPoint3D(point), matRotation.transformPoint3D(point), SmallEpsilon)).toBeTruthy();
 
     matRotation = mat3.fromEulerAngles(radians(180), 0, 0);
@@ -227,7 +227,7 @@ test("Transformations", () => {
     expect(vec2.near(transformation2D.transformVector2D(point2D), affine2D.transformVector2D(point2D), Epsilon)).toBeTruthy();
 
     expect(vec2.near(point2D, affine2D.transformPoint2D(inverseAffine2D.transformPoint2D(point2D)), Epsilon)).toBeTruthy();
-    
+
     expect(vec2.near(transformation2D.transformInversePoint2D(point2D), inverseAffine2D.transformPoint2D(point2D), Epsilon)).toBeTruthy();
     expect(vec2.near(transformation2D.transformInverseVector2D(point2D), inverseAffine2D.transformVector2D(point2D), Epsilon)).toBeTruthy();
     expect(transformation2D.hasUniformScale()).toBeFalsy();

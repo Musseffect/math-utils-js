@@ -38,4 +38,4 @@ jobs:
           prerelease: true
           title: "Development Build"
           files: |
-            dist/*
+            dist/lib/*

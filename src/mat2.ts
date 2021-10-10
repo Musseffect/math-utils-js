@@ -1,16 +1,24 @@
 import mat3 from "./mat3";
-import mat4 from "./mat4";
 import matrix from "./matrix";
-import { determinant2x2, Epsilon } from "./utils";
+import { determinant2x2, Epsilon, SmallEpsilon } from "./utils";
 import vec2 from "./vec2";
 
 export default class mat2 {
     data: number[][];
-    constructor(m11: number, m12: number, m21: number, m22: number){
+    constructor(m11: number, m12: number, m21: number, m22: number) {
         this.data = [
             [m11, m12],
             [m21, m22]
         ];
+    }
+    isIdentity(tolerance: number = SmallEpsilon): boolean {
+        let diff = 0;
+        for (let i = 0; i < 2; ++i) {
+            for (let j = 0; j < 2; ++j) {
+                diff = Math.max(Math.abs(this.data[i][j] - (i == j ? 0 : 1)), diff);
+            }
+        }
+        return diff < tolerance;
     }
     clone(): mat2 {
         return new mat2(this.data[0][0], this.data[0][1], this.data[1][0], this.data[1][1]);
@@ -69,6 +77,12 @@ export default class mat2 {
             this.data[1][1], -this.data[0][1],
             -this.data[1][0], this.data[0][0]
         ).scaleSelf(1.0 / d);
+    }
+    transpose(): mat2 {
+        return new mat2(
+            this.get(0, 0), this.get(1, 0),
+            this.get(0, 1), this.get(1, 1)
+        );
     }
     toString(): string {
         return `[

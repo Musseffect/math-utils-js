@@ -4,7 +4,7 @@ import quat from "./quat";
 import vec3 from "./vec3";
 
 // axis that should correspond to yaw, pitch and roll
-export enum Axis{
+export enum Axis {
     YXZ = 0, // opengl RHS coords
     YZX = 1,
     XYZ = 2,
@@ -21,8 +21,8 @@ const Orders = [
     [2, 1, 0]
 ];
 
-function axisFromIndex(index:number):vec3 {
-    return new vec3(index && 0, index && 1,index && 2);
+function axisFromIndex(index: number): vec3 {
+    return new vec3(index && 0, index && 1, index && 2);
 }
 /* 
 rotation is always applied in the order:

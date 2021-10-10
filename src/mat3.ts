@@ -19,6 +19,15 @@ export default class mat3 {
             [m31, m32, m33]
         ];
     }
+    isIdentity(tolerance: number = SmallEpsilon): boolean {
+        let diff = 0;
+        for (let i = 0; i < 3; ++i) {
+            for (let j = 0; j < 3; ++j) {
+                diff = Math.max(Math.abs(this.data[i][j] - (i == j ? 0 : 1)), diff);
+            }
+        }
+        return diff < tolerance;
+    }
     clone(): mat3 {
         return new mat3(
             this.get(0, 0), this.get(0, 1), this.get(0, 2),

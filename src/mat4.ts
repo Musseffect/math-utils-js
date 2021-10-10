@@ -4,6 +4,7 @@ import vec3 from "./vec3";
 import { determinant3x3, determinant4x4, Epsilon } from "./utils";
 import vec4 from "./vec4";
 import matrix from "./matrix";
+import { SmallEpsilon } from ".";
 
 
 export default class mat4 {
@@ -18,6 +19,15 @@ export default class mat4 {
             [m31, m32, m33, m34],
             [m41, m42, m43, m44]
         ];
+    }
+    isIdentity(tolerance: number = SmallEpsilon): boolean {
+        let diff = 0;
+        for (let i = 0; i < 4; ++i) {
+            for (let j = 0; j < 4; ++j) {
+                diff = Math.max(Math.abs(this.data[i][j] - (i == j ? 0 : 1)), diff);
+            }
+        }
+        return diff < tolerance;
     }
     clone(): mat4 {
         return new mat4(

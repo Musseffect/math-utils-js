@@ -1,17 +1,18 @@
+import { SmallestEpsilon, vec2 } from ".";
 import axisAngle from "./axisAngle";
 import { lerp, Epsilon, SmallEpsilon } from "./utils";
 import vector from "./vector";
 
-export default class vec3{
+export default class vec3 {
     x: number;
     y: number;
     z: number;
-    constructor(x: number, y: number, z: number){
+    constructor(x: number, y: number, z: number) {
         this.x = x;
         this.y = y;
         this.z = z;
     }
-    set(v: vec3):void {
+    set(v: vec3): void {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
@@ -22,33 +23,52 @@ export default class vec3{
     toVector(): vector {
         return new vector(this.toArray());
     }
-    negate():vec3 {
-        return new vec3(-this.x, -this.y, -this.z);
+    static normalize(v: vec3): vec3 {
+        return v.clone().normalize();
     }
-    static lerp(a:vec3, b:vec3, t: number):vec3{
+    normalize(): vec3 {
+        let l = this.l2norm();
+        if (l < SmallestEpsilon) {
+            this.x = 0;
+            this.y = 0;
+            this.z = 0;
+            return this;
+        }
+        return this.scaleSelf(1 / l);
+    }
+    negate(): vec3 {
+        this.x = -this.x;
+        this.y = -this.y;
+        this.z = -this.z;
+        return this;
+    }
+    static negate(v: vec3) {
+        return new vec3(-v.x, -v.y, -v.z);
+    }
+    static lerp(a: vec3, b: vec3, t: number): vec3 {
         return new vec3(
             lerp(a.x, b.x, t),
             lerp(a.y, b.y, t),
             lerp(a.z, b.z, t)
         );
     }
-    static near(a:vec3, b:vec3, threshold?:number):boolean{
-        if(!threshold){
+    static near(a: vec3, b: vec3, threshold?: number): boolean {
+        if (!threshold) {
             threshold = Epsilon;
         }
         return vec3.sub(a, b).lInfnorm() <= threshold;
     }
-    static empty():vec3{
+    static empty(): vec3 {
         return new vec3(0., 0., 0.);
     }
-    clone():vec3{
+    clone(): vec3 {
         return new vec3(this.x, this.y, this.z);
     }
     //scale
-    static scale(a:vec3, scalar:number):vec3{
+    static scale(a: vec3, scalar: number): vec3 {
         return a.scale(scalar);
     }
-    scale(scalar:number, out?:vec3):vec3{
+    scale(scalar: number, out?: vec3): vec3 {
         if (!out) {
             out = this.clone();
         }
@@ -57,15 +77,15 @@ export default class vec3{
         out.z = this.z * scalar;
         return out;
     }
-    scaleSelf(scalar:number):vec3{
+    scaleSelf(scalar: number): vec3 {
         this.scale(scalar, this);
         return this;
     }
     //add
-    static add(a:vec3, b:vec3):vec3{
+    static add(a: vec3, b: vec3): vec3 {
         return a.add(b);
     }
-    add(vec:vec3, out?:vec3):vec3{
+    add(vec: vec3, out?: vec3): vec3 {
         if (!out) {
             out = this.clone();
         }
@@ -74,14 +94,14 @@ export default class vec3{
         out.z = this.z + vec.z;
         return out;
     }
-    addSelf(v:vec3):vec3{
+    addSelf(v: vec3): vec3 {
         return this.add(v, this);
     }
     //sub
-    static sub(a:vec3, b:vec3):vec3{
+    static sub(a: vec3, b: vec3): vec3 {
         return a.sub(b);
     }
-    sub(v:vec3, out?:vec3):vec3{
+    sub(v: vec3, out?: vec3): vec3 {
         if (!out) {
             out = this.clone();
         }
@@ -90,11 +110,11 @@ export default class vec3{
         out.z = this.z - v.z;
         return out;
     }
-    subSelf(v:vec3):vec3{
+    subSelf(v: vec3): vec3 {
         return this.sub(v, this);
     }
     //mul
-    mul(v:vec3, out?:vec3):vec3{
+    mul(v: vec3, out?: vec3): vec3 {
         if (!out) {
             out = this.clone();
         }
@@ -103,14 +123,14 @@ export default class vec3{
         out.z = this.z * v.z;
         return out;
     }
-    static mul(a:vec3, b:vec3):vec3{
+    static mul(a: vec3, b: vec3): vec3 {
         return a.mul(b);
     }
-    mulSelf(v:vec3):vec3{
+    mulSelf(v: vec3): vec3 {
         return this.mul(v, this);
     }
     //div
-    div(v:vec3, out?:vec3):vec3{
+    div(v: vec3, out?: vec3): vec3 {
         if (!out) {
             out = this.clone();
         }
@@ -119,84 +139,71 @@ export default class vec3{
         out.z = this.z / v.z;
         return out;
     }
-    static div(a:vec3, b:vec3):vec3{
+    static div(a: vec3, b: vec3): vec3 {
         return a.div(b);
     }
-    divSelf(v:vec3):vec3{
+    divSelf(v: vec3): vec3 {
         return this.div(v, this);
     }
     //dot
-    static dot(a:vec3, b:vec3):number{
+    static dot(a: vec3, b: vec3): number {
         return a.x * b.x + a.y * b.y + a.z * b.z;
     }
-    dot(v:vec3):number{
-        return vec3.dot(this, v); 
+    dot(v: vec3): number {
+        return vec3.dot(this, v);
     }
     //cross
-    static cross(a:vec3, b:vec3):vec3{
+    static cross(a: vec3, b: vec3): vec3 {
         return new vec3(
             a.y * b.z - a.z * b.y,
-            -a.x * b.z + a.z * b.x, 
-            a.x * b.y - a.y * b.x 
-            );
+            -a.x * b.z + a.z * b.x,
+            a.x * b.y - a.y * b.x
+        );
     }
-    cross(v:vec3):vec3{
+    cross(v: vec3): vec3 {
         return vec3.cross(this, v);
     }
-    normalize():vec3{
-        let l = this.l2norm();
-        if (l < SmallEpsilon) {
-            this.x = 0;
-            this.y = 0;
-            this.z = 0;
-            return this;
-        }
-        return this.scaleSelf(1./l);
-    }
-    normalized():vec3{
-        return this.clone().normalize();
-    }
-    lpnorm(p:number):number{
+    lpnorm(p: number): number {
         return Math.pow(
-            Math.pow(Math.abs(this.x), p) + 
-            Math.pow(Math.abs(this.y), p) + 
+            Math.pow(Math.abs(this.x), p) +
+            Math.pow(Math.abs(this.y), p) +
             Math.pow(Math.abs(this.z), p)
-            , 1.0/p);
+            , 1.0 / p);
     }
-    l1norm():number{
+    l1norm(): number {
         return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z);
     }
-    l2norm():number{
+    l2norm(): number {
         return Math.sqrt(this.squaredLength());
     }
-    lInfnorm():number{
+    lInfnorm(): number {
         return Math.max(Math.abs(this.x), Math.max(Math.abs(this.y), Math.abs(this.z)));
     }
-    length():number{
+    length(): number {
         return this.l2norm();
     }
-    squaredLength():number{
+    squaredLength(): number {
         return this.x * this.x + this.y * this.y + this.z * this.z;
-    }  
-    static distance(a:vec3, b:vec3): number {
+    }
+    static distance(a: vec3, b: vec3): number {
         return a.sub(b).length();
     }
-    static squaredDistance(a:vec3, b:vec3): number {
+    static squaredDistance(a: vec3, b: vec3): number {
         return a.sub(b).squaredLength();
-    }  
-    toString():string{
+    }
+    toString(): string {
         return `[${this.x.toFixed(4)}, ${this.y.toFixed(4)}, ${this.z.toFixed(4)}]`;
     }
-    rotateEuler(point:vec3):vec3{
+    rotateEuler(point: vec3): vec3 {
         let ax = new axisAngle(new vec3(1, 0, 0), this.x);
         let ay = new axisAngle(new vec3(0, 1, 0), this.y);
         let az = new axisAngle(new vec3(0, 0, 1), this.z);
         return ay.rotate(ax.rotate(az.rotate(point)));
     }
-    apply(op: (a: number) => number): vec3{
+    apply(op: (a: number) => number): vec3 {
         return new vec3(op(this.x), op(this.y), op(this.z));
     }
-    static apply(a:vec3, b:vec3, op: (a: number, b: number) => number): vec3 {
+    static apply(a: vec3, b: vec3, op: (a: number, b: number) => number): vec3 {
         return new vec3(op(a.x, b.x), op(a.y, b.y), op(a.z, b.z));
     }
 }

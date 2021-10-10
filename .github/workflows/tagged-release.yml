@@ -24,14 +24,16 @@ jobs:
         run: mkdir dist
       - name: Run tests
         run: npm test
-      - name: Build
-        run: npm run bundle-min 
+      - name: Build js
+        run: npm run bundle-min
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
             dist/*
+      - name: Build package
+        run: 
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NODE_AUTH_TOKEN }}

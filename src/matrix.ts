@@ -47,7 +47,7 @@ export default class matrix {
     height(): number {
         return this.h;
     }
-    static identity(size:number): matrix {
+    static identity(size: number): matrix {
         let data: number[];
         (data = []).length = size * size;
         data.fill(0);
@@ -98,7 +98,7 @@ export default class matrix {
     get(row: number, column: number): number {
         return this.data[row * this.w + column];
     }
-    set(row: number, column: number, value:number): void {
+    set(row: number, column: number, value: number): void {
         this.data[row * this.w + column] = value;
     }
     transpose(): matrix {

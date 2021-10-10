@@ -9,42 +9,42 @@ export function assert(condition: boolean, message: string): void {
         throw new Error(message);
 }
 
-export function radians(value:number):number{
+export function radians(value: number): number {
     return value / 180 * Math.PI;
 }
 
-export function degrees(value:number):number{
+export function degrees(value: number): number {
     return value / Math.PI * 180;
 }
 
-export function clamp(value:number, min:number, max:number):number{
+export function clamp(value: number, min: number, max: number): number {
     return Math.max(Math.min(value, max), min);
 }
 
-export function near(a:number, b:number, threshold?:number):boolean{
-    if(!threshold)
+export function near(a: number, b: number, threshold?: number): boolean {
+    if (!threshold)
         threshold = Epsilon;
     return Math.abs(a - b) <= threshold;
 }
 
-export function lerp(a:number, b:number, t:number):number{
+export function lerp(a: number, b: number, t: number): number {
     return b * t + a * (1 - t);
 }
 
-export function determinant2x2(m11: number, m12: number, m21: number, m22: number): number{
+export function determinant2x2(m11: number, m12: number, m21: number, m22: number): number {
     return m11 * m22 - m12 * m21;
 }
 export function determinant3x3(m11: number, m12: number, m13: number,
     m21: number, m22: number, m23: number,
     m31: number, m32: number, m33: number) {
     return m11 * (m22 * m33 - m23 * m32)
-    - m12 * (m21 * m33 - m31 * m23)
-    + m13 * (m21 * m32 - m31 * m22);
+        - m12 * (m21 * m33 - m31 * m23)
+        + m13 * (m21 * m32 - m31 * m22);
 }
 export function determinant4x4(m11: number, m12: number, m13: number, m14: number,
     m21: number, m22: number, m23: number, m24: number,
     m31: number, m32: number, m33: number, m34: number,
-    m41: number, m42: number, m43: number, m44: number): number{
+    m41: number, m42: number, m43: number, m44: number): number {
     return m11 * determinant3x3(m22, m23, m24, m32, m33, m34, m42, m43, m44)
         - m12 * determinant3x3(m21, m23, m24, m31, m33, m34, m41, m43, m44)
         + m13 * determinant3x3(m21, m22, m24, m31, m32, m34, m41, m42, m44)

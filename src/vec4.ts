@@ -1,3 +1,4 @@
+import { SmallestEpsilon } from ".";
 import { Epsilon, lerp, SmallEpsilon } from "./utils";
 import vector from "./vector";
 
@@ -12,7 +13,7 @@ export default class vec4 {
         this.z = z;
         this.w = w;
     }
-    set(v: vec4):void {
+    set(v: vec4): void {
         this.x = v.x;
         this.y = v.y;
         this.z = v.z;
@@ -24,10 +25,17 @@ export default class vec4 {
     toVector(): vector {
         return new vector(this.toArray());
     }
-    negate():vec4 {
-        return new vec4(-this.x, -this.y, -this.z, -this.w);
+    negate(): vec4 {
+        this.x = -this.x;
+        this.y = -this.y;
+        this.z = -this.z;
+        this.w = -this.w;
+        return this;
     }
-    static lerp(a:vec4, b:vec4, t: number):vec4{
+    static negate(v: vec4) {
+        return new vec4(-v.x, -v.y, -v.z, -v.w);
+    }
+    static lerp(a: vec4, b: vec4, t: number): vec4 {
         return new vec4(
             lerp(a.x, b.x, t),
             lerp(a.y, b.y, t),
@@ -35,23 +43,23 @@ export default class vec4 {
             lerp(a.w, b.w, t)
         );
     }
-    static near(a:vec4, b:vec4, threshold?:number):boolean{
-        if(!threshold){
+    static near(a: vec4, b: vec4, threshold?: number): boolean {
+        if (!threshold) {
             threshold = Epsilon;
         }
         return vec4.sub(a, b).lInfnorm() <= threshold;
     }
-    static empty():vec4{
+    static empty(): vec4 {
         return new vec4(0., 0., 0., 0.);
     }
-    clone():vec4{
+    clone(): vec4 {
         return new vec4(this.x, this.y, this.z, this.w);
     }
     //scale
-    static scale(a:vec4, scalar:number):vec4{
+    static scale(a: vec4, scalar: number): vec4 {
         return a.scale(scalar);
     }
-    scale(scalar:number, out?:vec4):vec4{
+    scale(scalar: number, out?: vec4): vec4 {
         if (!out) {
             out = this.clone();
         }
@@ -61,15 +69,15 @@ export default class vec4 {
         out.w = this.w * scalar;
         return out;
     }
-    scaleSelf(scalar:number):vec4{
+    scaleSelf(scalar: number): vec4 {
         this.scale(scalar, this);
         return this;
     }
     //add
-    static add(a:vec4, b:vec4):vec4{
+    static add(a: vec4, b: vec4): vec4 {
         return a.add(b);
     }
-    add(vec:vec4, out?:vec4):vec4{
+    add(vec: vec4, out?: vec4): vec4 {
         if (!out) {
             out = this.clone();
         }
@@ -79,14 +87,14 @@ export default class vec4 {
         out.w = this.w + vec.w;
         return out;
     }
-    addSelf(v:vec4):vec4{
+    addSelf(v: vec4): vec4 {
         return this.add(v, this);
     }
     //sub
-    static sub(a:vec4, b:vec4):vec4{
+    static sub(a: vec4, b: vec4): vec4 {
         return a.sub(b);
     }
-    sub(v:vec4, out?:vec4):vec4{
+    sub(v: vec4, out?: vec4): vec4 {
         if (!out) {
             out = this.clone();
         }
@@ -96,11 +104,11 @@ export default class vec4 {
         out.w = this.w - v.w;
         return out;
     }
-    subSelf(v:vec4):vec4{
+    subSelf(v: vec4): vec4 {
         return this.sub(v, this);
     }
     //mul
-    mul(v:vec4, out?:vec4):vec4{
+    mul(v: vec4, out?: vec4): vec4 {
         if (!out) {
             out = this.clone();
         }
@@ -110,14 +118,14 @@ export default class vec4 {
         out.z = this.w * v.w;
         return out;
     }
-    static mul(a:vec4, b:vec4):vec4{
+    static mul(a: vec4, b: vec4): vec4 {
         return a.mul(b);
     }
-    mulSelf(v:vec4):vec4{
+    mulSelf(v: vec4): vec4 {
         return this.mul(v, this);
     }
     //div
-    div(v:vec4, out?:vec4):vec4{
+    div(v: vec4, out?: vec4): vec4 {
         if (!out) {
             out = this.clone();
         }
@@ -127,68 +135,68 @@ export default class vec4 {
         out.z = this.w / v.w;
         return out;
     }
-    static div(a:vec4, b:vec4):vec4{
+    static div(a: vec4, b: vec4): vec4 {
         return a.div(b);
     }
-    divSelf(v:vec4):vec4{
+    divSelf(v: vec4): vec4 {
         return this.div(v, this);
     }
-    normalize():vec4{
+    static normalize(v: vec4): vec4 {
+        return v.clone().normalize();
+    }
+    normalize(): vec4 {
         let l = this.l2norm();
-        if (l < SmallEpsilon) {
+        if (l < SmallestEpsilon) {
             this.x = 0;
             this.y = 0;
             this.z = 0;
             this.w = 0;
             return this;
         }
-        return this.scaleSelf(1./l);
+        return this.scaleSelf(1 / l);
     }
-    normalized():vec4{
-        return this.clone().normalize();
-    }
-    lpnorm(p:number):number{
+    lpnorm(p: number): number {
         return Math.pow(
-            Math.pow(Math.abs(this.x), p) + 
-            Math.pow(Math.abs(this.y), p) + 
-            Math.pow(Math.abs(this.z), p) + 
+            Math.pow(Math.abs(this.x), p) +
+            Math.pow(Math.abs(this.y), p) +
+            Math.pow(Math.abs(this.z), p) +
             Math.pow(Math.abs(this.w), p)
-            , 1.0/p);
+            , 1.0 / p);
     }
-    l1norm():number{
+    l1norm(): number {
         return Math.abs(this.x) + Math.abs(this.y) + Math.abs(this.z) + Math.abs(this.w);
     }
-    l2norm():number{
+    l2norm(): number {
         return Math.sqrt(this.squaredLength());
     }
-    lInfnorm():number{
+    lInfnorm(): number {
         return Math.max(Math.max(Math.abs(this.x), Math.abs(this.y)), Math.max(Math.abs(this.z), Math.abs(this.w)));
     }
-    length():number{
+    length(): number {
         return this.l2norm();
     }
-    squaredLength():number{
+    squaredLength(): number {
         return this.x * this.x + this.y * this.y + this.z * this.z + this.w * this.w;
-    } 
-    static distance(a:vec4, b:vec4): number {
+    }
+    static distance(a: vec4, b: vec4): number {
         return a.sub(b).length();
     }
-    static squaredDistance(a:vec4, b:vec4): number {
+    static squaredDistance(a: vec4, b: vec4): number {
         return a.sub(b).squaredLength();
     }
-    static dot(a:vec4, b:vec4):number{
+    static dot(a: vec4, b: vec4): number {
         return a.x * b.x + a.y * b.y + a.z * b.z + a.w * b.w;
     }
-    dot(v:vec4):number{
-        return vec4.dot(this, v); 
+    dot(v: vec4): number {
+        return vec4.dot(this, v);
     }
-    toString():string{
+    toString(): string {
         return `[${this.x.toPrecision(4)}, ${this.y.toPrecision(4)}, ${this.z.toPrecision(4)}, ${this.w.toPrecision(4)}]`;
     }
-    apply(op: (a: number) => number): vec4{
+    apply(op: (a: number) => number): vec4 {
         return new vec4(op(this.x), op(this.y), op(this.z), op(this.w));
     }
-    static apply(a:vec4, b:vec4, op: (a: number, b: number) => number): vec4 {
+    static apply(a: vec4, b: vec4, op: (a: number, b: number) => number): vec4 {
         return new vec4(op(a.x, b.x), op(a.y, b.y), op(a.z, b.z), op(a.w, b.w));
     }
 }

@@ -1,8 +1,8 @@
 import { assert, clamp, Epsilon } from "./utils";
 
 export default class vector {
-    data:number[];
-    constructor(data:number[]) {
+    data: number[];
+    constructor(data: number[]) {
         this.data = data;
     }
     static near(a: vector, b: vector, threshold?: number): boolean {
@@ -23,79 +23,79 @@ export default class vector {
         return new vector(this.data.slice());
     }
     static empty(length: number): vector {
-        let data:number[];
+        let data: number[];
         (data = []).length = length;
         data.fill(0);
         return new vector(data);
     }
-    static dot(a:vector, b:vector) {
+    static dot(a: vector, b: vector) {
         let result = 0;
         for (let i = 0; i < a.size(); i++) {
             result += a.data[i] * b.data[i];
         }
         return result;
     }
-    static add(a:vector, b:vector) {
+    static add(a: vector, b: vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] + b.data[i]);
         return new vector(result);
     }
-    static sub(a:vector, b:vector) {
+    static sub(a: vector, b: vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] - b.data[i]);
         return new vector(result);
     }
-    static mul(a:vector, b:vector) {
+    static mul(a: vector, b: vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] * b.data[i]);
         return new vector(result);
     }
-    static scale(a:vector, s:number) {
+    static scale(a: vector, s: number) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] * s);
         return new vector(result);
     }
-    addSelf(b:vector) {
+    addSelf(b: vector) {
         for (let i = 0; i < this.data.length; i++)
             this.data[i] += b.data[i];
         return this;
     }
-    subSelf(b:vector) {
+    subSelf(b: vector) {
         for (let i = 0; i < this.data.length; i++)
             this.data[i] -= b.data[i];
         return this;
     }
-    scaleSelf(s:number) {
+    scaleSelf(s: number) {
         for (let i = 0; i < this.data.length; i++)
             this.data[i] *= s;
         return this;
     }
-    get(i:number):number {
+    get(i: number): number {
         return this.data[i];
     }
-    set(i:number, value:number):void {
+    set(i: number, value: number): void {
         this.data[i] = value;
     }
     size(): number {
         return this.data.length;
     }
-    getSubVector(offset:number, length:number) {
+    getSubVector(offset: number, length: number) {
         let resultData = new Array(length);
         for (let i = 0; i < length; i++)
             resultData[i] = this.data[offset + i];
         return new vector(resultData);
     }
-    addSubVector(b:vector, offset:number):vector {
+    addSubVector(b: vector, offset: number): vector {
         assert(this.size() == b.size() + offset, "Vectors should have matching sizes");
         for (let i = 0; i < b.size(); i++)
             this.data[i + offset] += b.get(i);
         return this;
     }
-    subSubVector(b:vector, offset:number):vector {
+    subSubVector(b: vector, offset: number): vector {
         assert(this.size() == b.size() + offset, "Vectors should have matching sizes");
         for (let i = 0; i < b.size(); i++)
             this.data[i + offset] -= b.get(i);
@@ -104,7 +104,7 @@ export default class vector {
     add(b: vector, dest?: vector): vector {
         if (!dest)
             dest = this;
-            assert(this.size() == b.size(), "Vectors should be of equal size");
+        assert(this.size() == b.size(), "Vectors should be of equal size");
         for (let i = 0; i < this.data.length; i++)
             dest.data[i] = this.data[i] + b.data[i];
         return dest;
@@ -112,7 +112,7 @@ export default class vector {
     sub(b: vector, dest?: vector): vector {
         if (!dest)
             dest = this;
-            assert(this.size() == b.size(), "Vectors should be of equal size");
+        assert(this.size() == b.size(), "Vectors should be of equal size");
         for (let i = 0; i < this.data.length; i++)
             dest.data[i] = this.data[i] - b.data[i];
         return dest;
@@ -175,7 +175,7 @@ export default class vector {
     }
     toString(): string {
         let result = "[";
-        this.data.forEach((item, i) => {result += `${i != 0 ? ", " : ""}${item}`});
+        this.data.forEach((item, i) => { result += `${i != 0 ? ", " : ""}${item}` });
         return result + "]";
     }
 }
