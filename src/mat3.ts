@@ -77,7 +77,7 @@ export default class mat3 {
             axis = new vec3(1., 0., 0.);
         } else if (near(axis.l1norm(), 0, SmallEpsilon)) {
             let values = [this.get(0, 0),
-                this.get(1, 1), this.get(2, 2)];
+            this.get(1, 1), this.get(2, 2)];
             if (values[0] > values[1]) {
                 if (values[0] > values[2]) {
                     axis.x = 0.5 * Math.sqrt(values[0] - values[1] - values[2] + 1);
@@ -193,7 +193,7 @@ export default class mat3 {
         let m31 = cy * sp * sr - sy * cr;
         let m32 = sy * sr + cy * sp * cr;
         let m33 = cy * cp;
-        
+
         return new mat3(
             m11, m12, m13,
             m21, m22, m23,
@@ -256,7 +256,7 @@ export default class mat3 {
         }
         return out;
     }
-    mulSelf(m:mat3): mat3 {
+    mulSelf(m: mat3): mat3 {
         return this.clone().mul(m, this);
     }
     determinant(): number {
@@ -370,7 +370,7 @@ export default class mat3 {
     [${this.get(2, 0).toFixed(4)}, ${this.get(2, 1).toFixed(4)}, ${this.get(2, 2).toFixed(4)}]
 ]`;
     }
-    static fromRotationAroundAxis(angle:number, axis:number = 2): mat3 {
+    static fromRotationAroundAxis(angle: number, axis: number = 2): mat3 {
         let ca = Math.cos(angle);
         let sa = Math.sin(angle);
         assert(axis >= 0 && axis < 3, "Wrong axis");

@@ -31,7 +31,7 @@ jobs:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
           prerelease: false
           files: |
-            dist/*
+            dist/lib
       - name: Build package
         run: 
       - uses: JS-DevTools/npm-publish@v1

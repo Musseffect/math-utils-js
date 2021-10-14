@@ -91,7 +91,7 @@ export default class mat2 {
 ]`;
     }
     preMulVec(v: vec2): vec2 {
-        return new vec2(v.x * this.data[0][0] + v.y* this.data[1][0], v.x * this.data[0][1] + v.y * this.data[1][1]);
+        return new vec2(v.x * this.data[0][0] + v.y * this.data[1][0], v.x * this.data[0][1] + v.y * this.data[1][1]);
     }
     postMulVec(v: vec2): vec2 {
         return new vec2(v.x * this.data[0][0] + v.y * this.data[0][1], v.x * this.data[1][0] + v.y * this.data[1][1]);
@@ -117,7 +117,7 @@ export default class mat2 {
             0., 0., 1.
         );
     }
-    transformPoint2D(p:vec2): vec2 {
+    transformPoint2D(p: vec2): vec2 {
         return this.postMulVec(p);
     }
 }
