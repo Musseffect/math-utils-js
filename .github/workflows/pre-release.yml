@@ -28,7 +28,7 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Build
-        run: npm run bundle-min 
+        run: npm run bundle:min 
           
 
       - uses: "marvinpinto/action-automatic-releases@latest"

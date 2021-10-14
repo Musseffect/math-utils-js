@@ -25,7 +25,7 @@ jobs:
       - name: Run tests
         run: npm test
       - name: Build js
-        run: npm run bundle-min
+        run: npm run bundle:min
       - uses: "marvinpinto/action-automatic-releases@latest"
         with:
           repo_token: "${{ secrets.GITHUB_TOKEN }}"
@@ -33,7 +33,7 @@ jobs:
           files: |
             dist/lib
       - name: Build package
-        run: 
+        run: npm run bundle:package
       - uses: JS-DevTools/npm-publish@v1
         with:
           token: ${{ secrets.NODE_AUTH_TOKEN }}
