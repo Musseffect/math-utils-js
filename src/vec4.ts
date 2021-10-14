@@ -1,5 +1,4 @@
-import { SmallestEpsilon } from ".";
-import { Epsilon, lerp, SmallEpsilon } from "./utils";
+import { Epsilon, lerp, SmallEpsilon, SmallestEpsilon } from "./utils";
 import vector from "./vector";
 
 export default class vec4 {

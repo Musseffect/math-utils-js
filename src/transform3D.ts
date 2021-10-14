@@ -34,17 +34,17 @@ export default class transform3D {
         return this.rotation.rotate(vec3.mul(vector, this.scale));
     }
     transformInversePoint3D(point: vec3): vec3 {
-        return this.rotation.inverse().rotate(vec3.sub(point, this.translation)).divSelf(this.scale);
+        return quat.inverse(this.rotation).rotate(vec3.sub(point, this.translation)).divSelf(this.scale);
     }
     transformInverseVector3D(vector: vec3): vec3 {
-        return this.rotation.inverse().rotate(vector).divSelf(this.scale);
+        return quat.inverse(this.rotation).rotate(vector).divSelf(this.scale);
     }
     // only possible with uniform scale
     inverse(): transform3D {
         assert(this.hasUniformScale(), "can't inverse transform3D with non-uniform scale");
-        let invRot = this.rotation.inverse();
+        let invRot = quat.inverse(this.rotation);
         return new transform3D(
-            invRot.rotate(vec3.div(this.translation.negate(), this.scale)),
+            invRot.rotate(vec3.div(vec3.negate(this.translation), this.scale)),
             invRot,
             new vec3(1.0 / this.scale.x, 1.0 / this.scale.y, 1.0 / this.scale.z)
         );

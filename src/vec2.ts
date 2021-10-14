@@ -1,5 +1,4 @@
-import { SmallestEpsilon, vec3 } from ".";
-import { Epsilon, lerp, SmallEpsilon } from "./utils";
+import { Epsilon, lerp, SmallEpsilon, SmallestEpsilon } from "./utils";
 import vector from "./vector";
 
 export default class vec2 {
@@ -35,6 +34,11 @@ export default class vec2 {
         if (relTolerance == 0)
             return norm <= absTolerance;
         return norm <= Math.max(absTolerance, relTolerance * Math.max(a.lInfnorm(), b.lInfnorm()));
+    }
+    static rotate2D(v: vec2, angle: number): vec2 {
+        let ca = Math.cos(angle);
+        let sa = Math.sin(angle);
+        return new vec2(v.x * ca - v.y * sa, v.x * sa + v.y * ca);
     }
     static lerp(a: vec2, b: vec2, t: number): vec2 {
         return new vec2(

@@ -1,5 +1,4 @@
 import axisAngle from "./axisAngle";
-import complex from "./complex";
 import mat2 from "./mat2";
 import mat3 from "./mat3";
 import mat4 from "./mat4";
@@ -8,6 +7,7 @@ import quat from "./quat";
 import transform3D from "./transform3D";
 import transform2D from "./transform2D";
 import vec2 from "./vec2";
+import complex from "./complex";
 import vec3 from "./vec3";
 import vec4 from "./vec4";
 import vector from "./vector";
@@ -23,8 +23,7 @@ import {
     lerp,
     determinant2x2,
     determinant3x3,
-    determinant4x4,
-    rotate2D
+    determinant4x4
 } from "./utils";
 import { Axis, eulerAngles } from "./eulerAngles";
 
@@ -55,6 +54,5 @@ export {
     lerp,
     determinant2x2,
     determinant3x3,
-    determinant4x4,
-    rotate2D
+    determinant4x4
 };

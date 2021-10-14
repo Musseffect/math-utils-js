@@ -5,5 +5,5 @@ dist/hot
 dist/index.html
 
 /dist
-.vs/ProjectSettings.json
-.vs/slnx.sqlite
+
+.vs

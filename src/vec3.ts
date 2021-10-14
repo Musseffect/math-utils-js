@@ -1,6 +1,5 @@
-import { SmallestEpsilon, vec2 } from ".";
 import axisAngle from "./axisAngle";
-import { lerp, Epsilon, SmallEpsilon } from "./utils";
+import { lerp, Epsilon, SmallEpsilon, SmallestEpsilon } from "./utils";
 import vector from "./vector";
 
 export default class vec3 {

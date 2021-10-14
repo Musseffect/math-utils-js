@@ -1,8 +1,7 @@
-import { SmallestEpsilon } from ".";
 import axisAngle from "./axisAngle";
 import mat3 from "./mat3";
 import mat4 from "./mat4";
-import { Epsilon, SmallEpsilon } from "./utils";
+import { Epsilon, SmallEpsilon, SmallestEpsilon } from "./utils";
 import vec3 from "./vec3";
 
 export default class quat {
@@ -37,7 +36,7 @@ export default class quat {
         return new quat(vec3.empty(), 0.0);
     }
     static fromAxisAngle(o: axisAngle): quat {
-        return new quat(o.axis.normalize().scaleSelf(Math.sin(o.angle / 2)), Math.cos(o.angle / 2));
+        return new quat(vec3.normalize(o.axis).scaleSelf(Math.sin(o.angle / 2)), Math.cos(o.angle / 2));
     }
     static fromComponents(x: number, y: number, z: number, w: number): quat {
         return new quat(new vec3(x, y, z), w);
@@ -98,6 +97,9 @@ export default class quat {
     }
     static conj(q: quat): quat {
         return new quat(new vec3(-q.v.x, -q.v.y, -q.v.z), q.s);
+    }
+    static inverse(q: quat): quat {
+        return quat.conj(q).scale(1.0 / q.squaredLength());
     }
     inverse(): quat {
         return this.conj().scale(1.0 / this.squaredLength());
@@ -222,7 +224,7 @@ export default class quat {
         return new axisAngle(axis, angle);
     }
     rotate(v: vec3): vec3 {
-        return this.mul(new quat(v.clone(), 0.0)).mulSelf(this.conj()).v;
+        return this.mul(new quat(v.clone(), 0.0)).mulSelf(quat.conj(this)).v;
     }
     l2norm(): number {
         return Math.sqrt(this.squaredLength());

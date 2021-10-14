@@ -1,5 +1,3 @@
-import vec2 from "./vec2";
-
 export const Epsilon = 1e-4;
 export const SmallEpsilon = 1e-6;
 export const SmallestEpsilon = 1e-8;
@@ -50,10 +48,4 @@ export function determinant4x4(m11: number, m12: number, m13: number, m14: numbe
         - m12 * determinant3x3(m21, m23, m24, m31, m33, m34, m41, m43, m44)
         + m13 * determinant3x3(m21, m22, m24, m31, m32, m34, m41, m42, m44)
         - m14 * determinant3x3(m21, m22, m23, m31, m32, m33, m41, m42, m43);
-}
-
-export function rotate2D(p: vec2, angle: number): vec2 {
-    let ca = Math.cos(angle);
-    let sa = Math.sin(angle);
-    return new vec2(p.x * ca - p.y * sa, p.x * sa + p.y * ca);
 }

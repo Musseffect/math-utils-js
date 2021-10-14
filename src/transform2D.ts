@@ -1,5 +1,5 @@
 import mat3 from "./mat3";
-import { assert, near, rotate2D } from "./utils";
+import { assert, near } from "./utils";
 import vec2 from "./vec2";
 
 export default class transform2D {
@@ -24,22 +24,22 @@ export default class transform2D {
         return mat3.fromTRS(this.translation, this.rotation, this.scale);
     }
     transformPoint2D(point: vec2): vec2 {
-        return rotate2D(vec2.mul(point, this.scale), this.rotation).addSelf(this.translation);
+        return vec2.rotate2D(vec2.mul(point, this.scale), this.rotation).addSelf(this.translation);
     }
     transformVector2D(vector: vec2): vec2 {
-        return rotate2D(vec2.mul(vector, this.scale), this.rotation);
+        return vec2.rotate2D(vec2.mul(vector, this.scale), this.rotation);
     }
     transformInversePoint2D(point: vec2): vec2 {
-        return rotate2D(vec2.sub(point, this.translation), -this.rotation).divSelf(this.scale);
+        return vec2.rotate2D(vec2.sub(point, this.translation), -this.rotation).divSelf(this.scale);
     }
     transformInverseVector2D(vector: vec2): vec2 {
-        return rotate2D(vector, -this.rotation).divSelf(this.scale);
+        return vec2.rotate2D(vector, -this.rotation).divSelf(this.scale);
     }
     // only possible with uniform scale
     inverse(): transform2D {
         assert(this.hasUniformScale(), "can't inverse transform2D with non-uniform scale");
         return new transform2D(
-            rotate2D(vec2.div(this.translation.negate(), this.scale), -this.rotation),
+            vec2.rotate2D(vec2.div(vec2.negate(this.translation), this.scale), -this.rotation),
             -this.rotation,
             new vec2(1.0 / this.scale.x, 1.0 / this.scale.y)
         );

@@ -1,11 +1,11 @@
 import axisAngle from "./axisAngle";
-import complex from "./complex";
 import mat3 from "./mat3";
 import mat4 from "./mat4";
 import quat from "./quat";
-import { Epsilon, near, radians, rotate2D, SmallEpsilon } from "./utils";
+import { Epsilon, radians, SmallEpsilon } from "./utils";
 import transform3D from "./transform3D";
 import transform2D from "./transform2D";
+import complex from "./complex";
 import vec2 from "./vec2";
 import vec3 from "./vec3";
 import mat2 from "./mat2";
@@ -16,7 +16,7 @@ import vector from "./vector";
 test('Quaternion basic operations', () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
     let q1 = quat.fromAxisAngle(axisAngleRotation);
-    expect(quat.near(q1.mul(q1.inverse()), quat.identity())).toBeTruthy();
+    expect(quat.near(q1.mul(quat.inverse(q1)), quat.identity())).toBeTruthy();
     let q2 = quat.fromComponents(1.0, 2.0, 0.3, 0.157);
     let qDiv = q1.div(q2);
     let qAdd = q1.add(q2);
@@ -270,7 +270,7 @@ test("Transform components", () => {
     let trs_2D = mat3.fromTRS(translation2D, rotation2D, scale2D);
     let pS1_2D = vec2.mul(point2D, scale2D);
     let pS2_2D = s2D.transformPoint2D(point2D);
-    let pRS1_2D = rotate2D(pS1_2D, rotation2D);
+    let pRS1_2D = vec2.rotate2D(pS1_2D, rotation2D);
     let pRS2_2D = r2D.transformPoint2D(pS2_2D);
     let pTRS1_2D = vec2.add(translation2D, pRS1_2D);
     let pTRS2_2D = t2D.transformPoint2D(pRS2_2D);

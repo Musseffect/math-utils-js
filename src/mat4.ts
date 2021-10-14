@@ -1,10 +1,9 @@
 import mat3 from "./mat3";
 import quat from "./quat";
 import vec3 from "./vec3";
-import { determinant3x3, determinant4x4, Epsilon } from "./utils";
+import { determinant3x3, determinant4x4, Epsilon, SmallEpsilon } from "./utils";
 import vec4 from "./vec4";
 import matrix from "./matrix";
-import { SmallEpsilon } from ".";
 
 
 export default class mat4 {
