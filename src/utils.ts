@@ -21,10 +21,10 @@ export function clamp(value: number, min: number, max: number): number {
     return Math.max(Math.min(value, max), min);
 }
 
-export function near(a: number, b: number, threshold?: number): boolean {
-    if (!threshold)
-        threshold = Epsilon;
-    return Math.abs(a - b) <= threshold;
+export function near(a: number, b: number, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+    if (relTolerance == 0)
+        return Math.abs(b - a) <= absTolerance;
+    return Math.abs(b - a) <= Math.max(absTolerance, relTolerance * Math.max(Math.abs(a), Math.abs(b)));
 }
 
 export function lerp(a: number, b: number, t: number): number {
@@ -34,6 +34,7 @@ export function lerp(a: number, b: number, t: number): number {
 export function determinant2x2(m11: number, m12: number, m21: number, m22: number): number {
     return m11 * m22 - m12 * m21;
 }
+
 export function determinant3x3(m11: number, m12: number, m13: number,
     m21: number, m22: number, m23: number,
     m31: number, m32: number, m33: number) {

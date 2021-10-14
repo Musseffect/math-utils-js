@@ -43,11 +43,11 @@ export default class vec4 {
             lerp(a.w, b.w, t)
         );
     }
-    static near(a: vec4, b: vec4, threshold?: number): boolean {
-        if (!threshold) {
-            threshold = Epsilon;
-        }
-        return vec4.sub(a, b).lInfnorm() <= threshold;
+    static near(a: vec4, b: vec4, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+        let norm = vec4.sub(a, b).lInfnorm();
+        if (relTolerance == 0)
+            return norm <= absTolerance;
+        return norm <= Math.max(absTolerance, relTolerance * Math.max(a.lInfnorm(), b.lInfnorm()));
     }
     static empty(): vec4 {
         return new vec4(0., 0., 0., 0.);

@@ -30,11 +30,11 @@ export default class vec2 {
     toVector(): vector {
         return new vector(this.toArray());
     }
-    static near(a: vec2, b: vec2, threshold?: number): boolean {
-        if (!threshold) {
-            threshold = Epsilon;
-        }
-        return vec2.sub(a, b).lInfnorm() <= threshold;
+    static near(a: vec2, b: vec2, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+        let norm = vec2.sub(a, b).lInfnorm();
+        if (relTolerance == 0)
+            return norm <= absTolerance;
+        return norm <= Math.max(absTolerance, relTolerance * Math.max(a.lInfnorm(), b.lInfnorm()));
     }
     static lerp(a: vec2, b: vec2, t: number): vec2 {
         return new vec2(

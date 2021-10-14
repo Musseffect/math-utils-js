@@ -52,11 +52,11 @@ export default class vec3 {
             lerp(a.z, b.z, t)
         );
     }
-    static near(a: vec3, b: vec3, threshold?: number): boolean {
-        if (!threshold) {
-            threshold = Epsilon;
-        }
-        return vec3.sub(a, b).lInfnorm() <= threshold;
+    static near(a: vec3, b: vec3, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+        let norm = vec3.sub(a, b).lInfnorm();
+        if (relTolerance == 0)
+            return norm <= absTolerance;
+        return norm <= Math.max(absTolerance, relTolerance * Math.max(a.lInfnorm(), b.lInfnorm()));
     }
     static empty(): vec3 {
         return new vec3(0., 0., 0.);
