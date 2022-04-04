@@ -16,6 +16,9 @@ export default class vector {
         }
         return true;
     }
+    static lerp(a: vector, b: vector, t: number): vector {
+        return b.sub(a).scaleSelf(t).addSelf(a);
+    }
     copy(): vector {
         return new vector(this.data.slice());
     }
@@ -147,7 +150,7 @@ export default class vector {
     lInfNorm(): number {
         let result = 0;
         for (let i = 0; i < this.data.length; i++)
-            result = Math.max(Math.abs(this.data[i]));
+            result = Math.max(Math.abs(this.data[i]), result);
         return result;
     }
     norm2(): number {

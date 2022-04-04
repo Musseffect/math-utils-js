@@ -9,6 +9,7 @@ export default class matrix {
         this.data = data;
         this.w = w;
         this.h = h;
+        assert(this.data.length == w * h, "Wrong size of data array");
     }
     static near(a: matrix, b: matrix, threshold?: number): boolean {
         assert(a.w == b.w && a.h == b.h, "Matrices should have equal sizes");

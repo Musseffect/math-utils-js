@@ -1,7 +1,7 @@
 import axisAngle from "./axisAngle";
 import mat2 from "./mat2";
 import mat4 from "./mat4";
-import matrix from "./matrix";
+import matrix from "./denseMatrix";
 import quat from "./quat";
 import { assert, determinant2x2, determinant3x3, Epsilon, near, SmallEpsilon } from "./utils";
 import vec2 from "./vec2";

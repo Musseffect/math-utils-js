@@ -1,5 +1,5 @@
 import mat3 from "./mat3";
-import matrix from "./matrix";
+import matrix from "./denseMatrix";
 import { determinant2x2, Epsilon, SmallEpsilon } from "./utils";
 import vec2 from "./vec2";
 

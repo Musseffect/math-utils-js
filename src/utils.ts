@@ -49,3 +49,9 @@ export function determinant4x4(m11: number, m12: number, m13: number, m14: numbe
         + m13 * determinant3x3(m21, m22, m24, m31, m32, m34, m41, m42, m44)
         - m14 * determinant3x3(m21, m22, m23, m31, m32, m33, m41, m42, m43);
 }
+
+export function swap<T>(array: Array<T>, firstIdx: number, secondIdx: number): void {
+    let temp = array[firstIdx];
+    array[firstIdx] = array[secondIdx];
+    array[secondIdx] = temp;
+}

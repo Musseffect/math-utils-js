@@ -10,8 +10,14 @@ import vec2 from "./vec2";
 import vec3 from "./vec3";
 import mat2 from "./mat2";
 import vec4 from "./vec4";
-import matrix from "./matrix";
+import matrix from "./denseMatrix";
 import vector from "./vector";
+import * as ode from "./solvers/ode/odeExports";
+import gaussSeidel from "./solvers/linearSystems/gaussSeidel";
+import jacobi from "./solvers/linearSystems/jacobi";
+import luFullPiv from "./solvers/linearSystems/fullPivLU";
+import luPartialPiv from "./solvers/linearSystems/luPartialPiv";
+import sor from "./solvers/linearSystems/sor";
 
 test('Quaternion basic operations', () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
@@ -278,4 +284,57 @@ test("Transform components", () => {
     expect(vec2.near(pRS1_2D, pRS2_2D, SmallEpsilon)).toBeTruthy();
     expect(vec2.near(pTRS1_2D, pTRS2_2D, SmallEpsilon)).toBeTruthy();
     expect(vec2.near(pTRS1_2D, trs_2D.transformPoint2D(point2D), SmallEpsilon)).toBeTruthy();
+});
+
+test("ODE", () => {
+    class expOde implements ode.eode {
+        param: number;
+        constructor(param: number) {
+            this.param = param;
+        }
+        f(x: vector, t: number): vector {
+            return new vector([this.param * x.get(0)]);
+        }
+        size(): number {
+            return 1;
+        }
+    };
+    const param = -1.0;
+    let odeSystem = new expOde(param);
+    let euler = new ode.euler(odeSystem, 0.005);
+    let rk4 = new ode.rk4(odeSystem, 0.01);
+    const t1 = 1.0;
+    const x0 = new vector([1.0]);
+    let solution = Math.exp(param * t1) * x0.get(0);
+    expect(rk4.solve(x0, 0, t1).get(0)).toBeCloseTo(solution);
+    expect(euler.solve(x0, 0, t1).get(0)).toBeCloseTo(solution);
+});
+
+
+test("General dense matrix", () => {
+    let m = matrix.empty(4, 4);
+    let rhs = new vector([6, 25, -11, 15]);
+    m.set(0, 0, 10);
+    m.set(0, 1, -1);
+    m.set(0, 2, 2);
+
+    m.set(1, 0, -1);
+    m.set(1, 1, 11);
+    m.set(1, 2, -1);
+    m.set(1, 3, 3);
+
+    m.set(2, 0, 2);
+    m.set(2, 1, -1);
+    m.set(2, 2, 10);
+    m.set(2, 3, -1);
+
+    m.set(3, 1, 3);
+    m.set(3, 2, -1);
+    m.set(3, 3, 8);
+    let exactSolution = new vector([1, 2, -1, 1]);
+    expect(vector.near(gaussSeidel.solve(m, rhs, 15, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
+    expect(vector.near(jacobi.solve(m, rhs, 25, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
+    expect(vector.near(sor.solve(m, rhs, 35, 0.5, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
+    expect(vector.near(luPartialPiv.solve(m, rhs, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
+    expect(vector.near(luFullPiv.solve(m, rhs, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
 });

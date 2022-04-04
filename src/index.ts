@@ -2,7 +2,7 @@ import axisAngle from "./axisAngle";
 import mat2 from "./mat2";
 import mat3 from "./mat3";
 import mat4 from "./mat4";
-import matrix from "./matrix";
+import matrix from "./denseMatrix";
 import quat from "./quat";
 import transform3D from "./transform3D";
 import transform2D from "./transform2D";
@@ -26,6 +26,9 @@ import {
     determinant4x4
 } from "./utils";
 import { Axis, eulerAngles } from "./eulerAngles";
+import * as ode from "./solvers/ode/odeExports";
+import { linearRoot, quadraticRoots } from "./solvers/analytical";
+
 
 export {
     axisAngle,
@@ -54,5 +57,8 @@ export {
     lerp,
     determinant2x2,
     determinant3x3,
-    determinant4x4
+    determinant4x4,
+    ode,
+    linearRoot,
+    quadraticRoots
 };
