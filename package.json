@@ -1,11 +1,13 @@
 {
 	"name": "math-utils-js",
-	"version": "1.0.8",
+	"version": "1.0.10",
 	"description": "",
 	"main": "dist/package/index.js",
 	"module": "dist/package/index.js",
 	"types": "dist/package/index.d.ts",
-	"files": ["/dist/package/**/*"],
+	"files": [
+		"/dist/package/**/*"
+	],
 	"private": false,
 	"repository": {
 		"type": "git",
