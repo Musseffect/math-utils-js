@@ -3,7 +3,7 @@ name: "tagged-release"
 on:
   push:
     tags:
-      - "*"
+      - '*'
 
 jobs:
   tagged-release:
