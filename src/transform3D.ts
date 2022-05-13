@@ -13,6 +13,9 @@ export default class transform3D {
         this.rotation = rotation;
         this.scale = scale;
     }
+    isRigid(): boolean {
+        return near(this.scale.x, 1.0) && near(this.scale.y, 1.0) && near(this.scale.z, 1.0);
+    }
     hasUniformScale(): boolean {
         return near(Math.abs(this.scale.x), Math.abs(this.scale.y))
             && near(Math.abs(this.scale.x), Math.abs(this.scale.z))

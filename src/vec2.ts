@@ -52,19 +52,31 @@ export default class vec2 {
     static normalize(v: vec2): vec2 {
         return v.clone().normalize();
     }
-    normalize(): vec2 {
+    normalize(out?: vec2): vec2 {
+        if (!out)
+            out = this.clone();
+        else
+            out.set(this);
         let l = this.l2norm();
         if (l < SmallestEpsilon) {
-            this.x = 0;
-            this.y = 0;
-            return this;
+            out.x = 0;
+            out.y = 0;
+            return out;
         }
-        return this.scaleSelf(1 / l);
+        return out.scaleSelf(1 / l);
     }
-    negate(): vec2 {
-        this.x = -this.x;
-        this.y = -this.y;
-        return this;
+    normalizeSelf(): vec2 {
+        return this.normalize(this);
+    }
+    negate(out?: vec2): vec2 {
+        if (!out)
+            out = this.clone();
+        out.x = -this.x;
+        out.y = -this.y;
+        return out;
+    }
+    negateSelf(): vec2 {
+        return this.negate(this);
     }
     static negate(v: vec2): vec2 {
         return new vec2(-v.x, -v.y);

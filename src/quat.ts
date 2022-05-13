@@ -41,6 +41,11 @@ export default class quat {
     static fromComponents(x: number, y: number, z: number, w: number): quat {
         return new quat(new vec3(x, y, z), w);
     }
+    set(q: quat): quat {
+        this.v.set(q.v);
+        this.s = q.s;
+        return this;
+    }
     // ZXY rotations - opengl coordinate system with z - forward, y - up, x - left
     // rotate around z(roll), rotate around x(pitch), rotate around y(yaw)
     static fromEulerAngles(yaw: number, pitch: number, roll: number): quat {
@@ -66,9 +71,8 @@ export default class quat {
         return a.add(b);
     }
     add(q: quat, out?: quat): quat {
-        if (!out) {
+        if (!out)
             out = this.clone();
-        }
         this.v.add(q.v, out.v);
         out.s = this.s + q.s;
         return out;
@@ -81,9 +85,8 @@ export default class quat {
         return a.sub(b);
     }
     sub(q: quat, out?: quat): quat {
-        if (!out) {
+        if (!out)
             out = this.clone();
-        }
         this.v.sub(q.v, out.v);
         out.s = this.s - q.s;
         return out;
@@ -91,18 +94,32 @@ export default class quat {
     subSelf(q: quat): quat {
         return this.sub(q, this);
     }
-    conj(): quat {
-        this.v.negate();
-        return this;
+    conj(out?: quat): quat {
+        if (!out)
+            out = this.clone();
+        else
+            out.set(this);
+        out.v.negateSelf();
+        return out;
+    }
+    conjSelf(): quat {
+        return this.conj(this);
     }
     static conj(q: quat): quat {
-        return new quat(new vec3(-q.v.x, -q.v.y, -q.v.z), q.s);
+        return q.conj();
     }
     static inverse(q: quat): quat {
-        return quat.conj(q).scale(1.0 / q.squaredLength());
+        return q.inverse();
     }
-    inverse(): quat {
-        return this.conj().scale(1.0 / this.squaredLength());
+    inverseSelf(): quat {
+        return this.inverse(this);
+    }
+    inverse(out?: quat): quat {
+        if (!out)
+            out = this.clone();
+        else
+            out.set(this);
+        return out.conj().scale(1.0 / out.squaredLength());
     }
     //mul
     static mul(a: quat, b: quat): quat {

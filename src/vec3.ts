@@ -25,21 +25,34 @@ export default class vec3 {
     static normalize(v: vec3): vec3 {
         return v.clone().normalize();
     }
-    normalize(): vec3 {
+    normalize(out?: vec3): vec3 {
+        if (!out)
+            out = this.clone();
+        else
+            out.set(this);
+
         let l = this.l2norm();
         if (l < SmallestEpsilon) {
-            this.x = 0;
-            this.y = 0;
-            this.z = 0;
-            return this;
+            out.x = 0;
+            out.y = 0;
+            out.z = 0;
+            return out;
         }
-        return this.scaleSelf(1 / l);
+        return out.scaleSelf(1 / l);
     }
-    negate(): vec3 {
-        this.x = -this.x;
-        this.y = -this.y;
-        this.z = -this.z;
-        return this;
+    normalizeSelf(): vec3 {
+        return this.normalize(this);
+    }
+    negate(out?: vec3): vec3 {
+        if (!out)
+            out = this.clone();
+        out.x = -this.x;
+        out.y = -this.y;
+        out.z = -this.z;
+        return out;
+    }
+    negateSelf(): vec3 {
+        return this.negate(this);
     }
     static negate(v: vec3) {
         return new vec3(-v.x, -v.y, -v.z);
@@ -68,9 +81,8 @@ export default class vec3 {
         return a.scale(scalar);
     }
     scale(scalar: number, out?: vec3): vec3 {
-        if (!out) {
+        if (!out)
             out = this.clone();
-        }
         out.x = this.x * scalar;
         out.y = this.y * scalar;
         out.z = this.z * scalar;
@@ -85,9 +97,8 @@ export default class vec3 {
         return a.add(b);
     }
     add(vec: vec3, out?: vec3): vec3 {
-        if (!out) {
+        if (!out)
             out = this.clone();
-        }
         out.x = this.x + vec.x;
         out.y = this.y + vec.y;
         out.z = this.z + vec.z;
@@ -101,9 +112,8 @@ export default class vec3 {
         return a.sub(b);
     }
     sub(v: vec3, out?: vec3): vec3 {
-        if (!out) {
+        if (!out)
             out = this.clone();
-        }
         out.x = this.x - v.x;
         out.y = this.y - v.y;
         out.z = this.z - v.z;
@@ -114,9 +124,8 @@ export default class vec3 {
     }
     //mul
     mul(v: vec3, out?: vec3): vec3 {
-        if (!out) {
+        if (!out)
             out = this.clone();
-        }
         out.x = this.x * v.x;
         out.y = this.y * v.y;
         out.z = this.z * v.z;
@@ -130,9 +139,8 @@ export default class vec3 {
     }
     //div
     div(v: vec3, out?: vec3): vec3 {
-        if (!out) {
+        if (!out)
             out = this.clone();
-        }
         out.x = this.x / v.x;
         out.y = this.y / v.y;
         out.z = this.z / v.z;

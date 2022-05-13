@@ -18,6 +18,7 @@ import jacobi from "./solvers/linearSystems/jacobi";
 import luFullPiv from "./solvers/linearSystems/fullPivLU";
 import luPartialPiv from "./solvers/linearSystems/luPartialPiv";
 import sor from "./solvers/linearSystems/sor";
+import cholesky from "./solvers/linearSystems/cholesky";
 
 test('Quaternion basic operations', () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
@@ -312,6 +313,12 @@ test("ODE", () => {
 
 
 test("General dense matrix", () => {
+    interface testData {
+        m: matrix;
+        rhs: vector;
+        exactSolution: vector;
+    };
+    let testExamples: testData[] = [];
     let m = matrix.empty(4, 4);
     let rhs = new vector([6, 25, -11, 15]);
     m.set(0, 0, 10);
@@ -332,9 +339,28 @@ test("General dense matrix", () => {
     m.set(3, 2, -1);
     m.set(3, 3, 8);
     let exactSolution = new vector([1, 2, -1, 1]);
-    expect(vector.near(gaussSeidel.solve(m, rhs, 15, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
-    expect(vector.near(jacobi.solve(m, rhs, 25, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
-    expect(vector.near(sor.solve(m, rhs, 35, 0.5, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
-    expect(vector.near(luPartialPiv.solve(m, rhs, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
-    expect(vector.near(luFullPiv.solve(m, rhs, SmallEpsilon), exactSolution, Epsilon)).toBeTruthy();
+    testExamples.push({ m, rhs, exactSolution });
+    for (let testExample of testExamples) {
+        expect(vector.near(gaussSeidel.solve(testExample.m, testExample.rhs, 15, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+        expect(vector.near(jacobi.solve(testExample.m, testExample.rhs, 25, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+        expect(vector.near(sor.solve(testExample.m, testExample.rhs, 35, 0.5, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+        expect(vector.near(luPartialPiv.solve(testExample.m.clone(), testExample.rhs.clone(), SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+        expect(vector.near(luFullPiv.solve(testExample.m.clone(), testExample.rhs.clone(), SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+    }
+
+    m = matrix.empty(3, 3);
+    m.set(0, 0, 4);
+    m.set(0, 1, 12);
+    m.set(0, 2, -16);
+
+    m.set(1, 0, 12);
+    m.set(1, 1, 37);
+    m.set(1, 2, -43);
+
+    m.set(2, 0, -16);
+    m.set(2, 1, -43);
+    m.set(2, 2, 98);
+    exactSolution = new vector([1, 2, -3]);
+    rhs = matrix.postMulVec(m, exactSolution);
+    expect(vector.near(cholesky.solve(m.clone(), rhs), exactSolution, Epsilon)).toBeTruthy();
 });

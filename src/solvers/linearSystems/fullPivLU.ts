@@ -17,49 +17,52 @@ export default class FullPivLU {
             rowPermutations[i] = i;
             columnPermutations[i] = i;
         }
+        let rowIdx = (idx: number) => rowPermutations[idx];
+        let colIdx = (idx: number) => columnPermutations[idx];
         for (let step = 0; step < rank; step++) {
-            let maxPivotValueRowIdx = step;
-            let maxPivotValueColumnIdx = step;
-            let maxPivotValue = A.get(rowPermutations[maxPivotValueRowIdx], columnPermutations[maxPivotValueColumnIdx]);
+            let maxPivotRowIdx = step;
+            let maxPivotColumnIdx = step;
+            let maxPivot = A.get(rowIdx(maxPivotRowIdx), colIdx(maxPivotColumnIdx));
             for (let row = step; row < rank; ++row) {
                 for (let column = step; column < rank; ++column) {
-                    let value = A.get(rowPermutations[row], columnPermutations[column]);
-                    if (Math.abs(value) > Math.abs(maxPivotValue)) {
-                        maxPivotValueRowIdx = row;
-                        maxPivotValueColumnIdx = column;
-                        maxPivotValue = value;
+                    let value = A.get(rowIdx(row), colIdx(column));
+                    if (Math.abs(value) > Math.abs(maxPivot)) {
+                        maxPivotRowIdx = row;
+                        maxPivotColumnIdx = column;
+                        maxPivot = value;
                     }
                 }
             }
 
-            if (Math.abs(maxPivotValue) < tolerance)
+            if (Math.abs(maxPivot) < tolerance)
                 throw new InsufficientRankException();
 
-            if (maxPivotValueRowIdx != step)
-                swap(rowPermutations, step, maxPivotValueRowIdx);
-            if (maxPivotValueColumnIdx != step)
-                swap(columnPermutations, step, maxPivotValueColumnIdx);
+            if (maxPivotRowIdx != step)
+                swap(rowPermutations, step, maxPivotRowIdx);
+            if (maxPivotColumnIdx != step)
+                swap(columnPermutations, step, maxPivotColumnIdx);
 
             for (let column = step + 1; column < rank; column++)
-                A.set(rowPermutations[step], columnPermutations[column], A.get(rowPermutations[step], columnPermutations[column]) / maxPivotValue);
-            b.set(rowPermutations[step], b.get(rowPermutations[step]) / maxPivotValue);
-            A.set(rowPermutations[step], columnPermutations[step], 1);
+                A.set(rowIdx(step), colIdx(column), A.get(rowIdx(step), colIdx(column)) / maxPivot);
+            b.set(rowIdx(step), b.get(rowIdx(step)) / maxPivot);
+            A.set(rowIdx(step), colIdx(step), 1);
 
             for (let row = step + 1; row < rank; row++) {
+                let firstValue = A.get(rowIdx(row), colIdx(step));
                 for (let column = step + 1; column < rank; column++)
-                    A.set(rowPermutations[row], columnPermutations[column], A.get(rowPermutations[row], columnPermutations[column]) - A.get(rowPermutations[row], columnPermutations[step]) * A.get(rowPermutations[step], columnPermutations[column]));
-                b.set(rowPermutations[row], b.get(rowPermutations[row]) - A.get(rowPermutations[row], columnPermutations[step]) * b.get(columnPermutations[step]));
-                A.set(rowPermutations[row], columnPermutations[step], 0);
+                    A.set(rowIdx(row), colIdx(column), A.get(rowIdx(row), colIdx(column)) - firstValue * A.get(rowIdx(step), colIdx(column)));
+                b.set(rowIdx(row), b.get(rowIdx(row)) - firstValue * b.get(rowIdx(step)));
+                A.set(rowIdx(row), colIdx(step), 0);
             }
         }
 
-        x.set(rank - 1, b.get(rowPermutations[rank - 1]));
+        x.set(colIdx(rank - 1), b.get(rowIdx(rank - 1)));
         for (let row = rank - 2; row > -1; row--) {
-            let k = 0.;
+            let value = b.get(rowIdx(row));
             for (let column = row + 1; column < rank; column++)
-                k = k + A.get(rowPermutations[row], columnPermutations[column]) * x.get(columnPermutations[column]);
+                value -= A.get(rowIdx(row), colIdx(column)) * x.get(colIdx(column));
 
-            x.set(row, b.get(rowPermutations[row]) - k);
+            x.set(colIdx(row), value);
         }
         return x;
     }
