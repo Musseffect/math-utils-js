@@ -1,6 +1,7 @@
 import matrix from "../../denseMatrix";
 import { assert, SmallEpsilon, swap } from "../../utils";
 import vector from "../../vector";
+import { InsufficientRankException } from "./exceptions";
 
 
 /* LU decomposition with row and column permutations*/
@@ -35,7 +36,7 @@ export default class FullPivLU {
             }
 
             if (Math.abs(maxPivot) < tolerance)
-                throw new InsufficientRankException();
+                throw new InsufficientRankException("'fullPivLU'");
 
             if (maxPivotRowIdx != step)
                 swap(rowPermutations, step, maxPivotRowIdx);

@@ -1,9 +1,10 @@
 import matrix from "../../denseMatrix";
 import { assert, SmallEpsilon, swap } from "../../utils";
 import vector from "../../vector";
+import { InsufficientRankException } from "./exceptions";
 
 /* LU decomposition with row permutations*/
-export default class luPartialPiv {
+export default class PartialPivLU {
     static solve(A: matrix, b: vector, tolerance: number = SmallEpsilon) {
         assert(A.w == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A.w == A.h, "Non-square matrix");
@@ -25,7 +26,7 @@ export default class luPartialPiv {
             }
 
             if (Math.abs(maxPivotValue) < tolerance)
-                throw new InsufficientRankException();
+                throw new InsufficientRankException("'partialPivLU'");
 
             if (maxPivotValueRowIdx != step)
                 swap(permutations, step, maxPivotValueRowIdx);

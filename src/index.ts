@@ -28,7 +28,7 @@ import {
 import { Axis, eulerAngles } from "./eulerAngles";
 import * as ode from "./solvers/ode/odeExports";
 import { linearRoot, quadraticRoots } from "./solvers/analytical";
-
+import * as linearSystemSolvers from "./solvers/linearSystems/exports";
 
 export {
     axisAngle,
@@ -60,5 +60,6 @@ export {
     determinant4x4,
     ode,
     linearRoot,
-    quadraticRoots
+    quadraticRoots,
+    linearSystemSolvers
 };

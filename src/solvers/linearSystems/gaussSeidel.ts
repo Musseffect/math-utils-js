@@ -1,9 +1,9 @@
 import matrix from "../../denseMatrix";
 import { assert, SmallEpsilon } from "../../utils";
 import vector from "../../vector";
+import { ConvergenseFailureException } from "./exceptions";
 
 
-// https://en.wikipedia.org/wiki/Gauss%E2%80%93Seidel_method
 export default class gaussSeidel {
     static solve(m: matrix, rhs: vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
         assert(m.width() == m.height(), "Matrix isn't square");
@@ -31,6 +31,6 @@ export default class gaussSeidel {
             if (rhsApprox.subSelf(rhs).lInfNorm() < tolerance)
                 return result;
         }
-        throw new Error("Didn't converge");
+        throw new ConvergenseFailureException("'GaussSeidel'");
     }
 }
