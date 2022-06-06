@@ -1,12 +1,12 @@
 //todo:
 
 import matrix from "../../denseMatrix";
-import { assert } from "../../utils";
+import { assert, near, SmallEpsilon } from "../../utils";
 import vector from "../../vector";
 
 export default class cholesky {
     // Solve inplace
-    static solve(A: matrix, b: vector) {
+    static solve(A: matrix, b: vector, tolerance: number = SmallEpsilon) {
         assert(A.w == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A.w == A.h, "Non-square matrix");
 
@@ -16,10 +16,15 @@ export default class cholesky {
                 let value = A.get(row, column);
                 for (let k = 0; k < column; ++k)
                     value -= A.get(row, k) * A.get(column, k);
-                if (row == column)
+                if (row == column) {
+                    if (value < 0.0) throw new InsufficientRankException();
                     value = Math.sqrt(value);
-                else
+                }
+                else {
+                    let denum = A.get(column, column);
+                    if (near(denum, 0.0, tolerance)) throw new InsufficientRankException();
                     value = value / A.get(column, column);
+                }
                 A.set(row, column, value);
                 A.set(column, row, value);
             }

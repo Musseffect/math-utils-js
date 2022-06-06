@@ -85,8 +85,8 @@ export default class matrix {
         return result;
     }
     static preMulVec(a: matrix, b: vector): vector {
-        assert(a.w == b.data.length, "Width of matrix isn't compatible with vector's length");
-        let result = vector.empty(a.h);
+        assert(a.h == b.data.length, "Width of matrix isn't compatible with vector's length");
+        let result = vector.empty(a.w);
         for (let i = 0; i < a.w; i++) {
             let v = 0;
             for (let j = 0; j < a.h; j++) {
