@@ -1,3 +1,4 @@
+import sparseVector from "./sparseVector";
 import { assert } from "./utils";
 
 export interface triplet {
@@ -33,10 +34,47 @@ export default class sparseMatrix {
     innerNonZeroes: number[];
     rows: number;
     cols: number;
-    constructor(rows: number, cols: number, rowMajor: boolean = true) {
+    tolerance: number;
+    constructor(rows: number, cols: number, rowMajor: boolean = true, tolerance: number) {
         this.rows = rows;
         this.cols = cols;
         this.rowMajor = rowMajor;
+    }
+    clone(): sparseMatrix {
+
+    }
+    static identity(): sparseMatrix {
+
+    }
+    static add(m1: sparseMatrix, m2: sparseMatrix): sparseMatrix {
+
+    }
+    static sub(m1: sparseMatrix, m2: sparseMatrix): sparseMatrix {
+
+    }
+    static mul(m1: sparseMatrix, m2: sparseMatrix): sparseMatrix {
+
+    }
+    determinant(): number {
+
+    }
+    static postMul(m: sparseMatrix, v: sparseVector): sparseVector {
+
+    }
+    static preMul(v: sparseVector, m: sparseMatrix): sparseVector {
+
+    }
+    scale(scalar: number): sparseMatrix {
+        return this;
+    }
+    static scale(scalar: number): sparseMatrix {
+        return this.clone().scale(scalar);
+    }
+    rowVector(row: number): sparseVector {
+
+    }
+    columnVector(column: number): sparseVector {
+
     }
     protected advanceState(): void {
         ++this.state;
@@ -68,7 +106,7 @@ export default class sparseMatrix {
     set(row: number, column: number, value: number) {
         throw new Error("Not implemented");
     }
-    read(row: number, column: number): number {
+    get(row: number, column: number): number {
         throw new Error("Not implemented");
     }
 }

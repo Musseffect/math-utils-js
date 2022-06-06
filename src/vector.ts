@@ -142,10 +142,7 @@ export default class vector {
         return result;
     }
     l2Norm(): number {
-        let result = 0;
-        for (let i = 0; i < this.data.length; i++)
-            result += this.data[i] * this.data[i];
-        return Math.sqrt(result);
+        return Math.sqrt(this.squaredLength());
     }
     lInfNorm(): number {
         let result = 0;
@@ -153,11 +150,11 @@ export default class vector {
             result = Math.max(Math.abs(this.data[i]), result);
         return result;
     }
-    norm2(): number {
+    squaredLength(): number {
         let result = 0;
         for (let i = 0; i < this.data.length; i++)
             result += this.data[i] * this.data[i];
-        return Math.sqrt(result);
+        return result;
     }
     clamp(min: vector, max: vector): void {
         for (let i = 0; i < this.data.length; i++) {

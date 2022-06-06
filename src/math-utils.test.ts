@@ -12,6 +12,7 @@ import mat2 from "./mat2";
 import vec4 from "./vec4";
 import matrix from "./denseMatrix";
 import vector from "./vector";
+import sparseVector from "./sparseVector";
 import * as ode from "./solvers/ode/odeExports";
 import * as linSolvers from "./solvers/linearSystems/exports";
 
@@ -358,4 +359,33 @@ test("General dense matrix", () => {
     exactSolution = new vector([1, 2, -3]);
     rhs = matrix.postMulVec(m, exactSolution);
     expect(vector.near(linSolvers.cholesky.solve(m.clone(), rhs), exactSolution, Epsilon)).toBeTruthy();
+});
+
+test("Sparse vector", () => {
+    let dense: vector = new vector([0, -1, 2, -10e-8, 0.0, 3, -5, .0]);
+    let v: sparseVector = sparseVector.fromVector(dense.data, SmallEpsilon);
+    expect(vector.near(v.toDense(), dense, SmallEpsilon));
+    expect(v.isNonZero(0)).toBeFalsy();
+    expect(v.isNonZero(1)).toBeTruthy();
+    expect(v.isNonZero(2)).toBeTruthy();
+    expect(v.isNonZero(3)).toBeFalsy();
+    expect(v.isNonZero(4)).toBeFalsy();
+    expect(v.isNonZero(5)).toBeTruthy();
+    expect(v.isNonZero(6)).toBeTruthy();
+    expect(v.isNonZero(7)).toBeFalsy();
+    for (let i = 0; i < dense.size(); ++i)
+        expect(v.get(i)).toBeCloseTo(dense.get(i));
+
+    v.set(1, 0);
+    expect(v.isNonZero(1)).toBeFalsy();
+    v.set(1, -1);
+    expect(v.isNonZero(1)).toBeTruthy();
+    expect(v.get(1)).toBeCloseTo(-1);
+    v.set(2, 5);
+    expect(v.isNonZero(2)).toBeTruthy();
+    expect(v.get(2)).toBeCloseTo(5);
+});
+
+test("General dense matrix", () => {
+
 });
