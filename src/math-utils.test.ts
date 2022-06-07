@@ -389,14 +389,20 @@ test("Sparse vector", () => {
     v.set(2, 5);
     expect(v.isNonZero(2)).toBeTruthy();
     expect(v.get(2)).toBeCloseTo(5);
+    v.set(3, -2);
+    expect(v.isNonZero(3)).toBeTruthy();
+    expect(v.get(3)).toBeCloseTo(-2);
 
+    v = sparseVector.fromVector(dense.data, SmallEpsilon);
     let dense2: vector = new vector([3, 0.1, 0.0, 1e-7, 0.3, -2.0, -6.0, 7.0]);
     let v2 = sparseVector.fromVector(dense2.data, SmallEpsilon);
     expect(vector.near(v2.toDense(), dense2, SmallEpsilon));
+    console.log(sparseVector.add(v, v2).toDense().toString());
+    console.log(vector.add(dense, dense2).toString());
     expect(vector.near(sparseVector.add(v, v2).toDense(), vector.add(dense, dense2))).toBeTruthy();
     expect(vector.near(sparseVector.sub(v, v2).toDense(), vector.sub(dense, dense2))).toBeTruthy();
     expect(vector.near(sparseVector.mul(v, v2).toDense(), vector.mul(dense, dense2))).toBeTruthy();
-    expect(sparseVector.dot(v, v2), ).toBeCloseTo(vector.dot(dense, dense2));
+    expect(sparseVector.dot(v, v2),).toBeCloseTo(vector.dot(dense, dense2));
 
     //expect(vector.near(sparseVector.div(v, v2).toDense(), vector.div(dense, dense2))).toBeTruthy();
 });

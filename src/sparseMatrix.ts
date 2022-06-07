@@ -1,5 +1,7 @@
+import matrix from "./denseMatrix";
 import sparseVector from "./sparseVector";
-import { assert } from "./utils";
+import { assert, SmallestEpsilon } from "./utils";
+import vector from "./vector";
 
 export interface triplet {
     row: number,
@@ -14,34 +16,43 @@ export class CellRef {
     constructor(matrix: sparseMatrix, idx: number, state: number) {
         this.matrix = matrix;
         this.idx = idx;
+        this.state = state;
     }
     get(): number {
         assert(this.state == this.matrix.state, "Invalid ref");
-        return this.matrix.values[this.idx];
+        return this.matrix.nonZeroElements[this.idx];
     }
     set(value: number) {
         assert(this.state == this.matrix.state, "Invalid ref");
-        this.matrix.values[this.idx] = value;
+        this.matrix.nonZeroElements[this.idx] = value;
     }
 }
-
+// CSR
 export default class sparseMatrix {
     state: number = 0;
-    rowMajor: boolean = true;
-    values: number[];
+    // column indices sizeof(NNZ)
     innerIndices: number[];
+    // values sizeof(NNZ)
+    nonZeroElements: number[];
+    // row starts
     outerStarts: number[];
-    innerNonZeroes: number[];
-    rows: number;
-    cols: number;
+
+    numRows: number;
+    numCols: number;
     tolerance: number;
-    constructor(rows: number, cols: number, rowMajor: boolean = true, tolerance: number) {
-        this.rows = rows;
-        this.cols = cols;
-        this.rowMajor = rowMajor;
+    constructor(numRows: number, numCols: number, tolerance: number = SmallestEpsilon) {
+        this.numRows = numRows;
+        this.numCols = numCols;
+        this.innerIndices = [];
+        this.nonZeroElements = [];
+        this.outerStarts = [];
     }
     clone(): sparseMatrix {
-        throw new Error("Not implemented");
+        let result = new sparseMatrix(this.numRows, this.numCols, this.tolerance);
+        result.innerIndices = this.innerIndices.slice();
+        result.nonZeroElements = this.nonZeroElements.slice();
+        result.outerStarts = this.outerStarts.slice();
+        return result;
     }
     static identity(): sparseMatrix {
         throw new Error("Not implemented");
@@ -58,10 +69,16 @@ export default class sparseMatrix {
     determinant(): number {
         throw new Error("Not implemented");
     }
-    static postMul(m: sparseMatrix, v: sparseVector): sparseVector {
+    static postMulSparse(m: sparseMatrix, v: sparseVector): sparseVector {
         throw new Error("Not implemented");
     }
-    static preMul(v: sparseVector, m: sparseMatrix): sparseVector {
+    static preMulSparse(v: sparseVector, m: sparseMatrix): sparseVector {
+        throw new Error("Not implemented");
+    }
+    static postMul(m: sparseMatrix, v: vector): vector {
+        throw new Error("Not implemented");
+    }
+    static preMul(v: vector, m: sparseMatrix): vector {
         throw new Error("Not implemented");
     }
     scale(scalar: number): sparseMatrix {
@@ -82,15 +99,36 @@ export default class sparseMatrix {
     reserve(rows: number, cols: number) {
         throw new Error("Not implemented");
     }
-    fromTriplets(triplets: triplet[]): sparseMatrix {
+    static fromDense(dense: matrix): sparseMatrix {
+        throw new Error("Not implemented");
+    }
+    static fromTriplets(triplets: triplet[]): sparseMatrix {
+        // sorted in ascending "row by row" order
+        triplets.sort((a: triplet, b: triplet) => {
+            let rowSign = a.row - b.row;
+            if (rowSign != 0) return rowSign;
+            return a.column - b.column;
+        });
+        let result = new sparseMatrix(this.numRows, this.numCols, this.tolerance);
+        if (triplets.length == 0) return result;
+        let currentRow = triplets[0].row;
+        for (let i = 0; i < triplets.length; ++i) {
+            if (triplets[i].row != currentRow) {
+                for (let row = currentRow; row < triplets[i].row; ++row)
+                    result.outerStarts.push(result.nonZeroElements.length);
+                currentRow = triplets[i].row;
+            }
+            result.nonZeroElements.push(triplets[i].value);
+            result.innerIndices.push(triplets[i].column);
+        }
         throw new Error("Not implemented");
     }
     compress() {
         this.advanceState();
         throw new Error("Not implemented");
     }
-    numRows(): number { return this.rows; }
-    numCols(): number { return this.cols; }
+    height(): number { return this.numRows; }
+    width(): number { return this.numCols; }
     numNonZeroes(): number {
         throw new Error("Not implemented");
     }

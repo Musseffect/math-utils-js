@@ -28,17 +28,16 @@ export default class sparseVector {
         let ID1 = 0;
         let ID2 = 0;
         let result = new sparseVector(v1.size(), [], [], Math.min(v1.tolerance, v2.tolerance));
-        while (ID1 != v1.indices.length && ID2 != v2.indices.length) {
+        while (ID1 != v1.indices.length || ID2 != v2.indices.length) {
             let currentIndex1 = ID1 == v1.indices.length ? v1.size() : v1.indices[ID1];
             let currentIndex2 = ID2 == v2.indices.length ? v2.size() : v2.indices[ID2];
-            let value = 0.0;
             let left = 0.0;
             let right = 0.0;
             let index = currentIndex1;
             if (currentIndex1 < currentIndex2) {
                 left = v1.nonZeroElements[ID1];
                 ID1++;
-            } else if (currentIndex2 > currentIndex1) {
+            } else if (currentIndex1 > currentIndex2) {
                 index = currentIndex2;
                 right = v2.nonZeroElements[ID2];
                 ID2++;
@@ -48,6 +47,7 @@ export default class sparseVector {
                 ID1++;
                 ID2++;
             }
+            let value = op(left, right);
             if (Math.abs(value) > result.tolerance) {
                 result.indices.push(index);
                 result.nonZeroElements.push(value);
@@ -154,10 +154,10 @@ export default class sparseVector {
                 return;
             }
         }
-        if (Math.abs(value) > this.tolerance)
-            this.indices.splice(l, 1);
-        else
-            this.indices[l] = value;
+        if (Math.abs(value) > this.tolerance) {
+            this.indices.splice(l, 0, index);
+            this.nonZeroElements.splice(l, 0, value);
+        }
     }
     get(index: number) {
         let l = 0;
