@@ -56,6 +56,12 @@ export default class vector {
             result.push(a.data[i] * b.data[i]);
         return new vector(result);
     }
+    static div(a: vector, b: vector) {
+        let result = [];
+        for (let i = 0; i < a.data.length; i++)
+            result.push(a.data[i] / b.data[i]);
+        return new vector(result);
+    }
     static scale(a: vector, s: number) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)

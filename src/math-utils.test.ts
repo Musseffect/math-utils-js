@@ -362,9 +362,9 @@ test("General dense matrix", () => {
 });
 
 test("Sparse vector", () => {
-    let dense: vector = new vector([0, -1, 2, -10e-8, 0.0, 3, -5, .0]);
+    let dense: vector = new vector([0, -1, 2, -1e-8, 0.0, 3, -5, .0]);
     let v: sparseVector = sparseVector.fromVector(dense.data, SmallEpsilon);
-    expect(vector.near(v.toDense(), dense, SmallEpsilon));
+    expect(vector.near(v.toDense(), dense, SmallEpsilon)).toBeTruthy();
     expect(v.isNonZero(0)).toBeFalsy();
     expect(v.isNonZero(1)).toBeTruthy();
     expect(v.isNonZero(2)).toBeTruthy();
@@ -376,6 +376,11 @@ test("Sparse vector", () => {
     for (let i = 0; i < dense.size(); ++i)
         expect(v.get(i)).toBeCloseTo(dense.get(i));
 
+    expect(v.squaredLength()).toBeCloseTo(dense.squaredLength());
+    expect(v.l1Norm()).toBeCloseTo(dense.l1Norm());
+    expect(v.l2Norm()).toBeCloseTo(dense.l2Norm());
+    expect(v.lInfNorm()).toBeCloseTo(dense.lInfNorm());
+
     v.set(1, 0);
     expect(v.isNonZero(1)).toBeFalsy();
     v.set(1, -1);
@@ -384,6 +389,16 @@ test("Sparse vector", () => {
     v.set(2, 5);
     expect(v.isNonZero(2)).toBeTruthy();
     expect(v.get(2)).toBeCloseTo(5);
+
+    let dense2: vector = new vector([3, 0.1, 0.0, 1e-7, 0.3, -2.0, -6.0, 7.0]);
+    let v2 = sparseVector.fromVector(dense2.data, SmallEpsilon);
+    expect(vector.near(v2.toDense(), dense2, SmallEpsilon));
+    expect(vector.near(sparseVector.add(v, v2).toDense(), vector.add(dense, dense2))).toBeTruthy();
+    expect(vector.near(sparseVector.sub(v, v2).toDense(), vector.sub(dense, dense2))).toBeTruthy();
+    expect(vector.near(sparseVector.mul(v, v2).toDense(), vector.mul(dense, dense2))).toBeTruthy();
+    expect(sparseVector.dot(v, v2), ).toBeCloseTo(vector.dot(dense, dense2));
+
+    //expect(vector.near(sparseVector.div(v, v2).toDense(), vector.div(dense, dense2))).toBeTruthy();
 });
 
 test("General dense matrix", () => {

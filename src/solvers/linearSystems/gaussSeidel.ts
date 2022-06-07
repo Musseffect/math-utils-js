@@ -3,6 +3,7 @@ import { assert, SmallEpsilon } from "../../utils";
 import vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
+const SolverName = "'GaussSeidel'";
 
 export default class gaussSeidel {
     static solve(m: matrix, rhs: vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
@@ -31,6 +32,6 @@ export default class gaussSeidel {
             if (rhsApprox.subSelf(rhs).lInfNorm() < tolerance)
                 return result;
         }
-        throw new ConvergenseFailureException("'GaussSeidel'");
+        throw new ConvergenseFailureException(SolverName);
     }
 }

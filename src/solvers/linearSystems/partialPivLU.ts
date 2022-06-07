@@ -3,6 +3,8 @@ import { assert, SmallEpsilon, swap } from "../../utils";
 import vector from "../../vector";
 import { InsufficientRankException } from "./exceptions";
 
+const SolverName = "'partialPivLU'";
+
 /* LU decomposition with row permutations*/
 export default class PartialPivLU {
     static solve(A: matrix, b: vector, tolerance: number = SmallEpsilon) {
@@ -26,7 +28,7 @@ export default class PartialPivLU {
             }
 
             if (Math.abs(maxPivotValue) < tolerance)
-                throw new InsufficientRankException("'partialPivLU'");
+                throw new InsufficientRankException(SolverName);
 
             if (maxPivotValueRowIdx != step)
                 swap(permutations, step, maxPivotValueRowIdx);

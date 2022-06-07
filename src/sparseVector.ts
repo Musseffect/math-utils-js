@@ -1,12 +1,14 @@
 import vector from "./vector";
-import { assert, SmallEpsilon } from "./utils";
+import { assert, SmallestEpsilon } from "./utils";
+
+const DefaultTolerance = SmallestEpsilon;
 
 export default class sparseVector {
     length: number;
     nonZeroElements: number[];
     indices: number[];
     tolerance: number;
-    constructor(length: number, nonZeroElements: number[], indices: number[], tolerance: number = SmallEpsilon) {
+    constructor(length: number, nonZeroElements: number[], indices: number[], tolerance: number = DefaultTolerance) {
         this.length = length;
         this.nonZeroElements = nonZeroElements;
         this.indices = indices;
@@ -15,44 +17,62 @@ export default class sparseVector {
     clone(): sparseVector {
         return new sparseVector(this.length, this.nonZeroElements.slice(), this.indices.slice(), this.tolerance);
     }
-    static add(v1: sparseVector, v2: sparseVector): sparseVector {
+    static empty(size: number, tolerance: number = DefaultTolerance): sparseVector {
+        return new sparseVector(size, [], [], tolerance);
+    }
+    static binaryOp(v1: sparseVector, v2: sparseVector, op: (a: number, b: number) => number): sparseVector {
+
         assert(v1.size() == v2.size(), "Vectors should have the same size");
         if (v1.indices.length == 0) return v2.clone();
         if (v2.indices.length == 0) return v1.clone();
         let ID1 = 0;
         let ID2 = 0;
         let result = new sparseVector(v1.size(), [], [], Math.min(v1.tolerance, v2.tolerance));
-        while (ID1 != ID2 && ID1 != v2.indices.length) {
-            let currentIndex1 = v1.indices[ID1];
-            let currentIndex2 = v2.indices[ID2];
+        while (ID1 != v1.indices.length && ID2 != v2.indices.length) {
+            let currentIndex1 = ID1 == v1.indices.length ? v1.size() : v1.indices[ID1];
+            let currentIndex2 = ID2 == v2.indices.length ? v2.size() : v2.indices[ID2];
+            let value = 0.0;
+            let left = 0.0;
+            let right = 0.0;
+            let index = currentIndex1;
             if (currentIndex1 < currentIndex2) {
-                result.indices.push(currentIndex1);
-                result.nonZeroElements.push(v1.nonZeroElements[ID1]);
+                left = v1.nonZeroElements[ID1];
                 ID1++;
-            } else if (currentIndex2 == currentIndex1) {
-                result.indices.push(currentIndex2);
-                result.nonZeroElements.push(v2.nonZeroElements[ID2]);
+            } else if (currentIndex2 > currentIndex1) {
+                index = currentIndex2;
+                right = v2.nonZeroElements[ID2];
                 ID2++;
             } else {
-                let value = v1.nonZeroElements[currentIndex1];
-                if (Math.abs(value) > result.tolerance) {
-                    result.indices.push(currentIndex1);
-                    result.nonZeroElements.push(value);
-                }
+                left = v1.nonZeroElements[ID1];
+                right = v2.nonZeroElements[ID2];
                 ID1++;
                 ID2++;
+            }
+            if (Math.abs(value) > result.tolerance) {
+                result.indices.push(index);
+                result.nonZeroElements.push(value);
             }
         }
         return result;
     }
+    static dot(v1: sparseVector, v2: sparseVector): number {
+        let result = sparseVector.mul(v1, v2);
+        let value = 0.0;
+        for (let element of result.nonZeroElements)
+            value += element;
+        return value;
+    }
+    static add(v1: sparseVector, v2: sparseVector): sparseVector {
+        return this.binaryOp(v1, v2, (a: number, b: number) => a + b);
+    }
     static sub(v1: sparseVector, v2: sparseVector): sparseVector {
-
+        return this.binaryOp(v1, v2, (a: number, b: number) => a - b);
     }
     static mul(v1: sparseVector, v2: sparseVector): sparseVector {
-
+        return this.binaryOp(v1, v2, (a: number, b: number) => a * b);
     }
     static div(v1: sparseVector, v2: sparseVector): sparseVector {
-
+        return this.binaryOp(v1, v2, (a: number, b: number) => a / b);
     }
     static negate(v: sparseVector): sparseVector {
         let result = v.clone();
@@ -88,18 +108,18 @@ export default class sparseVector {
             result += element * element;
         return result;
     }
-    setTolerance(tolerance: number): void {
+    setTolerance(tolerance: number = DefaultTolerance): void {
         this.tolerance = tolerance;
     }
     getTolerance(): number {
         return this.tolerance;
     }
-    static fromVector(array: number[], tolerance: number): sparseVector {
+    static fromVector(array: number[], tolerance: number = DefaultTolerance): sparseVector {
         let nonZeroElements: number[] = [];
         let indices: number[] = [];
         for (let i = 0; i < array.length; ++i) {
             let value = array[i];
-            if (value > tolerance) {
+            if (Math.abs(value) > tolerance) {
                 nonZeroElements.push(value);
                 indices.push(i);
             }
@@ -118,7 +138,7 @@ export default class sparseVector {
     }
     set(index: number, value: number) {
         let l = 0;
-        let r = this.size();
+        let r = this.indices.length;
         while (l != r) {
             let middle = Math.floor((r + l) / 2);
             if (this.indices[middle] < index)
@@ -134,13 +154,14 @@ export default class sparseVector {
                 return;
             }
         }
-        if (value > this.tolerance) {
-            this.indices.splice(l,);
-        }
+        if (Math.abs(value) > this.tolerance)
+            this.indices.splice(l, 1);
+        else
+            this.indices[l] = value;
     }
     get(index: number) {
         let l = 0;
-        let r = this.size();
+        let r = this.indices.length;
         while (l != r) {
             let middle = Math.floor((r + l) / 2);
             if (this.indices[middle] < index)
@@ -154,7 +175,7 @@ export default class sparseVector {
     }
     isNonZero(index: number): boolean {
         let l = 0;
-        let r = this.size();
+        let r = this.indices.length;
         while (l != r) {
             let middle = Math.floor((r + l) / 2);
             if (this.indices[middle] < index)
@@ -165,5 +186,12 @@ export default class sparseVector {
                 return true;
         }
         return false;
+    }
+    toString(): string {
+        let result = `sparse(${this.length})[`;
+        for (let i = 0; i < this.indices.length; ++i) {
+            result += `${i != 0 ? ", " : ""}${this.indices[i]}: ${this.nonZeroElements[i]}`;
+        }
+        return result + "]";
     }
 }

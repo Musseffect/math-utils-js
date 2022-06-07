@@ -4,6 +4,8 @@ import vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 // https://en.wikipedia.org/wiki/Successive_over-relaxation
 
+const SolverName = "'SOR'";
+
 /** Successive over-relaxation
  * 
  */
@@ -34,6 +36,6 @@ export default class SOR {
             if (rhsApprox.subSelf(rhs).lInfNorm() < tolerance)
                 return result;
         }
-        throw new ConvergenseFailureException("'SOR'");
+        throw new ConvergenseFailureException(SolverName);
     }
 }

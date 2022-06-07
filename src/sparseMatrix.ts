@@ -41,40 +41,40 @@ export default class sparseMatrix {
         this.rowMajor = rowMajor;
     }
     clone(): sparseMatrix {
-
+        throw new Error("Not implemented");
     }
     static identity(): sparseMatrix {
-
+        throw new Error("Not implemented");
     }
     static add(m1: sparseMatrix, m2: sparseMatrix): sparseMatrix {
-
+        throw new Error("Not implemented");
     }
     static sub(m1: sparseMatrix, m2: sparseMatrix): sparseMatrix {
-
+        throw new Error("Not implemented");
     }
     static mul(m1: sparseMatrix, m2: sparseMatrix): sparseMatrix {
-
+        throw new Error("Not implemented");
     }
     determinant(): number {
-
+        throw new Error("Not implemented");
     }
     static postMul(m: sparseMatrix, v: sparseVector): sparseVector {
-
+        throw new Error("Not implemented");
     }
     static preMul(v: sparseVector, m: sparseMatrix): sparseVector {
-
+        throw new Error("Not implemented");
     }
     scale(scalar: number): sparseMatrix {
         return this;
     }
-    static scale(scalar: number): sparseMatrix {
-        return this.clone().scale(scalar);
+    static scale(m: sparseMatrix, scalar: number): sparseMatrix {
+        return m.clone().scale(scalar);
     }
     rowVector(row: number): sparseVector {
-
+        throw new Error("Not implemented");
     }
     columnVector(column: number): sparseVector {
-
+        throw new Error("Not implemented");
     }
     protected advanceState(): void {
         ++this.state;

@@ -3,6 +3,9 @@
 import matrix from "../../denseMatrix";
 import { assert, near, SmallEpsilon } from "../../utils";
 import vector from "../../vector";
+import { InsufficientRankException } from "./exceptions";
+
+const SolverName = "'cholesky'";
 
 export default class cholesky {
     // Solve inplace
@@ -17,12 +20,12 @@ export default class cholesky {
                 for (let k = 0; k < column; ++k)
                     value -= A.get(row, k) * A.get(column, k);
                 if (row == column) {
-                    if (value < 0.0) throw new InsufficientRankException();
+                    if (value < 0.0) throw new InsufficientRankException(SolverName);
                     value = Math.sqrt(value);
                 }
                 else {
                     let denum = A.get(column, column);
-                    if (near(denum, 0.0, tolerance)) throw new InsufficientRankException();
+                    if (near(denum, 0.0, tolerance)) throw new InsufficientRankException(SolverName);
                     value = value / A.get(column, column);
                 }
                 A.set(row, column, value);

@@ -3,6 +3,7 @@ import { assert, SmallEpsilon, swap } from "../../utils";
 import vector from "../../vector";
 import { InsufficientRankException } from "./exceptions";
 
+const SolverName = "'fullPivLU'";
 
 /* LU decomposition with row and column permutations*/
 export default class FullPivLU {
@@ -36,7 +37,7 @@ export default class FullPivLU {
             }
 
             if (Math.abs(maxPivot) < tolerance)
-                throw new InsufficientRankException("'fullPivLU'");
+                throw new InsufficientRankException(SolverName);
 
             if (maxPivotRowIdx != step)
                 swap(rowPermutations, step, maxPivotRowIdx);

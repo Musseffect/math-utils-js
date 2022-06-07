@@ -3,6 +3,7 @@ import { assert, SmallEpsilon } from "../../utils";
 import vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
+const SolverName = "'Jacobi'";
 
 export default class jacobi {
     static solve(m: matrix, rhs: vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
@@ -33,6 +34,6 @@ export default class jacobi {
             if (rhsApprox.subSelf(rhs).lInfNorm() < tolerance)
                 return result;
         }
-        throw new ConvergenseFailureException("'Jacobi'");
+        throw new ConvergenseFailureException(SolverName);
     }
 }
