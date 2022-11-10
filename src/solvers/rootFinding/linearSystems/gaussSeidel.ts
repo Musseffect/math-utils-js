@@ -1,11 +1,11 @@
-import matrix from "../../denseMatrix";
-import { assert, SmallEpsilon } from "../../utils";
-import vector from "../../vector";
+import matrix from "../../../denseMatrix";
+import { assert, SmallEpsilon } from "../../../utils";
+import vector from "../../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
-const SolverName = "'Jacobi'";
+const SolverName = "'GaussSeidel'";
 
-export default class jacobi {
+export default class gaussSeidel {
     static solve(m: matrix, rhs: vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
         assert(m.width() == m.height(), "Matrix isn't square");
         assert(m.width() == rhs.size(), "Dimensions don't match");
@@ -19,18 +19,16 @@ export default class jacobi {
         }
         for (let it = 0; it < maxIterations; ++it) {
             let rhsApprox = vector.empty(rank);
-            let xNew = vector.empty(rank);
             for (let i = 0; i < rank; ++i) {
                 let sum = 0.0;
                 for (let j = 0; j < i; ++j)
                     sum += m.get(i, j) * result.get(j);
                 for (let j = i + 1; j < rank; ++j)
                     sum += m.get(i, j) * result.get(j);
-                xNew.set(i, (rhs.get(i) - sum) / m.get(i, i));
+                result.set(i, (rhs.get(i) - sum) / m.get(i, i));
                 for (let j = 0; j < rank; ++j)
-                    rhsApprox.set(j, rhsApprox.get(j) + m.get(j, i) * xNew.get(i));
+                    rhsApprox.set(j, rhsApprox.get(j) + m.get(j, i) * result.get(i));
             }
-            result = xNew;
             if (rhsApprox.subSelf(rhs).lInfNorm() < tolerance)
                 return result;
         }

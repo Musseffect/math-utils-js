@@ -1,6 +1,6 @@
-import matrix from "../../denseMatrix";
-import { assert, SmallEpsilon, swap } from "../../utils";
-import vector from "../../vector";
+import matrix from "../../../denseMatrix";
+import { assert, SmallEpsilon, swap } from "../../../utils";
+import vector from "../../../vector";
 import { InsufficientRankException } from "./exceptions";
 
 const SolverName = "'partialPivLU'";

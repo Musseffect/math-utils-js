@@ -1,12 +1,16 @@
-import matrix from "../../denseMatrix";
-import { assert, SmallEpsilon } from "../../utils";
-import vector from "../../vector";
+import matrix from "../../../denseMatrix";
+import { assert, SmallEpsilon } from "../../../utils";
+import vector from "../../../vector";
 import { ConvergenseFailureException } from "./exceptions";
+// https://en.wikipedia.org/wiki/Successive_over-relaxation
 
-const SolverName = "'GaussSeidel'";
+const SolverName = "'SOR'";
 
-export default class gaussSeidel {
-    static solve(m: matrix, rhs: vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
+/** Successive over-relaxation
+ * 
+ */
+export default class SOR {
+    static solve(m: matrix, rhs: vector, maxIterations: number, weight: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
         assert(m.width() == m.height(), "Matrix isn't square");
         assert(m.width() == rhs.size(), "Dimensions don't match");
         const rank = rhs.size();
@@ -25,7 +29,7 @@ export default class gaussSeidel {
                     sum += m.get(i, j) * result.get(j);
                 for (let j = i + 1; j < rank; ++j)
                     sum += m.get(i, j) * result.get(j);
-                result.set(i, (rhs.get(i) - sum) / m.get(i, i));
+                result.set(i, (1 - weight) * result.get(i) + weight * (rhs.get(i) - sum) / m.get(i, i));
                 for (let j = 0; j < rank; ++j)
                     rhsApprox.set(j, rhsApprox.get(j) + m.get(j, i) * result.get(i));
             }
