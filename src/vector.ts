@@ -25,6 +25,12 @@ export default class vector {
     clone(): vector {
         return new vector(this.data.slice());
     }
+    static negate(v: vector): vector {
+        let result = [];
+        for (let el of v.data)
+            result.push(-el);
+        return new vector(result);
+    }
     static empty(length: number): vector {
         let data: number[];
         (data = []).length = length;
@@ -33,9 +39,8 @@ export default class vector {
     }
     static dot(a: vector, b: vector) {
         let result = 0;
-        for (let i = 0; i < a.size(); i++) {
+        for (let i = 0; i < a.size(); i++)
             result += a.data[i] * b.data[i];
-        }
         return result;
     }
     static add(a: vector, b: vector) {

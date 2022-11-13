@@ -1,8 +1,8 @@
 //todo:
 
-import matrix from "../../denseMatrix";
-import { assert, near, SmallEpsilon } from "../../utils";
-import vector from "../../vector";
+import matrix from "../../../denseMatrix";
+import { assert, near, SmallEpsilon } from "../../../utils";
+import vector from "../../../vector";
 import { InsufficientRankException } from "./exceptions";
 
 const SolverName = "'cholesky'";
