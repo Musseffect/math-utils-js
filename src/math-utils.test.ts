@@ -410,3 +410,7 @@ test("Sparse vector", () => {
 test("General dense matrix", () => {
 
 });
+
+test("Root finding:nonlinear", () => {
+    // 1d 
+});

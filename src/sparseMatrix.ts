@@ -102,17 +102,19 @@ export default class sparseMatrix {
     static fromDense(dense: matrix): sparseMatrix {
         throw new Error("Not implemented");
     }
-    static fromTriplets(triplets: triplet[]): sparseMatrix {
+    static fromTriplets(triplets: triplet[], numRows: number, numCols: number, tolerance: number = SmallestEpsilon): sparseMatrix {
         // sorted in ascending "row by row" order
         triplets.sort((a: triplet, b: triplet) => {
             let rowSign = a.row - b.row;
             if (rowSign != 0) return rowSign;
             return a.column - b.column;
         });
-        let result = new sparseMatrix(this.numRows, this.numCols, this.tolerance);
+        let result = new sparseMatrix(numRows, numCols, tolerance);
         if (triplets.length == 0) return result;
         let currentRow = triplets[0].row;
         for (let i = 0; i < triplets.length; ++i) {
+            assert(triplets[i].row <= numRows && triplets[i].row >= 0, "Invalid row index");
+            assert(triplets[i].column <= numCols && triplets[i].column >= 0, "Invalid column index");
             if (triplets[i].row != currentRow) {
                 for (let row = currentRow; row < triplets[i].row; ++row)
                     result.outerStarts.push(result.nonZeroElements.length);
