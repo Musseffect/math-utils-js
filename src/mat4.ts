@@ -3,27 +3,33 @@ import quat from "./quat";
 import vec3 from "./vec3";
 import { determinant3x3, determinant4x4, Epsilon, SmallEpsilon } from "./utils";
 import vec4 from "./vec4";
-import matrix from "./denseMatrix";
+import Matrix from "./denseMatrix";
+import AbstractDenseMatrix from "./abstractDenseMatrix";
 
 
-export default class mat4 {
-    data: number[][];
+export default class mat4 extends AbstractDenseMatrix {
     constructor(m11: number, m12: number, m13: number, m14: number,
         m21: number, m22: number, m23: number, m24: number,
         m31: number, m32: number, m33: number, m34: number,
         m41: number, m42: number, m43: number, m44: number) {
-        this.data = [
-            [m11, m12, m13, m14],
-            [m21, m22, m23, m24],
-            [m31, m32, m33, m34],
-            [m41, m42, m43, m44]
-        ];
+        super([
+            m11, m12, m13, m14,
+            m21, m22, m23, m24,
+            m31, m32, m33, m34,
+            m41, m42, m43, m44
+        ]);
+    }
+    numRows(): number {
+        return 4;
+    }
+    numCols(): number {
+        return 4;
     }
     isIdentity(tolerance: number = SmallEpsilon): boolean {
         let diff = 0;
         for (let i = 0; i < 4; ++i) {
             for (let j = 0; j < 4; ++j) {
-                diff = Math.max(Math.abs(this.data[i][j] - (i == j ? 0 : 1)), diff);
+                diff = Math.max(Math.abs(this.get(i, j) - (i == j ? 0 : 1)), diff);
             }
         }
         return diff < tolerance;
@@ -35,18 +41,6 @@ export default class mat4 {
             this.get(2, 0), this.get(2, 1), this.get(2, 2), this.get(2, 3),
             this.get(3, 0), this.get(3, 1), this.get(3, 2), this.get(3, 3)
         );
-    }
-    static near(a: mat4, b: mat4, threshold?: number): boolean {
-        if (!threshold)
-            threshold = Epsilon;
-
-        for (let i = 0; i < 4; i++) {
-            for (let j = 0; j < 4; j++) {
-                if (Math.abs(a.get(i, j) - b.get(i, j)) > threshold)
-                    return false;
-            }
-        }
-        return true;
     }
     static empty(): mat4 {
         return new mat4(
@@ -61,12 +55,6 @@ export default class mat4 {
             0, 1, 0, 0,
             0, 0, 1, 0,
             0, 0, 0, 1);
-    }
-    set(i: number, j: number, value: number): void {
-        this.data[i][j] = value;
-    }
-    get(i: number, j: number): number {
-        return this.data[i][j];
     }
     extractMat3(): mat3 {
         return new mat3(
@@ -133,14 +121,14 @@ export default class mat4 {
             this.get(0, 3), this.get(1, 3), this.get(2, 3), this.get(3, 3)
         );
     }
-    toMatrix(): matrix {
+    toMatrix(): Matrix {
         let data = [];
         for (let j = 0; j < 4; ++j) {
             for (let i = 0; i < 4; ++i) {
                 data.push(this.get(j, i));
             }
         }
-        return new matrix(data, 4, 4);
+        return new Matrix(data, 4, 4);
     }
     static scale(a: mat4, l: number): mat4 {
         return a.scale(l);
@@ -170,10 +158,10 @@ export default class mat4 {
         for (let i = 0; i < 4; i++) {
             for (let j = 0; j < 4; j++) {
                 let result = 0.0;
-                result += this.data[i][0] * m.data[0][j];
-                result += this.data[i][1] * m.data[1][j];
-                result += this.data[i][2] * m.data[2][j];
-                result += this.data[i][3] * m.data[3][j];
+                result += this.get(i, 0) * m.get(0, j);
+                result += this.get(i, 1) * m.get(1, j);
+                result += this.get(i, 2) * m.get(2, j);
+                result += this.get(i, 3) * m.get(3, j);
                 out.set(i, j, result);
             }
         }

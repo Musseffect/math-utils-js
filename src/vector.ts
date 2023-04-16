@@ -1,11 +1,21 @@
+import Matrix from "./denseMatrix";
 import { assert, clamp, Epsilon } from "./utils";
 
-export default class vector {
+export default class Vector {
     data: number[];
     constructor(data: number[]) {
         this.data = data;
     }
-    static near(a: vector, b: vector, threshold?: number): boolean {
+    static outer(a: Vector, b: Vector): Matrix {
+        let result: Matrix = Matrix.empty(a.size(), b.size());
+        for (let j = 0; j < a.size(); j++) {
+            for (let i = 0; i < b.size(); i++) {
+                result.set(j, i, a.get(j) * b.get(i));
+            }
+        }
+        return result;
+    }
+    static near(a: Vector, b: Vector, threshold?: number): boolean {
         assert(a.size() == b.size(), "Vectors should have equal sizes");
         if (!threshold)
             threshold = Epsilon;
@@ -16,69 +26,69 @@ export default class vector {
         }
         return true;
     }
-    static lerp(a: vector, b: vector, t: number): vector {
+    static lerp(a: Vector, b: Vector, t: number): Vector {
         return b.sub(a).scaleSelf(t).addSelf(a);
     }
-    copy(): vector {
-        return new vector(this.data.slice());
+    copy(): Vector {
+        return new Vector(this.data.slice());
     }
-    clone(): vector {
-        return new vector(this.data.slice());
+    clone(): Vector {
+        return new Vector(this.data.slice());
     }
-    static negate(v: vector): vector {
+    static negate(v: Vector): Vector {
         let result = [];
         for (let el of v.data)
             result.push(-el);
-        return new vector(result);
+        return new Vector(result);
     }
-    static empty(length: number): vector {
+    static empty(length: number): Vector {
         let data: number[];
         (data = []).length = length;
         data.fill(0);
-        return new vector(data);
+        return new Vector(data);
     }
-    static dot(a: vector, b: vector) {
+    static dot(a: Vector, b: Vector) {
         let result = 0;
         for (let i = 0; i < a.size(); i++)
             result += a.data[i] * b.data[i];
         return result;
     }
-    static add(a: vector, b: vector) {
+    static add(a: Vector, b: Vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] + b.data[i]);
-        return new vector(result);
+        return new Vector(result);
     }
-    static sub(a: vector, b: vector) {
+    static sub(a: Vector, b: Vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] - b.data[i]);
-        return new vector(result);
+        return new Vector(result);
     }
-    static mul(a: vector, b: vector) {
+    static mul(a: Vector, b: Vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] * b.data[i]);
-        return new vector(result);
+        return new Vector(result);
     }
-    static div(a: vector, b: vector) {
+    static div(a: Vector, b: Vector) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] / b.data[i]);
-        return new vector(result);
+        return new Vector(result);
     }
-    static scale(a: vector, s: number) {
+    static scale(a: Vector, s: number) {
         let result = [];
         for (let i = 0; i < a.data.length; i++)
             result.push(a.data[i] * s);
-        return new vector(result);
+        return new Vector(result);
     }
-    addSelf(b: vector) {
+    addSelf(b: Vector) {
         for (let i = 0; i < this.data.length; i++)
             this.data[i] += b.data[i];
         return this;
     }
-    subSelf(b: vector) {
+    subSelf(b: Vector) {
         for (let i = 0; i < this.data.length; i++)
             this.data[i] -= b.data[i];
         return this;
@@ -101,21 +111,21 @@ export default class vector {
         let resultData = new Array(length);
         for (let i = 0; i < length; i++)
             resultData[i] = this.data[offset + i];
-        return new vector(resultData);
+        return new Vector(resultData);
     }
-    addSubVector(b: vector, offset: number): vector {
+    addSubVector(b: Vector, offset: number): Vector {
         assert(this.size() == b.size() + offset, "Vectors should have matching sizes");
         for (let i = 0; i < b.size(); i++)
             this.data[i + offset] += b.get(i);
         return this;
     }
-    subSubVector(b: vector, offset: number): vector {
+    subSubVector(b: Vector, offset: number): Vector {
         assert(this.size() == b.size() + offset, "Vectors should have matching sizes");
         for (let i = 0; i < b.size(); i++)
             this.data[i + offset] -= b.get(i);
         return this;
     }
-    add(b: vector, dest?: vector): vector {
+    add(b: Vector, dest?: Vector): Vector {
         if (!dest)
             dest = this;
         assert(this.size() == b.size(), "Vectors should be of equal size");
@@ -123,7 +133,7 @@ export default class vector {
             dest.data[i] = this.data[i] + b.data[i];
         return dest;
     }
-    sub(b: vector, dest?: vector): vector {
+    sub(b: Vector, dest?: Vector): Vector {
         if (!dest)
             dest = this;
         assert(this.size() == b.size(), "Vectors should be of equal size");
@@ -131,7 +141,7 @@ export default class vector {
             dest.data[i] = this.data[i] - b.data[i];
         return dest;
     }
-    mul(b: vector, dest?: vector): vector {
+    mul(b: Vector, dest?: Vector): Vector {
         if (!dest)
             dest = this;
         assert(this.size() == b.size(), "Vectors should be of equal size");
@@ -139,7 +149,7 @@ export default class vector {
             dest.data[i] = this.data[i] * b.data[i];
         return dest;
     }
-    scale(b: number, dest?: vector): vector {
+    scale(b: number, dest?: Vector): Vector {
         if (!dest)
             dest = this;
         for (let i = 0; i < this.data.length; i++)
@@ -167,7 +177,7 @@ export default class vector {
             result += this.data[i] * this.data[i];
         return result;
     }
-    clamp(min: vector, max: vector): void {
+    clamp(min: Vector, max: Vector): void {
         for (let i = 0; i < this.data.length; i++) {
             this.data[i] = clamp(this.data[i], min.data[i], max.data[i]);
         }

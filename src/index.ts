@@ -2,7 +2,7 @@ import axisAngle from "./axisAngle";
 import mat2 from "./mat2";
 import mat3 from "./mat3";
 import mat4 from "./mat4";
-import matrix from "./denseMatrix";
+import Matrix from "./denseMatrix";
 import quat from "./quat";
 import transform3D from "./transform3D";
 import transform2D from "./transform2D";
@@ -10,12 +10,13 @@ import vec2 from "./vec2";
 import complex from "./complex";
 import vec3 from "./vec3";
 import vec4 from "./vec4";
-import vector from "./vector";
+import Vector from "./vector";
 import {
     Epsilon,
     SmallEpsilon,
     SmallestEpsilon,
     assert,
+    assertFail,
     radians,
     degrees,
     clamp,
@@ -28,7 +29,7 @@ import {
 import { Axis, eulerAngles } from "./eulerAngles";
 import * as ode from "./solvers/ode/odeExports";
 import { linearRoot, quadraticRoots } from "./solvers/rootFinding/analytical";
-import * as linearSystemSolvers from "./solvers/linearSystems/exports";
+import * as linearSystemSolvers from "./solvers/rootFinding/linear systems/exports";
 
 export {
     axisAngle,
@@ -36,11 +37,11 @@ export {
     vec2,
     vec3,
     vec4,
-    vector,
+    Vector,
     mat2,
     mat3,
     mat4,
-    matrix,
+    Matrix,
     quat,
     transform2D,
     transform3D,
@@ -50,6 +51,7 @@ export {
     SmallEpsilon,
     SmallestEpsilon,
     assert,
+    assertFail,
     radians,
     degrees,
     clamp,

@@ -1,24 +1,24 @@
-import matrix from "../../../denseMatrix";
+import Matrix from "../../../denseMatrix";
 import { assert, SmallEpsilon } from "../../../utils";
-import vector from "../../../vector";
+import Vector from "../../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
 const SolverName = "'GaussSeidel'";
 
-export default class gaussSeidel {
-    static solve(m: matrix, rhs: vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
+export default class GaussSeidel {
+    static solve(m: Matrix, rhs: Vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: Vector) {
         assert(m.width() == m.height(), "Matrix isn't square");
         assert(m.width() == rhs.size(), "Dimensions don't match");
         const rank = rhs.size();
-        let result: vector;
+        let result: Vector;
         if (initialGuess) {
             assert(rank == initialGuess.size(), "Initial guess doesn't match system rank");
             result = initialGuess.clone();
         } else {
-            result = vector.empty(rank);
+            result = Vector.empty(rank);
         }
         for (let it = 0; it < maxIterations; ++it) {
-            let rhsApprox = vector.empty(rank);
+            let rhsApprox = Vector.empty(rank);
             for (let i = 0; i < rank; ++i) {
                 let sum = 0.0;
                 for (let j = 0; j < i; ++j)

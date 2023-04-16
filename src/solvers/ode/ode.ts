@@ -1,4 +1,4 @@
-import matrix from "../../denseMatrix";
+import Matrix from "../../denseMatrix";
 import { lerp } from "../../utils";
 import vector from "../../vector";
 
@@ -11,7 +11,7 @@ export interface odeState {
     t: number;
 }
 export interface iode extends eode {
-    dfdx(x: vector, t: number): matrix;
+    dfdx(x: vector, t: number): Matrix;
 }
 
 export abstract class odeSolver {

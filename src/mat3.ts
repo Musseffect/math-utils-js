@@ -1,29 +1,35 @@
 import axisAngle from "./axisAngle";
 import mat2 from "./mat2";
 import mat4 from "./mat4";
-import matrix from "./denseMatrix";
+import Matrix from "./denseMatrix";
 import quat from "./quat";
 import { assert, determinant2x2, determinant3x3, Epsilon, near, SmallEpsilon } from "./utils";
 import vec2 from "./vec2";
 import vec3 from "./vec3";
+import mat from "./abstractDenseMatrix";
 
 
-export default class mat3 {
-    data: number[][];
+export default class mat3 extends mat {
     constructor(m11: number, m12: number, m13: number,
         m21: number, m22: number, m23: number,
         m31: number, m32: number, m33: number) {
-        this.data = [
-            [m11, m12, m13],
-            [m21, m22, m23],
-            [m31, m32, m33]
-        ];
+        super([
+            m11, m12, m13,
+            m21, m22, m23,
+            m31, m32, m33
+        ]);
+    }
+    numCols(): number {
+        return 3;
+    }
+    numRows(): number {
+        return 3;
     }
     isIdentity(tolerance: number = SmallEpsilon): boolean {
         let diff = 0;
         for (let i = 0; i < 3; ++i) {
             for (let j = 0; j < 3; ++j) {
-                diff = Math.max(Math.abs(this.data[i][j] - (i == j ? 0 : 1)), diff);
+                diff = Math.max(Math.abs(this.get(i, j) - (i == j ? 0 : 1)), diff);
             }
         }
         return diff < tolerance;
@@ -34,18 +40,6 @@ export default class mat3 {
             this.get(1, 0), this.get(1, 1), this.get(1, 2),
             this.get(2, 0), this.get(2, 1), this.get(2, 2),
         );
-    }
-    static near(a: mat3, b: mat3, threshold?: number): boolean {
-        if (!threshold) {
-            threshold = Epsilon;
-        }
-        for (let i = 0; i < 3; i++) {
-            for (let j = 0; j < 3; j++) {
-                if (Math.abs(a.get(i, j) - b.get(i, j)) > threshold)
-                    return false;
-            }
-        }
-        return true;
     }
     static empty(): mat3 {
         return new mat3(
@@ -199,11 +193,12 @@ export default class mat3 {
             m21, m22, m23,
             m31, m32, m33);
     }
-    set(i: number, j: number, value: number): void {
-        this.data[i][j] = value;
+    set(row: number, col: number, value: number): void {
+        this.data[row * 3 + col] = value;
     }
-    get(i: number, j: number): number {
-        return this.data[i][j];
+    get(row: number, col: number): number {
+        assert(row >= 0 && row < 3 && col >= 0 && col < 3, "Invalid index");
+        return this.data[row * 3 + col];
     }
     toQuat(): quat {
         let trace = this.trace();
@@ -213,9 +208,9 @@ export default class mat3 {
     }
     toMat4(): mat4 {
         return new mat4(
-            this.data[0][0], this.data[0][1], this.data[0][2], 0.,
-            this.data[1][0], this.data[1][1], this.data[1][2], 0.,
-            this.data[2][0], this.data[2][1], this.data[2][2], 0.,
+            this.get(0, 0), this.get(0, 1), this.get(0, 2), 0.,
+            this.get(1, 0), this.get(1, 1), this.get(1, 2), 0.,
+            this.get(2, 0), this.get(2, 1), this.get(2, 2), 0.,
             0., 0., 0., 1.
         );
     }
@@ -248,9 +243,9 @@ export default class mat3 {
         for (let i = 0; i < 3; i++) {
             for (let j = 0; j < 3; j++) {
                 let result = 0.0;
-                result += this.data[i][0] * m.data[0][j];
-                result += this.data[i][1] * m.data[1][j];
-                result += this.data[i][2] * m.data[2][j];
+                result += this.get(i, 0) * m.get(0, j);
+                result += this.get(i, 1) * m.get(1, j);
+                result += this.get(i, 2) * m.get(2, j);
                 out.set(i, j, result);
             }
         }
@@ -334,14 +329,14 @@ export default class mat3 {
             this.get(0, 2), this.get(1, 2), this.get(2, 2)
         );
     }
-    toMatrix(): matrix {
+    toMatrix(): Matrix {
         let data = [];
         for (let j = 0; j < 3; ++j) {
             for (let i = 0; i < 3; ++i) {
                 data.push(this.get(i, j));
             }
         }
-        return new matrix(data, 4, 4);
+        return new Matrix(data, 4, 4);
     }
     transformPoint3D(p: vec3): vec3 {
         return this.postMulVec(p);
@@ -437,5 +432,29 @@ export default class mat3 {
             result[i] += this.get(i, 2) * p.z;
         }
         return new vec3(result[0], result[1], result[2]);
+    }
+    static add(a: mat3, b: mat3): mat3 {
+        return a.add(b);
+    }
+    add(m: mat3, out?: mat3): mat3 {
+        if (!out)
+            out = this.clone();
+        return out.addSelf(m);
+    }
+    addSelf(m: mat3): mat3 {
+        super.addSelf(m);
+        return this;
+    }
+    static sub(a: mat3, b: mat3): mat3 {
+        return a.sub(b);
+    }
+    sub(m: mat3, out?: mat3): mat3 {
+        if (!out)
+            out = this.clone();
+        return out.subSelf(m);
+    }
+    subSelf(m: mat3): mat3 {
+        super.subSelf(m);
+        return this;
     }
 }

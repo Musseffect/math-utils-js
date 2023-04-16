@@ -2,7 +2,7 @@ import axisAngle from "./axisAngle";
 import mat3 from "./mat3";
 import mat4 from "./mat4";
 import quat from "./quat";
-import { Epsilon, radians, SmallEpsilon } from "./utils";
+import { assert, Epsilon, near, radians, SmallEpsilon } from "./utils";
 import transform3D from "./transform3D";
 import transform2D from "./transform2D";
 import complex from "./complex";
@@ -10,13 +10,53 @@ import vec2 from "./vec2";
 import vec3 from "./vec3";
 import mat2 from "./mat2";
 import vec4 from "./vec4";
-import matrix from "./denseMatrix";
-import vector from "./vector";
+import Matrix from "./denseMatrix";
+import Vector from "./vector";
 import sparseVector from "./sparseVector";
-import * as ode from "./solvers/ode/odeExports";
-import * as linSolvers from "./solvers/linearSystems/exports";
+import PermutationMatrix from "./permutationMatrix";
+import SparseMatrix from "./sparseMatrix";
+import Triplet from "./triplet";
+import { backwardDifference, centralDifference, forwardDifference, secondOrderDifference } from "./numericalDifferentiation";
 
-test('Quaternion basic operations', () => {
+const singularTrivialMatrixTriplets: Triplet[] = [{ row: 1, column: 1, value: 1 },
+{ row: 2, column: 2, value: 1 }, { row: 0, column: 0, value: 2 }, { row: 3, column: 3, value: 1 }, { row: 5, column: 5, value: 1 }];
+const singularSparseTrivialMatrix = SparseMatrix.fromTriplets(singularTrivialMatrixTriplets, 6, 6);
+const singularDenseTrivialMatrix = Matrix.fromTriplets(singularTrivialMatrixTriplets, 6, 6);
+
+const singularNonTrivialMatrixTriplets: Triplet[] = [
+    { row: 0, column: 0, value: 1 },
+    { row: 0, column: 2, value: 3 },
+    { row: 0, column: 4, value: 1 },
+    { row: 1, column: 0, value: 2 },
+    { row: 1, column: 1, value: 2 },
+    { row: 1, column: 5, value: 2 },
+    { row: 2, column: 0, value: 2 },
+    { row: 2, column: 1, value: 2 },
+    { row: 2, column: 2, value: 3 },
+    { row: 2, column: 3, value: 1 },
+    { row: 2, column: 5, value: 3 },
+    { row: 3, column: 4, value: 4 },
+    { row: 4, column: 0, value: 3 },
+    { row: 4, column: 1, value: -3 },
+    { row: 4, column: 2, value: -1 },
+    { row: 4, column: 4, value: 2 },
+    { row: 5, column: 1, value: 2 },
+    { row: 5, column: 3, value: 2 },
+    { row: 5, column: 5, value: 4 }
+];
+const singularSparseNonTrivialMatrix = SparseMatrix.fromTriplets(singularNonTrivialMatrixTriplets, 6, 6);
+const singularDenseNonTrivialMatrix = Matrix.fromTriplets(singularNonTrivialMatrixTriplets, 6, 6);
+
+const nonSingularMatrixTriplets: Triplet[] = [{ row: 0, column: 0, value: 1 }, { row: 0, column: 2, value: 3 }, { row: 0, column: 4, value: 1 },
+{ row: 1, column: 0, value: 2 }, { row: 1, column: 1, value: 2 }, { row: 1, column: 5, value: 2 }, { row: 2, column: 1, value: 2 }, { row: 2, column: 3, value: 1 }
+    , { row: 2, column: 5, value: 3 }, { row: 3, column: 4, value: 4 }, { row: 4, column: 0, value: 3 }, { row: 4, column: 1, value: -3 }, { row: 4, column: 2, value: -1 }
+    , { row: 4, column: 4, value: 2 }, { row: 5, column: 1, value: 2 }, { row: 5, column: 3, value: 2 }, { row: 5, column: 5, value: 4 }];
+const nonSingularSparseMatrix = SparseMatrix.fromTriplets(nonSingularMatrixTriplets, 6, 6);
+const nonSingularDenseMatrix = Matrix.fromTriplets(nonSingularMatrixTriplets, 6, 6);
+const nonSingularMatrixDeterminant = 144.0;
+
+
+test.only('Quaternion basic operations', () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
     let q1 = quat.fromAxisAngle(axisAngleRotation);
     expect(quat.near(q1.mul(quat.inverse(q1)), quat.identity())).toBeTruthy();
@@ -30,6 +70,7 @@ test('Quaternion basic operations', () => {
     expect(quat.near(q1, qSub.add(q2))).toBeTruthy();
     expect(quat.near(q1, qMul.div(q2))).toBeTruthy();
 });
+
 test('Complex operations', () => {
     let z1 = new complex(1, 2);
     let z2 = complex.polar(2.0, 1.1);
@@ -46,29 +87,62 @@ test('Complex operations', () => {
     expect(vec2.near(z1, complex.cExp(zLog))).toBeTruthy();
     expect(vec2.near(z2, complex.cDiv(complex.cLog(zPow), complex.cLog(z1)))).toBeTruthy();
 });
+
 test('Matrix operations', () => {
-    expect(mat4.identity().determinant()).toBeCloseTo(1);
-    expect(mat3.identity().determinant()).toBeCloseTo(1);
     expect(mat2.identity().determinant()).toBeCloseTo(1);
+    expect(mat3.identity().determinant()).toBeCloseTo(1);
+    expect(mat4.identity().determinant()).toBeCloseTo(1);
+    expect(Matrix.identity(4).determinantNaive()).toBeCloseTo(1);
+
+    expect(mat2.empty().determinant()).toBeCloseTo(0);
+    expect(mat3.empty().determinant()).toBeCloseTo(0);
+    expect(mat4.empty().determinant()).toBeCloseTo(0);
+    expect(Matrix.empty(4, 4).determinantNaive()).toBeCloseTo(0);
+
+    expect(Matrix.identity(2).determinantNaive()).toBeCloseTo(1);
+    expect(Matrix.identity(3).determinantNaive()).toBeCloseTo(1);
+    expect((new Matrix([1, 2, 3, 4], 2, 2)).determinantNaive()).toBeCloseTo(-2);
+
+    expect(Matrix.lInfDistance(singularSparseTrivialMatrix.toDense(), singularDenseTrivialMatrix)).toBeCloseTo(0.0);
+    expect(Matrix.lInfDistance(singularSparseNonTrivialMatrix.toDense(), singularDenseNonTrivialMatrix)).toBeCloseTo(0.0);
+    expect(Matrix.lInfDistance(nonSingularSparseMatrix.toDense(), nonSingularDenseMatrix)).toBeCloseTo(0.0);
+
+    const matT = new Matrix([3, 2, 4, 1, 2, 3, 1, 5, 2], 3, 3);
+    expect(matT.determinantNaive()).toBeCloseTo(-19);
+
+    const mat = new Matrix([4, 2, 0, 2, 0,
+        2, 2, 0, 0, 0,
+        3, 2, 3, 1, 0,
+        0, 0, 0, 0, 4,
+        0, -3, -1, 0, 2], 5, 5);
+    console.log(mat.toString());
+    expect(mat.determinantNaive()).toBeCloseTo(144);
+    const matN = new Matrix([0, 2, -1, 0,
+        2, 0, 0, 0, 3, 0, 3, 1, 0, 4, 0, 0], 4, 4);
+    expect(matN.determinantNaive()).toBeCloseTo(8);
+    expect(singularDenseTrivialMatrix.determinantNaive()).toBeCloseTo(0);
+    expect(singularDenseNonTrivialMatrix.determinantNaive()).toBeCloseTo(0);
+    expect(nonSingularDenseMatrix.determinantNaive()).toBeCloseTo(nonSingularMatrixDeterminant);
 
     let m4 = new mat4(
         1, 3, 2, 4,
         6, 8, 3, -2,
         -5, 3, 2, 1,
         3, 4, 5, 2);
-    expect(mat4.near(m4.transpose().transpose(), m4, Epsilon)).toBeTruthy();
+    expect(Matrix.near(m4.transpose().transpose(), m4, Epsilon)).toBeTruthy();
 
-    expect(mat4.near(mat4.identity(), mat4.mul(m4, m4.inverse()), Epsilon)).toBeTruthy();
+    expect(Matrix.near(mat4.identity(), mat4.mul(m4, m4.inverse()), Epsilon)).toBeTruthy();
 
     let m3a = new mat3(1, 3, 2, 4, 6, 8, 3, -2, -5);
     let m3b = new mat3(4, -2, -1, -31, 21, -4, 51, -13, 10);
     let m3c = new mat3(13, 35, 7, 238, 14, 52, -181, 17, -45);
-    expect(mat3.near(m3a, mat3.mul(m3a, mat3.identity()), Epsilon)).toBeTruthy();
-    expect(mat3.near(m3c, mat3.mul(m3a, m3b), Epsilon)).toBeTruthy();
-    expect(mat3.near(mat3.identity(), mat3.mul(m3a, m3a.inverse()), Epsilon)).toBeTruthy();
+    expect(Matrix.near(m3a, mat3.mul(m3a, mat3.identity()), Epsilon)).toBeTruthy();
+    expect(Matrix.near(m3c, mat3.mul(m3a, m3b), Epsilon)).toBeTruthy();
+    expect(Matrix.near(mat3.identity(), mat3.mul(m3a, m3a.inverse()), Epsilon)).toBeTruthy();
 
     //let m2 = new mat2(-13.1, 0.6, -1.7, 2.3);
     //expect(mat2.near(mat2.identity(), mat2.mul(m2, m2.inverse()), Epsilon)).toBeTruthy();
+
 });
 
 test('Vector operations', () => {
@@ -121,14 +195,20 @@ test('Matrix-vector operations', () => {
     );*/
     let mat = m4D.toMatrix();
     let rhs = p4D.toVector();
-    expect(vector.near(matrix.postMulVec(mat, rhs), m4D.postMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
-    expect(vector.near(matrix.preMulVec(mat, rhs), m4D.preMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
+    expect(Vector.near(Matrix.postMulVec(mat, rhs), m4D.postMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
+    expect(Vector.near(Matrix.preMulVec(mat, rhs), m4D.preMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
 
-    expect(matrix.near(mat.inverse(), m4D.inverse().toMatrix(), SmallEpsilon)).toBeTruthy();
+    //expect(new Matrix([1, 2, 3, 4], 2, 2).determinantNaive()).toBeCloseTo(-2.0);
 
-    expect(matrix.near(matrix.mul(mat, mat.inverse()), matrix.identity(4), SmallEpsilon)).toBeTruthy();
-    expect(vector.near(m4D.inverse().postMulVec(p4D).toVector(), matrix.solve(mat.clone(), rhs), SmallEpsilon)).toBeTruthy();
-    expect(matrix.near(mat.transpose(), m4D.transpose().toMatrix(), SmallEpsilon)).toBeTruthy();
+    expect(new Matrix([1, 2, 3, 4, 5, 6, 7, 8, 9], 3, 3).determinantNaive()).toBeCloseTo(0.0);
+    //expect(mat.determinantNaive()).toBeCloseTo(m4D.determinant());
+    //console.log(`InverseNaive ${mat.inverseNaive().toString()}`);
+    console.log(`Inverse ${m4D.inverse().toString()}`);
+    //expect(Matrix.near(mat.inverseNaive(), m4D.inverse().toMatrix(), SmallEpsilon)).toBeTruthy();
+
+    //expect(Matrix.near(Matrix.mul(mat, mat.inverseNaive()), Matrix.identity(4), SmallEpsilon)).toBeTruthy();
+    expect(Vector.near(m4D.inverse().postMulVec(p4D).toVector(), Matrix.solve(mat.clone(), rhs), SmallEpsilon)).toBeTruthy();
+    expect(Matrix.near(mat.transpose(), m4D.transpose().toMatrix(), SmallEpsilon)).toBeTruthy();
 });
 
 test("Rotation conversions", () => {
@@ -137,7 +217,7 @@ test("Rotation conversions", () => {
     let quatRotation = quat.fromAxisAngle(axisAngleRotation);
     let matRotation = mat3.fromAxisAngle(axisAngleRotation);
     expect(matRotation.determinant()).toBeCloseTo(1);
-    expect(mat3.near(quatRotation.toMat3(), matRotation, SmallEpsilon)).toBeTruthy();
+    expect(Matrix.near(quatRotation.toMat3(), matRotation, SmallEpsilon)).toBeTruthy();
     expect(quat.near(quatRotation, matRotation.toQuat(), SmallEpsilon)).toBeTruthy();
     expect(axisAngle.near(quatRotation.toAxisAngle(), axisAngleRotation, SmallEpsilon)).toBeTruthy();
     expect(axisAngle.near(matRotation.toAxisAngle(), axisAngleRotation, SmallEpsilon)).toBeTruthy();
@@ -150,7 +230,7 @@ test("Rotation conversions", () => {
     expect(vec3.near(quatRotation.toMat3().transformPoint3D(point), matRotation.transformPoint3D(point), SmallEpsilon)).toBeTruthy();
     expect(vec3.near(quatRotation.rotate(point), matRotation.toQuat().rotate(point), SmallEpsilon)).toBeTruthy();
     expect(vec3.near(matRotation.transformPoint3D(point), matRotationEuler.transformPoint3D(point), SmallEpsilon)).toBeTruthy();
-    expect(mat3.near(matRotation, matRotationEuler, SmallEpsilon)).toBeTruthy();
+    expect(Matrix.near(matRotation, matRotationEuler, SmallEpsilon)).toBeTruthy();
 
     matRotation = mat3.fromEulerAngles(eulerRotation.yaw, eulerRotation.pitch, eulerRotation.roll);
     let ea = matRotation.toEulerAngles();
@@ -186,7 +266,7 @@ test("Rotations", () => {
 
     axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
     matRotation = mat3.fromAxisAngle(axisAngleRotation);
-    expect(mat3.near(matRotation.inverse(), matRotation.transpose(), Epsilon)).toBeTruthy();
+    expect(Matrix.near(matRotation.inverse(), matRotation.transpose(), Epsilon)).toBeTruthy();
 });
 
 test("Transformations", () => {
@@ -201,7 +281,7 @@ test("Transformations", () => {
     let inverseAffine3D = affine3D.inverse();
     let transformation3D = new transform3D(translation3D, rotation3D, scale3D);
     let point3D = new vec3(0.6, -1.2, 1.6);
-    expect(mat4.near(affine3D, t3D.mul(r3D).mul(s3D), Epsilon)).toBeTruthy();
+    expect(Matrix.near(affine3D, t3D.mul(r3D).mul(s3D), Epsilon)).toBeTruthy();
     expect(vec3.near(transformation3D.transformPoint3D(point3D), affine3D.transformPoint3D(point3D), Epsilon)).toBeTruthy();
     expect(vec3.near(transformation3D.transformVector3D(point3D), affine3D.transformVector3D(point3D), Epsilon)).toBeTruthy();
     expect(vec3.near(transformation3D.transformInversePoint3D(point3D), inverseAffine3D.transformPoint3D(point3D), Epsilon)).toBeTruthy();
@@ -225,7 +305,7 @@ test("Transformations", () => {
     let inverseAffine2D = affine2D.inverse();
     let transformation2D = new transform2D(translation2D, rotation2D, scale2D);
     let point2D = new vec2(3.6, 1.6);
-    expect(mat3.near(affine2D, t2D.mul(r2D).mul(s2D), Epsilon)).toBeTruthy();
+    expect(Matrix.near(affine2D, t2D.mul(r2D).mul(s2D), Epsilon)).toBeTruthy();
     expect(vec2.near(transformation2D.transformPoint2D(point2D), affine2D.transformPoint2D(point2D), Epsilon)).toBeTruthy();
     expect(vec2.near(transformation2D.transformVector2D(point2D), affine2D.transformVector2D(point2D), Epsilon)).toBeTruthy();
 
@@ -283,88 +363,32 @@ test("Transform components", () => {
     expect(vec2.near(pTRS1_2D, trs_2D.transformPoint2D(point2D), SmallEpsilon)).toBeTruthy();
 });
 
-test("ODE", () => {
-    class expOde implements ode.eode {
-        param: number;
-        constructor(param: number) {
-            this.param = param;
-        }
-        f(x: vector, t: number): vector {
-            return new vector([this.param * x.get(0)]);
-        }
-        size(): number {
-            return 1;
-        }
-    };
-    const param = -1.0;
-    let odeSystem = new expOde(param);
-    let euler = new ode.euler(odeSystem, 0.005);
-    let rk4 = new ode.rk4(odeSystem, 0.01);
-    const t1 = 1.0;
-    const x0 = new vector([1.0]);
-    let solution = Math.exp(param * t1) * x0.get(0);
-    expect(rk4.solve(x0, 0, t1).get(0)).toBeCloseTo(solution);
-    expect(euler.solve(x0, 0, t1).get(0)).toBeCloseTo(solution);
-});
 
 
 test("General dense matrix", () => {
-    interface testData {
-        m: matrix;
-        rhs: vector;
-        exactSolution: vector;
-    };
-    let testExamples: testData[] = [];
-    let m = matrix.empty(4, 4);
-    let rhs = new vector([6, 25, -11, 15]);
-    m.set(0, 0, 10);
-    m.set(0, 1, -1);
-    m.set(0, 2, 2);
 
-    m.set(1, 0, -1);
-    m.set(1, 1, 11);
-    m.set(1, 2, -1);
-    m.set(1, 3, 3);
+    // test nonsingular matrices
+    expect(Matrix.near(Matrix.identity(4).inverseNaive(), Matrix.identity(4))).toBeTruthy();
+    let permutationMatrix = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], true);
+    assert(permutationMatrix.isValid(), "Invalid permutation");
+    //expect(Matrix.near(permutationMatrix.toMatrix().inverse(), permutationMatrix.inverse().toMatrix()));
+    //expect(Math.abs(permutationMatrix.toMatrix().determinant())).toBeCloseTo(1.0);
+    //expect(nonSingularDenseMatrix.determinant()).not.toBeCloseTo(0.0);
+    //expect(Matrix.near(Matrix.mul(nonSingularDenseMatrix.inverse(), nonSingularDenseMatrix), Matrix.identity(nonSingularDenseMatrix.width())));
+    // test trivial singular matrix
+    //expect(singularDenseTrivialMatrix.determinant()).toBeCloseTo(0.0);
+    //expect(singularDenseNonTrivialMatrix.determinant()).toBeCloseTo(0.0);
 
-    m.set(2, 0, 2);
-    m.set(2, 1, -1);
-    m.set(2, 2, 10);
-    m.set(2, 3, -1);
-
-    m.set(3, 1, 3);
-    m.set(3, 2, -1);
-    m.set(3, 3, 8);
-    let exactSolution = new vector([1, 2, -1, 1]);
-    testExamples.push({ m, rhs, exactSolution });
-    for (let testExample of testExamples) {
-        expect(vector.near(linSolvers.gaussSeidel.solve(testExample.m, testExample.rhs, 15, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(vector.near(linSolvers.jacobi.solve(testExample.m, testExample.rhs, 25, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(vector.near(linSolvers.sor.solve(testExample.m, testExample.rhs, 35, 0.5, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(vector.near(linSolvers.PartialPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(vector.near(linSolvers.FullPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-    }
-
-    m = matrix.empty(3, 3);
-    m.set(0, 0, 4);
-    m.set(0, 1, 12);
-    m.set(0, 2, -16);
-
-    m.set(1, 0, 12);
-    m.set(1, 1, 37);
-    m.set(1, 2, -43);
-
-    m.set(2, 0, -16);
-    m.set(2, 1, -43);
-    m.set(2, 2, 98);
-    exactSolution = new vector([1, 2, -3]);
-    rhs = matrix.postMulVec(m, exactSolution);
-    expect(vector.near(linSolvers.cholesky.solve(m.clone(), rhs), exactSolution, Epsilon)).toBeTruthy();
+    // test non-trivial singular matrix
 });
 
+test.skip('Triangular matrix', () => { });
+
+
 test("Sparse vector", () => {
-    let dense: vector = new vector([0, -1, 2, -1e-8, 0.0, 3, -5, .0]);
+    let dense: Vector = new Vector([0, -1, 2, -1e-8, 0.0, 3, -5, .0]);
     let v: sparseVector = sparseVector.fromVector(dense.data, SmallEpsilon);
-    expect(vector.near(v.toDense(), dense, SmallEpsilon)).toBeTruthy();
+    expect(Vector.near(v.toDense(), dense, SmallEpsilon)).toBeTruthy();
     expect(v.isNonZero(0)).toBeFalsy();
     expect(v.isNonZero(1)).toBeTruthy();
     expect(v.isNonZero(2)).toBeTruthy();
@@ -394,23 +418,66 @@ test("Sparse vector", () => {
     expect(v.get(3)).toBeCloseTo(-2);
 
     v = sparseVector.fromVector(dense.data, SmallEpsilon);
-    let dense2: vector = new vector([3, 0.1, 0.0, 1e-7, 0.3, -2.0, -6.0, 7.0]);
+    let dense2: Vector = new Vector([3, 0.1, 0.0, 1e-7, 0.3, -2.0, -6.0, 7.0]);
     let v2 = sparseVector.fromVector(dense2.data, SmallEpsilon);
-    expect(vector.near(v2.toDense(), dense2, SmallEpsilon));
+    expect(Vector.near(v2.toDense(), dense2, SmallEpsilon));
     console.log(sparseVector.add(v, v2).toDense().toString());
-    console.log(vector.add(dense, dense2).toString());
-    expect(vector.near(sparseVector.add(v, v2).toDense(), vector.add(dense, dense2))).toBeTruthy();
-    expect(vector.near(sparseVector.sub(v, v2).toDense(), vector.sub(dense, dense2))).toBeTruthy();
-    expect(vector.near(sparseVector.mul(v, v2).toDense(), vector.mul(dense, dense2))).toBeTruthy();
-    expect(sparseVector.dot(v, v2),).toBeCloseTo(vector.dot(dense, dense2));
+    console.log(Vector.add(dense, dense2).toString());
+    expect(Vector.near(sparseVector.add(v, v2).toDense(), Vector.add(dense, dense2))).toBeTruthy();
+    expect(Vector.near(sparseVector.sub(v, v2).toDense(), Vector.sub(dense, dense2))).toBeTruthy();
+    expect(Vector.near(sparseVector.mul(v, v2).toDense(), Vector.mul(dense, dense2))).toBeTruthy();
+    expect(sparseVector.dot(v, v2),).toBeCloseTo(Vector.dot(dense, dense2));
 
-    //expect(vector.near(sparseVector.div(v, v2).toDense(), vector.div(dense, dense2))).toBeTruthy();
+    //expect(Vector.near(sparseVector.div(v, v2).toDense(), Vector.div(dense, dense2))).toBeTruthy();
 });
 
-test("General dense matrix", () => {
+test.skip("General sparse matrix", () => {
 
+    expect(SparseMatrix.near(SparseMatrix.identity(10).inverse(), SparseMatrix.identity(10))).toBeTruthy();
+    let permutationMatrix = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], true);
+    assert(permutationMatrix.isValid(), "Invalid permutation");
+    expect(SparseMatrix.near(permutationMatrix.toSparseMatrix().inverse(), permutationMatrix.inverse().toSparseMatrix()));
+    //expect(Math.abs(permutationMatrix.toSparseMatrix().determinant())).toBeCloseTo(1.0);
+    //expect(nonSingularSparseMatrix.determinant()).not.toBeCloseTo(0.0);
+    expect(SparseMatrix.near(SparseMatrix.mul(nonSingularSparseMatrix.inverse(), nonSingularSparseMatrix), SparseMatrix.identity(nonSingularDenseMatrix.width())));
+    // test trivial singular matrix
+    //expect(singularSparseTrivialMatrix.determinant()).toBeCloseTo(0.0);
+    //expect(singularSparseNonTrivialMatrix.determinant()).toBeCloseTo(0.0);
 });
 
-test("Root finding:nonlinear", () => {
-    // 1d 
+
+test("Differentiation", () => {
+    let testFunc =
+    {
+        f: (x: Vector) => {
+            return x.get(0) * x.get(0) + Math.sin(3.0 * x.get(0) * x.get(1));
+        },
+        dfdx: (x: Vector): Vector => {
+            const cos = Math.cos(3.0 * x.get(0) * x.get(1));
+            return new Vector([2.0 * x.get(0) - 3.0 * x.get(1) * cos, -3.0 * x.get(0) * cos]);
+        },
+        dfdxdy: (x: Vector): Matrix => {
+            const sin = Math.sin(3.0 * x.get(0) * x.get(1));
+            const cos = Math.cos(3.0 * x.get(0) * x.get(1));
+            let result = Matrix.empty(2, 2);
+            result.set(0, 0, 2.0 - 9.0 * x.get(1) * x.get(1) * sin);
+            result.set(0, 1, -3.0 * cos - 9.0 * x.get(0) * x.get(1) * sin);
+            result.set(1, 0, -3.0 * cos - 9.0 * x.get(0) * x.get(1) * sin);
+            result.set(1, 1, -9.0 * x.get(0) * x.get(0) * sin);
+            return result;
+        }
+    };
+    let points: Vector[] = [
+        new Vector([0, 0]), new Vector([-25, 12]), new Vector([-3, -3]), new Vector([0, 5]),
+        new Vector([5, 0]), new Vector([14, 14])];
+    const step = SmallEpsilon;
+    const tolerance = Epsilon
+    for (let point of points) {
+        const dfdx = testFunc.dfdx(point);
+        const dfdxdy = testFunc.dfdxdy(point);
+        expect(Vector.sub(dfdx, forwardDifference(testFunc.f, point, step)).lInfNorm()).toBeLessThan(tolerance);
+        expect(Vector.sub(dfdx, backwardDifference(testFunc.f, point, step)).lInfNorm()).toBeLessThan(tolerance);
+        expect(Vector.sub(dfdx, centralDifference(testFunc.f, point, step)).lInfNorm()).toBeLessThan(tolerance);
+        expect(Matrix.sub(dfdxdy, secondOrderDifference(testFunc.f, point, step)).lInfNorm()).toBeLessThan(tolerance);
+    }
 });

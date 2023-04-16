@@ -1,3 +1,6 @@
+import Matrix from "./denseMatrix";
+import Vector from "./vector";
+
 export const Epsilon = 1e-4;
 export const SmallEpsilon = 1e-6;
 export const SmallestEpsilon = 1e-8;
@@ -5,6 +8,10 @@ export const SmallestEpsilon = 1e-8;
 export function assert(condition: boolean, message: string): void {
     if (!condition)
         throw new Error(message);
+}
+
+export function assertFail(message: string): void {
+    throw new Error(message);
 }
 
 export function radians(value: number): number {
