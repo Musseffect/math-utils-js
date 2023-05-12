@@ -1,9 +1,8 @@
 import Matrix from "../../../denseMatrix";
 import PermutationMatrix from "../../../permutationMatrix";
-import { TriMatrixType } from "../../../triMatrixView";
+import { TriMatrixType, TriMatrixView } from "../../../triMatrixView";
 import { assert, SmallEpsilon, swap } from "../../../utils";
 import Vector from "../../../vector";
-import { TriMatrixView } from "../../../TriMatrixView";
 
 const SolverName = "'fullPivLU'";
 
@@ -105,7 +104,7 @@ export default class FullPivLU {
                 for (let column = row + 1; column < rank; column++)
                     k = k + LU.get(curRowIdx, colIdx(column)) * x.get(colIdx(column), bColIdx);
 
-                x.set(colIdx(row), bColIdx, (Rhs.get(curRowIdx, bCol) - k) / LU.get(curRowIdx, colIdx(row)));
+                x.set(colIdx(row), bColIdx, (Rhs.get(curRowIdx, bColIdx) - k) / LU.get(curRowIdx, colIdx(row)));
             }
         }
         console.log(`X ${x.toString()}`);

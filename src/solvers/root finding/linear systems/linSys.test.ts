@@ -9,7 +9,6 @@ import * as linSolvers from "./exports";
 
 
 describe.skip('Linear solvers (dense square matrices)', () => {
-
     interface testData {
         m: Matrix;
         rhs: Vector;
@@ -56,7 +55,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
     testExamples.push({ m: choleskyMat, rhs: choleskyRhs, exactSolution });
 
     describe('Iterative', () => {
-        test('Gauss-zeidel', () => {
+        test('gauss-zeidel', () => {
 
         });
         test('jacobi', () => {
