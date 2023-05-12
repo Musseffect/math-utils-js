@@ -72,7 +72,11 @@ export default class FullPivLU {
             let stepRowIdx = rowIdx(step);
 
             console.log(`Initial LU ${LU.toString()}`)
+            const rowMat = new PermutationMatrix(rowPermutations, true).toMatrix();
+            const colMat = new PermutationMatrix(columnPermutations, false).toMatrix();
+            console.log(`Initial permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
             console.log(`Initial Rhs ${Rhs.toString()}`)
+            console.log(`Initial permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
             for (let row = step + 1; row < rank; row++) {
                 let curRow = rowIdx(row);
                 let ratio = LU.get(curRow, colIdx(step)) / maxPivotValue;
@@ -86,12 +90,14 @@ export default class FullPivLU {
                 LU.set(curRow, colIdx(step), 0);
             }
             console.log(`Result LU ${LU.toString()}`)
+            console.log(`Result permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
             console.log(`Result Rhs ${Rhs.toString()}`)
+            console.log(`Result permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
         }
 
         let x = Matrix.empty(rank, Rhs.width());
         for (let bCol = 0; bCol < Rhs.width(); ++bCol) {
-            let bColIdx = colIdx(bCol);
+            let bColIdx = rowIdx(bCol);
             x.set(colIdx(rank - 1), bColIdx, Rhs.get(rowIdx(rank - 1), bColIdx) / LU.get(rowIdx(rank - 1), colIdx(rank - 1)));
             for (let row = rank - 2; row > -1; row--) {
                 let curRowIdx = rowIdx(row);

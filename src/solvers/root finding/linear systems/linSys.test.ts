@@ -147,7 +147,7 @@ test.only('Linear solvers (dense)', () => {
         let identity = Matrix.identity(testExample.m.width());
         expect(Matrix.near(Matrix.mul(testExample.m, inverse), identity)).toBeTruthy();
         expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testExample.m, identity, SmallEpsilon), inverse, Epsilon)).toBeTruthy();
-        console.log(`inverse ${inverse.toString()}`);
+        console.log(`Inverse ${inverse.toString()}`);
         expect(Matrix.near(linSolvers.FullPivLU.solveMatrix(testExample.m, identity, SmallEpsilon), inverse, Epsilon)).toBeTruthy();
 
         const testDimensions = (solution: Matrix, A: Matrix, Rhs: Matrix) => {
