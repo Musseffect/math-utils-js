@@ -1,4 +1,4 @@
-import { Epsilon, lerp, SmallEpsilon, SmallestEpsilon } from "./utils";
+import { assert, assertFail, Epsilon, lerp, SmallEpsilon, SmallestEpsilon } from "./utils";
 import vector from "./vector";
 
 export default class vec2 {
@@ -187,6 +187,16 @@ export default class vec2 {
     }
     apply(op: (a: number) => number): vec2 {
         return new vec2(op(this.x), op(this.y));
+    }
+    getCoord(i: number): number {
+        if (i == 0) return this.x;
+        else if (i == 1) return this.y;
+        assertFail("Incorrect coord");
+    }
+    setCoord(value: number, i: number): number {
+        if (i == 0) return this.x = value;
+        else if (i == 1) return this.y = value;
+        assertFail("Incorrect coord");
     }
     static apply(a: vec2, b: vec2, op: (a: number, b: number) => number): vec2 {
         return new vec2(op(a.x, b.x), op(a.y, b.y));
