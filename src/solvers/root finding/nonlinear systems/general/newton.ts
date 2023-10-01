@@ -31,13 +31,10 @@ class Solver {
         let x = x0.clone();
         let fVec = vector.negate(f(x));
         let maxNorm = fVec.lInfNorm();
+        let calcJ = params.jacobian ? params.jacobian : (y: vector) => { return Solver.numericJacobian(f, y, SmallEpsilon) };
         for (let iter = 0; iter < numIters; ++iter) {
             if (maxNorm < params.fTolAbs) return x;
-            let J: Matrix;
-            if (params.jacobian)
-                J = params.jacobian(x);
-            else
-                J = Solver.numericJacobian(f, x, SmallEpsilon);
+            let J: Matrix = calcJ(x);
             if (J.lInfNorm() < params.fDotTolAbs)
                 return x;
             try {
@@ -51,7 +48,7 @@ class Solver {
         }
         throw new ConvergenseFailureException(SolverName);
     }
-    // add line search, bounds, etc.
+    // todo: add line search, bounds, etc.
     // trust region methods
     // check rank
 }

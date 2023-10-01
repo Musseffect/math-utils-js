@@ -58,7 +58,6 @@ export default class LL {
                     value = Math.sqrt(value);
                 }
                 else {
-                    let denum = A.get(column, column);
                     value = value / A.get(column, column);
                 }
                 A.set(row, column, value);
@@ -68,18 +67,16 @@ export default class LL {
         let y = Vector.empty(rank);
         for (let row = 0; row < rank; ++row) {
             let value = b.get(row);
-            for (let column = 0; column < row; ++column) {
+            for (let column = 0; column < row; ++column)
                 value -= A.get(row, column) * y.get(column);
-            }
             value /= A.get(row, row);
             y.set(row, value);
         }
         let x = Vector.empty(rank);
         for (let row = rank - 1; row >= 0; --row) {
             let value = y.get(row);
-            for (let column = row + 1; column < rank; ++column) {
+            for (let column = row + 1; column < rank; ++column)
                 value -= A.get(row, column) * x.get(column);
-            }
             value /= A.get(row, row);
             x.set(row, value);
         }

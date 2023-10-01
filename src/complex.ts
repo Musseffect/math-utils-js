@@ -22,26 +22,26 @@ export default class complex extends vec2 {
         out.scaleSelf(1.0 / sl);
         return out;
     }
-    static cMul(a: complex, b: complex): complex {
+    static mul(a: complex, b: complex): complex {
         let out = complex.empty();
         out.x = a.x * b.x - a.y * b.y;
         out.y = a.y * b.x + a.x * b.y;
         return out;
     }
-    static cDiv(a: complex, b: complex): complex {
+    static div(a: complex, b: complex): complex {
         let out = complex.empty();
         let bSquaredLength = b.squaredLength();
         out.x = (a.x * b.x + a.y * b.y) / bSquaredLength;
         out.y = (a.y * b.x - a.x * b.y) / bSquaredLength;
         return out;
     }
-    static cExp(z: complex): complex {
+    static exp(z: complex): complex {
         return complex.polar(Math.exp(z.x), z.y);
     }
-    static cLog(z: complex): complex {
+    static log(z: complex): complex {
         return new complex(Math.log(z.length()), z.arg());
     }
-    static cPow(a: complex, b: complex): complex {
+    static pow(a: complex, b: complex): complex {
         let theta = a.arg();
         let lnR = Math.log(a.length());
         let r = Math.exp(b.x * lnR - b.y * theta);

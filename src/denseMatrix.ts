@@ -1,4 +1,5 @@
 import mat from "./abstractDenseMatrix";
+import FullPivLU from "./solvers/root finding/linear systems/fullPivLU";
 import Triplet from "./triplet";
 import { assert, Epsilon, SmallEpsilon, SmallestEpsilon, swap } from "./utils";
 import vector from "./vector";
@@ -173,6 +174,9 @@ export default class Matrix extends mat {
     }
     pseudoInverse(): Matrix {
         throw new Error("Not implemented");
+    }
+    inverse(tolerance: number = SmallEpsilon): Matrix {
+        return FullPivLU.solveMatrix(this, Matrix.identity(this.width()), tolerance);
     }
     // analytic solution
     inverseNaive(): Matrix {

@@ -3,21 +3,27 @@ import PermutationMatrix from "../../../permutationMatrix";
 import { TriMatrixType, TriMatrixView } from "../../../triMatrixView";
 import { assert, SmallEpsilon, swap } from "../../../utils";
 import Vector from "../../../vector";
+import { InsufficientRankException } from "./exceptions";
 
 const SolverName = "'fullPivLU'";
 
 /* LU decomposition with row and column permutations*/
 export default class FullPivLU {
-    lu: Matrix;
-    p: PermutationMatrix;
-    q: PermutationMatrix;
-    A: Matrix;
+    protected lu: Matrix;
+    protected p: PermutationMatrix;
+    protected q: PermutationMatrix;
+    protected A: Matrix;
+    protected _rank: number;
     private compute(): void {
+        this._rank = 0;
         throw new Error("Not implemented");
     }
     constructor(A: Matrix) {
         this.A = A;
         this.compute();
+    }
+    public rank(): number {
+        return this._rank;
     }
     public L(): TriMatrixView {
         return new TriMatrixView(this.lu, TriMatrixType.lower, true);
@@ -48,19 +54,22 @@ export default class FullPivLU {
         let rowIdx = (idx: number) => rowPermutations[idx];
         let colIdx = (idx: number) => columnPermutations[idx];
         for (let step = 0; step < rank; step++) {
+            // todo: extract this to a local function
             let maxPivotRow = step;
             let maxPivotColumn = step;
-            let maxPivotValue = LU.get(rowIdx(maxPivotRow), colIdx(maxPivotColumn));
+            let maxPivot = LU.get(rowIdx(maxPivotRow), colIdx(maxPivotColumn));
             for (let row = step; row < rank; ++row) {
                 for (let column = step; column < rank; ++column) {
                     let value = LU.get(rowIdx(row), colIdx(column));
-                    if (Math.abs(value) > Math.abs(maxPivotValue)) {
+                    if (Math.abs(value) > Math.abs(maxPivot)) {
                         maxPivotRow = row;
                         maxPivotColumn = column;
-                        maxPivotValue = value;
+                        maxPivot = value;
                     }
                 }
             }
+            if (Math.abs(maxPivot) < tolerance)
+                throw new InsufficientRankException(SolverName, step);
 
             swap(rowPermutations, step, maxPivotRow);
             swap(columnPermutations, step, maxPivotColumn);
@@ -78,7 +87,7 @@ export default class FullPivLU {
             console.log(`Initial permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
             for (let row = step + 1; row < rank; row++) {
                 let curRow = rowIdx(row);
-                let ratio = LU.get(curRow, colIdx(step)) / maxPivotValue;
+                let ratio = LU.get(curRow, colIdx(step)) / maxPivot;
                 for (let column = step + 1; column < rank; column++) {
                     let curColIdx = colIdx(column);
                     LU.set(curRow, curColIdx, LU.get(curRow, curColIdx) - ratio * LU.get(stepRowIdx, curColIdx));
@@ -141,6 +150,8 @@ export default class FullPivLU {
                     }
                 }
             }
+            if (Math.abs(maxPivot) < tolerance)
+                throw new InsufficientRankException(SolverName, step);
 
             swap(rowPermutations, step, maxPivotRow);
             swap(columnPermutations, step, maxPivotColumn);

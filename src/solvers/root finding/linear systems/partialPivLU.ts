@@ -1,6 +1,5 @@
 import Matrix from "../../../denseMatrix";
 import PermutationMatrix from "../../../permutationMatrix";
-import SparseMatrix from "../../../SparseMatrix";
 import { assert, SmallEpsilon, swap } from "../../../utils";
 import Vector from "../../../vector";
 import { TriMatrixType, TriMatrixView } from "../../../triMatrixView";

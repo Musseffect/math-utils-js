@@ -18,3 +18,9 @@ export class ConvergenseFailureException extends Error {
         super(`${solver} failed to converge`);
     }
 }
+
+export class InsufficientRankException extends Error {
+    constructor(solver: string, rank: number) {
+        super(`${solver} couldn't solve the system due to singular matrix of rank ${rank}`)
+    }
+}

@@ -3,7 +3,7 @@ import { assert, SmallestEpsilon } from "./utils";
 
 const DefaultTolerance = SmallestEpsilon;
 
-export default class sparseVector {
+export default class SparseVector {
     length: number;
     nonZeroElements: number[];
     indices: number[];
@@ -14,20 +14,20 @@ export default class sparseVector {
         this.indices = indices;
         this.tolerance = tolerance;
     }
-    clone(): sparseVector {
-        return new sparseVector(this.length, this.nonZeroElements.slice(), this.indices.slice(), this.tolerance);
+    clone(): SparseVector {
+        return new SparseVector(this.length, this.nonZeroElements.slice(), this.indices.slice(), this.tolerance);
     }
-    static empty(size: number, tolerance: number = DefaultTolerance): sparseVector {
-        return new sparseVector(size, [], [], tolerance);
+    static empty(size: number, tolerance: number = DefaultTolerance): SparseVector {
+        return new SparseVector(size, [], [], tolerance);
     }
-    static binaryOp(v1: sparseVector, v2: sparseVector, op: (a: number, b: number) => number): sparseVector {
+    static binaryOp(v1: SparseVector, v2: SparseVector, op: (a: number, b: number) => number): SparseVector {
 
         assert(v1.size() == v2.size(), "Vectors should have the same size");
         if (v1.indices.length == 0) return v2.clone();
         if (v2.indices.length == 0) return v1.clone();
         let ID1 = 0;
         let ID2 = 0;
-        let result = new sparseVector(v1.size(), [], [], Math.min(v1.tolerance, v2.tolerance));
+        let result = new SparseVector(v1.size(), [], [], Math.min(v1.tolerance, v2.tolerance));
         while (ID1 != v1.indices.length || ID2 != v2.indices.length) {
             let currentIndex1 = ID1 == v1.indices.length ? v1.size() : v1.indices[ID1];
             let currentIndex2 = ID2 == v2.indices.length ? v2.size() : v2.indices[ID2];
@@ -55,32 +55,32 @@ export default class sparseVector {
         }
         return result;
     }
-    static dot(v1: sparseVector, v2: sparseVector): number {
-        let result = sparseVector.mul(v1, v2);
+    static dot(v1: SparseVector, v2: SparseVector): number {
+        let result = SparseVector.mul(v1, v2);
         let value = 0.0;
         for (let element of result.nonZeroElements)
             value += element;
         return value;
     }
-    static add(v1: sparseVector, v2: sparseVector): sparseVector {
+    static add(v1: SparseVector, v2: SparseVector): SparseVector {
         return this.binaryOp(v1, v2, (a: number, b: number) => a + b);
     }
-    static sub(v1: sparseVector, v2: sparseVector): sparseVector {
+    static sub(v1: SparseVector, v2: SparseVector): SparseVector {
         return this.binaryOp(v1, v2, (a: number, b: number) => a - b);
     }
-    static mul(v1: sparseVector, v2: sparseVector): sparseVector {
+    static mul(v1: SparseVector, v2: SparseVector): SparseVector {
         return this.binaryOp(v1, v2, (a: number, b: number) => a * b);
     }
-    static div(v1: sparseVector, v2: sparseVector): sparseVector {
+    static div(v1: SparseVector, v2: SparseVector): SparseVector {
         return this.binaryOp(v1, v2, (a: number, b: number) => a / b);
     }
-    static negate(v: sparseVector): sparseVector {
+    static negate(v: SparseVector): SparseVector {
         let result = v.clone();
         for (let i = 0; i < v.nonZeroElements.length; ++i)
             result.nonZeroElements[i] = -result.nonZeroElements[i];
         return result;
     }
-    static normalize(v: sparseVector): sparseVector {
+    static normalize(v: SparseVector): SparseVector {
         let length = v.l2Norm();
         let result = v.clone();
         for (let i = 0; i < v.nonZeroElements.length; ++i)
@@ -114,7 +114,7 @@ export default class sparseVector {
     getTolerance(): number {
         return this.tolerance;
     }
-    static fromVector(array: number[], tolerance: number = DefaultTolerance): sparseVector {
+    static fromVector(array: number[], tolerance: number = DefaultTolerance): SparseVector {
         let nonZeroElements: number[] = [];
         let indices: number[] = [];
         for (let i = 0; i < array.length; ++i) {
@@ -124,7 +124,7 @@ export default class sparseVector {
                 indices.push(i);
             }
         }
-        let sparse = new sparseVector(array.length, nonZeroElements, indices, tolerance);
+        let sparse = new SparseVector(array.length, nonZeroElements, indices, tolerance);
         return sparse;
     }
     size(): number {

@@ -26,10 +26,11 @@ import {
     determinant3x3,
     determinant4x4
 } from "./utils";
+import * as numericalDifferentiation from "./numericalDifferentiation";
 import { Axis, eulerAngles } from "./eulerAngles";
 import * as ode from "./solvers/ode/odeExports";
-import { linearRoot, quadraticRoots } from "./solvers/rootFinding/analytical";
-import * as linearSystemSolvers from "./solvers/rootFinding/linear systems/exports";
+import { linearRoot, quadraticRoots } from "./solvers/root finding/analytical";
+import * as linearSystemSolvers from "./solvers/root finding/linear systems/exports";
 
 export {
     axisAngle,
@@ -63,5 +64,6 @@ export {
     ode,
     linearRoot,
     quadraticRoots,
-    linearSystemSolvers
+    linearSystemSolvers,
+    numericalDifferentiation
 };

@@ -41,6 +41,7 @@ export default class SparseMatrix {
         this.innerIndices = [];
         this.nonZeroElements = [];
         this.outerStarts = [];
+        this.tolerance = tolerance;
     }
     clone(): SparseMatrix {
         let result = new SparseMatrix(this.numRows, this.numCols, this.tolerance);
@@ -75,6 +76,8 @@ export default class SparseMatrix {
         throw new Error("Method not implemented.");
     }
     static mul(m1: SparseMatrix, m2: SparseMatrix): SparseMatrix {
+        // transpose second matrix and sum multiplication of row elements
+        let m2t = m2.transpose();
         throw new Error("Method not implemented.");
     }
     determinant(): number {
@@ -108,6 +111,9 @@ export default class SparseMatrix {
     }
     protected advanceState(): void {
         ++this.state;
+    }
+    transpose(): SparseMatrix {
+        throw new Error("Method not implemented.");
     }
     reserve(rows: number, cols: number) {
         throw new Error("Method not implemented.");
