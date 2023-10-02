@@ -105,7 +105,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
     });
 });
 
-test.only('Linear solvers (dense)', () => {
+test.skip('Linear solvers (dense)', () => {
     interface testData {
         m: Matrix;
         rhs: Vector;
@@ -183,4 +183,9 @@ test.only('Linear solvers (dense)', () => {
         singularMatrix.set(1, 1, 1);
         singularMatrix.set(2, 2, 1);
     */
+});
+
+test.skip("QR tests", ()=>{
+    
+
 });

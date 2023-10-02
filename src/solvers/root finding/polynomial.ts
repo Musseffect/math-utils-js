@@ -103,14 +103,71 @@ export class PolynomialSolver {
         return -b / a;
     }
     // ax^2 + bx + c
-    static solveQuadratic(a: number, b: number, c: number): number[] {
+    static solveQuadratic(a: number, b: number, c: number, xMin: number = Number.NEGATIVE_INFINITY, xMax: number = Number.POSITIVE_INFINITY): number[] {
         let d = b * b - 4 * a * c;
         if (d < 0.0)
             return [];
         d = (b + Math.sign(b) * Math.sqrt(d)) / 2;
-        return [-c / d, -d / a]
+        let x0 = -c / d;
+        let x1 = -d / a;
+        let result: number[] = [];
+        if (x0 >= xMin && x0 <= xMax)
+            result.push(x0);
+        if (x1 >= xMin && x1 <= xMax)
+            result.push(x1);
+        return result
     }
-    static solveCubic(a: number, b: number, c: number, d: number) {
+    solveCubic(a: number, b: number, c: number, d: number, xMin: number = Number.NEGATIVE_INFINITY, xMax: number = Number.POSITIVE_INFINITY): number[] {
+        let f = new Polynomial([d, c, b, a]);
+        let df = new Polynomial([c, 2 * b, 3 * a]);
+        let criticalPoints = PolynomialSolver.solveQuadratic(df.coeffs[0], df.coeffs[1], df.coeffs[2], xMin, xMax);
+        criticalPoints.unshift(xMin);
+        criticalPoints.unshift(xMax);
+        let roots: number[] = [];
+        let i = 0;
+        for (; i < criticalPoints.length - 1; ++i) {
+            let xMin = criticalPoints[i];
+            let xMax = criticalPoints[i + 1];
+            let fMin = Number.isFinite(xMin) ? f.eval(xMin) : this.infSign(xMin, f);
+            let fMax = Number.isFinite(xMax) ? f.eval(xMax) : this.infSign(xMax, f);
+            if (Math.sign(fMin) != Math.sign(fMax)) {
+                let root = this.findRoot(f, df, xMin, xMax, fMin, fMax);
+                roots.push(root);
+                // todo: deflate
+                throw new Error("Not implemented");
+                let otherRoots = PolynomialSolver.solveQuadratic();
+                break;
+            }
+        }
+        if (roots.length > 1) {
+            for (let j = i + 1; j < criticalPoints.length; ++j) {
+                let xMin = criticalPoints[i];
+                let xMax = criticalPoints[i + 1];
+                let fMin = Number.isFinite(xMin) ? f.eval(xMin) : this.infSign(xMin, f);
+                let fMax = Number.isFinite(xMax) ? f.eval(xMax) : this.infSign(xMax, f);
+                if (Math.sign(fMin) != Math.sign(fMax)) {
+                    let rootIndex = roots.findIndex((value) => {
+                        return value >= xMin && value <= xMax;
+                    });
+                    if (rootIndex >= 0) {
+                        let root = roots[rootIndex];
+                        let fRoot = f.eval(root);
+                        if (Math.sign(fMin) == Math.sign(fRoot)) {
+                            xMin = root;
+                            fMin = fRoot;
+                        }
+                        else {
+                            xMax = root;
+                            fMax = fRoot;
+                        }
+                        // refine root
+                        root = this.findRoot(f, df, xMin, xMax, fMin, fMax);
+                        roots[rootIndex] = root;
+                    }
+                }
+            }
+        }
+        return roots;
     }
     // a[0] + a[1]*x + ...a[n]*x^n
     static solve(a: number[]): number[] {

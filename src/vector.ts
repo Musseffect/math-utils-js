@@ -1,5 +1,5 @@
 import Matrix from "./denseMatrix";
-import { assert, clamp, Epsilon } from "./utils";
+import { assert, clamp, Epsilon, SmallestEpsilon } from "./utils";
 
 export default class Vector {
     data: number[];
@@ -186,6 +186,15 @@ export default class Vector {
         for (let i = 0; i < this.data.length; i++) {
             this.data[i] = clamp(this.data[i], min, max);
         }
+    }
+    normalize() {
+        let l = this.l2Norm();
+        if (l > SmallestEpsilon)
+        {
+            for (let i = 0; i < this.data.length; ++i)
+                this.data[i] /= l;
+        }
+        return this;
     }
     print(fractionDigits: number): string {
         if (!fractionDigits)

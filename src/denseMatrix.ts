@@ -369,4 +369,14 @@ export default class Matrix extends mat {
         result.addSelf(b);
         return a;
     }
+    makeSquare(): Matrix {
+        if (this.isSquare()) return this.clone();
+        let size = Math.max(this.width(), this.height());
+        let result = Matrix.empty(size, size);
+        for (let j = 0; j < this.height(); ++j) {
+            for (let i = 0; i < this.width(); ++i)
+                result.set(j, i, this.get(j, i));
+        }
+        return result;
+    }
 }
