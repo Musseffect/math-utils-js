@@ -2,9 +2,9 @@
 // todo: solvers for rect matrices
 // todo: eigenvalue solvers
 
-import Matrix from "../../../denseMatrix";
-import { Epsilon, SmallEpsilon } from "../../../utils";
-import Vector from "../../../vector";
+import Matrix from "../../denseMatrix";
+import { Tolerance, SmallTolerance } from "../../utils";
+import Vector from "../../vector";
 import * as linSolvers from "./exports";
 
 
@@ -69,7 +69,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
     describe('Decompositions', () => {
         test('PartialPivLU', () => {
             for (let testExample of testExamples) {
-                expect(Vector.near(linSolvers.PartialPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+                expect(Vector.near(linSolvers.PartialPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
                 // test decomposition
                 let luSolver = new linSolvers.PartialPivLU(testExample.m);
                 let PT = luSolver.P().transpose();
@@ -83,7 +83,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
 
         test('FullPivLU', () => {
             for (let testExample of testExamples) {
-                expect(Vector.near(linSolvers.FullPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+                expect(Vector.near(linSolvers.FullPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
                 // test decomposition
                 let luSolver = new linSolvers.FullPivLU(testExample.m);
                 let PT = luSolver.P().transpose();
@@ -137,17 +137,17 @@ test.skip('Linear solvers (dense)', () => {
         console.log(`Matrix ${testExample.m.toString()}`);
         console.log(`Determinant ${testExample.m.determinantNaive()}`);
         const inverse = testExample.m.inverseNaive();
-        expect(Vector.near(linSolvers.gaussSeidel.solve(testExample.m, testExample.rhs, 15, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(Vector.near(linSolvers.jacobi.solve(testExample.m, testExample.rhs, 25, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(Vector.near(linSolvers.sor.solve(testExample.m, testExample.rhs, 35, 0.5, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(Vector.near(linSolvers.PartialPivLU.solve(testExample.m, testExample.rhs, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
-        expect(Vector.near(linSolvers.FullPivLU.solve(testExample.m, testExample.rhs, SmallEpsilon), testExample.exactSolution, Epsilon)).toBeTruthy();
+        expect(Vector.near(linSolvers.gaussSeidel.solve(testExample.m, testExample.rhs, 15, SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
+        expect(Vector.near(linSolvers.jacobi.solve(testExample.m, testExample.rhs, 25, SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
+        expect(Vector.near(linSolvers.sor.solve(testExample.m, testExample.rhs, 35, 0.5, SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
+        expect(Vector.near(linSolvers.PartialPivLU.solve(testExample.m, testExample.rhs, SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
+        expect(Vector.near(linSolvers.FullPivLU.solve(testExample.m, testExample.rhs, SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
 
         let identity = Matrix.identity(testExample.m.width());
         expect(Matrix.near(Matrix.mul(testExample.m, inverse), identity)).toBeTruthy();
-        expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testExample.m, identity, SmallEpsilon), inverse, Epsilon)).toBeTruthy();
+        expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testExample.m, identity, SmallTolerance), inverse, Tolerance)).toBeTruthy();
         console.log(`Inverse ${inverse.toString()}`);
-        expect(Matrix.near(linSolvers.FullPivLU.solveMatrix(testExample.m, identity, SmallEpsilon), inverse, Epsilon)).toBeTruthy();
+        expect(Matrix.near(linSolvers.FullPivLU.solveMatrix(testExample.m, identity, SmallTolerance), inverse, Tolerance)).toBeTruthy();
 
         const testDimensions = (solution: Matrix, A: Matrix, Rhs: Matrix) => {
             expect(solution.width() == Rhs.width());
@@ -175,7 +175,7 @@ test.skip('Linear solvers (dense)', () => {
     m.set(2, 2, 98);
     exactSolution = new Vector([1, 2, -3]);
     rhs = Matrix.postMulVec(m, exactSolution);
-    expect(Vector.near(linSolvers.cholesky.solve(m.clone(), rhs), exactSolution, Epsilon)).toBeTruthy();
+    expect(Vector.near(linSolvers.cholesky.solve(m.clone(), rhs), exactSolution, Tolerance)).toBeTruthy();
 
     /*
         let singularMatrix = Matrix.empty(3, 3);
@@ -185,7 +185,7 @@ test.skip('Linear solvers (dense)', () => {
     */
 });
 
-test.skip("QR tests", ()=>{
-    
+test.skip("QR tests", () => {
+
 
 });

@@ -12,9 +12,9 @@ import vec3 from "./vec3";
 import vec4 from "./vec4";
 import Vector from "./vector";
 import {
-    Epsilon,
-    SmallEpsilon,
-    SmallestEpsilon,
+    Tolerance,
+    SmallTolerance,
+    SmallestTolerance,
     assert,
     assertFail,
     radians,
@@ -30,7 +30,7 @@ import * as numericalDifferentiation from "./numericalDifferentiation";
 import { Axis, eulerAngles } from "./eulerAngles";
 import * as ode from "./solvers/ode/odeExports";
 import { linearRoot, quadraticRoots } from "./solvers/root finding/analytical";
-import * as linearSystemSolvers from "./solvers/root finding/linear systems/exports";
+import * as linearSystemSolvers from "./solvers/linear systems/exports";
 
 export {
     axisAngle,
@@ -48,9 +48,9 @@ export {
     transform3D,
     Axis,
     eulerAngles,
-    Epsilon,
-    SmallEpsilon,
-    SmallestEpsilon,
+    Tolerance,
+    SmallTolerance,
+    SmallestTolerance,
     assert,
     assertFail,
     radians,

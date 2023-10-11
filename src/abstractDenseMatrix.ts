@@ -1,4 +1,4 @@
-import { assert, Epsilon } from "./utils";
+import { assert, Tolerance } from "./utils";
 
 
 export default abstract class AbstractDenseMatrix {

@@ -1,8 +1,8 @@
-import { SmallEpsilon, assert } from "../../../../utils";
+import { SmallTolerance, assert } from "../../../../utils";
 
 // Bisection + Newton
 export default class HybridBisection {
-    static solve(f: (x: number) => number, df: (x: number) => number, a: number, b: number, numIters: number, tolerance: number = SmallEpsilon): number {
+    static solve(f: (x: number) => number, df: (x: number) => number, a: number, b: number, numIters: number, tolerance: number = SmallTolerance): number {
         let fa = f(a);
         if (Math.abs(fa) < tolerance) return a;
         let fb = f(b);

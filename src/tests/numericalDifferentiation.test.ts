@@ -1,6 +1,6 @@
 import Matrix from "../denseMatrix";
 import { backwardDifference, centralDifference, forwardDifference, secondOrderDifference } from "../numericalDifferentiation";
-import { Epsilon, SmallEpsilon } from "../utils";
+import { Tolerance, SmallTolerance } from "../utils";
 import Vector from "../vector";
 
 test("Differentiation", () => {
@@ -27,8 +27,8 @@ test("Differentiation", () => {
     let points: Vector[] = [
         new Vector([0, 0]), new Vector([-25, 12]), new Vector([-3, -3]), new Vector([0, 5]),
         new Vector([5, 0]), new Vector([14, 14])];
-    const step = SmallEpsilon;
-    const tolerance = Epsilon
+    const step = SmallTolerance;
+    const tolerance = Tolerance
     for (let point of points) {
         const dfdx = testFunc.dfdx(point);
         const dfdxdy = testFunc.dfdxdy(point);

@@ -5,5 +5,6 @@ import PartialPivLU from "./partialPivLU";
 import FullPivLU from "./fullPivLU";
 import sor from "./sor";
 import cholesky from "./ll";
+import { calcEigenvalues } from "./eigenvalues";
 
-export { gaussSeidel, PartialPivLU, FullPivLU, jacobi, sor, cholesky, Exceptions };
+export { gaussSeidel, PartialPivLU, FullPivLU, jacobi, sor, cholesky, calcEigenvalues, Exceptions };

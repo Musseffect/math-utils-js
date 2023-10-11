@@ -3,7 +3,7 @@ import mat2 from "./mat2";
 import mat4 from "./mat4";
 import Matrix from "./denseMatrix";
 import quat from "./quat";
-import { assert, determinant2x2, determinant3x3, Epsilon, near, SmallEpsilon } from "./utils";
+import { assert, determinant2x2, determinant3x3, Tolerance, near, SmallTolerance } from "./utils";
 import vec2 from "./vec2";
 import vec3 from "./vec3";
 import mat from "./abstractDenseMatrix";
@@ -25,7 +25,7 @@ export default class mat3 extends mat {
     numRows(): number {
         return 3;
     }
-    isIdentity(tolerance: number = SmallEpsilon): boolean {
+    isIdentity(tolerance: number = SmallTolerance): boolean {
         let diff = 0;
         for (let i = 0; i < 3; ++i) {
             for (let j = 0; j < 3; ++j) {
@@ -67,9 +67,9 @@ export default class mat3 extends mat {
             this.get(0, 2) - this.get(2, 0),
             this.get(1, 0) - this.get(0, 1)
         );
-        if (near(trace, 3, SmallEpsilon)) {
+        if (near(trace, 3, SmallTolerance)) {
             axis = new vec3(1., 0., 0.);
-        } else if (near(axis.l1norm(), 0, SmallEpsilon)) {
+        } else if (near(axis.l1norm(), 0, SmallTolerance)) {
             let values = [this.get(0, 0),
             this.get(1, 1), this.get(2, 2)];
             if (values[0] > values[1]) {
@@ -106,7 +106,7 @@ export default class mat3 extends mat {
         let cr = 1.0;
         let cy = 0.5 * (this.get(0, 0) + this.get(0, 1) + this.get(2, 0) + this.get(2, 1));
         let sy = 0.5 * (this.get(0, 0) + this.get(0, 1) - this.get(2, 0) - this.get(2, 1));
-        if (cp > SmallEpsilon) {
+        if (cp > SmallTolerance) {
             sr = this.get(1, 0) / cp;
             cr = this.get(1, 1) / cp;
             sy = this.get(0, 2) / cp;

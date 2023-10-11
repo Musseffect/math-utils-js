@@ -1,8 +1,8 @@
-import Matrix from "../../../denseMatrix";
-import PermutationMatrix from "../../../permutationMatrix";
-import { TriMatrixType, TriMatrixView } from "../../../triMatrixView";
-import { assert, SmallEpsilon, swap } from "../../../utils";
-import Vector from "../../../vector";
+import Matrix from "../../denseMatrix";
+import PermutationMatrix from "../../permutationMatrix";
+import { TriMatrixType, TriMatrixView } from "../../triMatrixView";
+import { assert, SmallTolerance, swap } from "../../utils";
+import Vector from "../../vector";
 import { InsufficientRankException } from "./exceptions";
 
 const SolverName = "'fullPivLU'";
@@ -14,13 +14,13 @@ export default class FullPivLU {
     protected q: PermutationMatrix;
     protected A: Matrix;
     protected _rank: number;
-    private compute(): void {
+    private decompose(): void {
         this._rank = 0;
         throw new Error("Not implemented");
     }
     constructor(A: Matrix) {
         this.A = A;
-        this.compute();
+        this.decompose();
     }
     public rank(): number {
         return this._rank;
@@ -37,7 +37,7 @@ export default class FullPivLU {
     public P(): Matrix {
         return this.p.toMatrix();
     }
-    static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallEpsilon) {
+    static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance) {
         assert(A.height() == B.height(), "Not determined system");
         assert(A.isSquare(), "Non-square matrix");
 
@@ -119,7 +119,7 @@ export default class FullPivLU {
         console.log(`X ${x.toString()}`);
         return x;
     }
-    static solve(A: Matrix, b: Vector, tolerance: number = SmallEpsilon): Vector {
+    static solve(A: Matrix, b: Vector, tolerance: number = SmallTolerance): Vector {
         assert(A.width() == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A.width() == A.height(), "Non-square matrix");
 

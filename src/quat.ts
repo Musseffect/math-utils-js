@@ -1,7 +1,7 @@
 import axisAngle from "./axisAngle";
 import mat3 from "./mat3";
 import mat4 from "./mat4";
-import { Epsilon, SmallEpsilon, SmallestEpsilon } from "./utils";
+import { Tolerance, SmallTolerance, SmallestTolerance } from "./utils";
 import vec3 from "./vec3";
 
 export default class quat {
@@ -25,7 +25,7 @@ export default class quat {
     }
     static near(a: quat, b: quat, threshold?: number): boolean {
         if (!threshold) {
-            threshold = Epsilon;
+            threshold = Tolerance;
         }
         return Math.abs(a.s - b.s) <= threshold && vec3.near(a.v, b.v, threshold);
     }
@@ -175,7 +175,7 @@ export default class quat {
     }
     normalize(): quat {
         let l = this.l2norm();
-        if (l < SmallestEpsilon) {
+        if (l < SmallestTolerance) {
             this.v.x = 0;
             this.v.y = 0;
             this.v.z = 0;
@@ -235,7 +235,7 @@ export default class quat {
         angle = (Math.abs(angle) > Math.PI ? 2 * Math.PI * Math.sign(angle) - angle : angle);
         let axis = this.v.clone().normalize();
         let ca = Math.sqrt(1.0 - this.s * this.s);
-        if (ca < SmallEpsilon) {
+        if (ca < SmallTolerance) {
             axis = new vec3(1., 0., 0.);
         }
         return new axisAngle(axis, angle);

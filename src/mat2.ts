@@ -1,6 +1,6 @@
 import mat3 from "./mat3";
 import Matrix from "./denseMatrix";
-import { determinant2x2, Epsilon, SmallEpsilon } from "./utils";
+import { determinant2x2, Tolerance, SmallTolerance } from "./utils";
 import vec2 from "./vec2";
 import AbstractDenseMatrix from "./abstractDenseMatrix";
 
@@ -17,7 +17,7 @@ export default class mat2 extends AbstractDenseMatrix {
     numCols(): number {
         return 2;
     }
-    isIdentity(tolerance: number = SmallEpsilon): boolean {
+    isIdentity(tolerance: number = SmallTolerance): boolean {
         let diff = 0;
         for (let i = 0; i < 2; ++i) {
             for (let j = 0; j < 2; ++j) {

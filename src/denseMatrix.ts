@@ -1,7 +1,7 @@
 import mat from "./abstractDenseMatrix";
-import FullPivLU from "./solvers/root finding/linear systems/fullPivLU";
+import FullPivLU from "./solvers/linear systems/fullPivLU";
 import Triplet from "./triplet";
-import { assert, Epsilon, SmallEpsilon, SmallestEpsilon, swap } from "./utils";
+import { assert, Tolerance, SmallTolerance, SmallestTolerance, swap } from "./utils";
 import vector from "./vector";
 
 export default class Matrix extends mat {
@@ -175,7 +175,7 @@ export default class Matrix extends mat {
     pseudoInverse(): Matrix {
         throw new Error("Not implemented");
     }
-    inverse(tolerance: number = SmallEpsilon): Matrix {
+    inverse(tolerance: number = SmallTolerance): Matrix {
         return FullPivLU.solveMatrix(this, Matrix.identity(this.width()), tolerance);
     }
     // analytic solution
@@ -218,7 +218,7 @@ export default class Matrix extends mat {
         const self = this;
         const step = (r: number, c: number, rowList: number[], colList: number[], depth: number): number => {
             const curValue = self.get(rowList[r], colList[c]);
-            if (Math.abs(curValue) < SmallestEpsilon) return 0.0;
+            if (Math.abs(curValue) < SmallestTolerance) return 0.0;
 
             let result = 0.0;
             if (self._numCols - depth > 0) {
@@ -309,7 +309,7 @@ export default class Matrix extends mat {
         }
         return result + "\n]";
     }
-    static near(a: mat, b: mat, threshold: number = SmallEpsilon): boolean {
+    static near(a: mat, b: mat, threshold: number = SmallTolerance): boolean {
         assert(a.numRows() == b.numRows() && a.numCols() == b.numCols(), "Sizes don't match");
         for (let i = 0; i < a.data.length; i++) {
             if (Math.abs(a.data[i] - b.data[i]) > threshold)

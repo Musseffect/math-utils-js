@@ -3,7 +3,7 @@ import PermutationMatrix from "../permutationMatrix";
 import SparseMatrix from "../sparseMatrix";
 import SparseVector from "../sparseVector";
 import Triplet from "../triplet";
-import { SmallEpsilon, assert } from "../utils";
+import { SmallTolerance, assert } from "../utils";
 import Vector from "../vector";
 
 const singularTrivialMatrixTriplets: Triplet[] = [{ row: 1, column: 1, value: 1 },
@@ -46,8 +46,8 @@ const nonSingularMatrixDeterminant = 144.0;
 
 test("Sparse vector", () => {
     let dense: Vector = new Vector([0, -1, 2, -1e-8, 0.0, 3, -5, .0]);
-    let v: SparseVector = SparseVector.fromVector(dense.data, SmallEpsilon);
-    expect(Vector.near(v.toDense(), dense, SmallEpsilon)).toBeTruthy();
+    let v: SparseVector = SparseVector.fromVector(dense.data, SmallTolerance);
+    expect(Vector.near(v.toDense(), dense, SmallTolerance)).toBeTruthy();
     expect(v.isNonZero(0)).toBeFalsy();
     expect(v.isNonZero(1)).toBeTruthy();
     expect(v.isNonZero(2)).toBeTruthy();
@@ -76,10 +76,10 @@ test("Sparse vector", () => {
     expect(v.isNonZero(3)).toBeTruthy();
     expect(v.get(3)).toBeCloseTo(-2);
 
-    v = SparseVector.fromVector(dense.data, SmallEpsilon);
+    v = SparseVector.fromVector(dense.data, SmallTolerance);
     let dense2: Vector = new Vector([3, 0.1, 0.0, 1e-7, 0.3, -2.0, -6.0, 7.0]);
-    let v2 = SparseVector.fromVector(dense2.data, SmallEpsilon);
-    expect(Vector.near(v2.toDense(), dense2, SmallEpsilon));
+    let v2 = SparseVector.fromVector(dense2.data, SmallTolerance);
+    expect(Vector.near(v2.toDense(), dense2, SmallTolerance));
     console.log(SparseVector.add(v, v2).toDense().toString());
     console.log(Vector.add(dense, dense2).toString());
     expect(Vector.near(SparseVector.add(v, v2).toDense(), Vector.add(dense, dense2))).toBeTruthy();

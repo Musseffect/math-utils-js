@@ -1,4 +1,4 @@
-import { assert, assertFail, Epsilon, lerp, SmallEpsilon, SmallestEpsilon } from "./utils";
+import { assert, assertFail, Tolerance, lerp, SmallTolerance, SmallestTolerance } from "./utils";
 import vector from "./vector";
 
 export default class vec2 {
@@ -29,7 +29,7 @@ export default class vec2 {
     toVector(): vector {
         return new vector(this.toArray());
     }
-    static near(a: vec2, b: vec2, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+    static near(a: vec2, b: vec2, absTolerance: number = SmallTolerance, relTolerance: number = 0): boolean {
         let norm = vec2.sub(a, b).lInfnorm();
         if (relTolerance == 0)
             return norm <= absTolerance;
@@ -58,7 +58,7 @@ export default class vec2 {
         else
             out.set(this);
         let l = this.l2norm();
-        if (l < SmallestEpsilon) {
+        if (l < SmallestTolerance) {
             out.x = 0;
             out.y = 0;
             return out;

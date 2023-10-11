@@ -1,9 +1,9 @@
 //todo:
 
-import Matrix from "../../../denseMatrix";
-import { TriMatrixType, TriMatrixView } from "../../../triMatrixView";
-import { assert, near, SmallEpsilon } from "../../../utils";
-import Vector from "../../../vector";
+import Matrix from "../../denseMatrix";
+import { TriMatrixType, TriMatrixView } from "../../triMatrixView";
+import { assert, near, SmallTolerance } from "../../utils";
+import Vector from "../../vector";
 import { NotPositiveDefiniteMatrixException } from "./exceptions";
 
 const SolverName = "'Cholesky'";

@@ -1,4 +1,4 @@
-import { Epsilon, lerp, SmallEpsilon, SmallestEpsilon } from "./utils";
+import { Tolerance, lerp, SmallTolerance, SmallestTolerance } from "./utils";
 import vector from "./vector";
 
 export default class vec4 {
@@ -42,7 +42,7 @@ export default class vec4 {
             lerp(a.w, b.w, t)
         );
     }
-    static near(a: vec4, b: vec4, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+    static near(a: vec4, b: vec4, absTolerance: number = SmallTolerance, relTolerance: number = 0): boolean {
         let norm = vec4.sub(a, b).lInfnorm();
         if (relTolerance == 0)
             return norm <= absTolerance;
@@ -145,7 +145,7 @@ export default class vec4 {
     }
     normalize(): vec4 {
         let l = this.l2norm();
-        if (l < SmallestEpsilon) {
+        if (l < SmallestTolerance) {
             this.x = 0;
             this.y = 0;
             this.z = 0;

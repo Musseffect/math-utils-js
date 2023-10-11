@@ -1,8 +1,8 @@
-import { assert, SmallEpsilon } from "../../../../utils";
+import { assert, SmallTolerance } from "../../../../utils";
 
 
 export default class Bisection {
-    static solve(f: (x: number) => number, a: number, b: number, numIters: number, tolerance: number = SmallEpsilon): number {
+    static solve(f: (x: number) => number, a: number, b: number, numIters: number, tolerance: number = SmallTolerance): number {
         let fa = f(a);
         if (Math.abs(fa) < tolerance) return a;
         let fb = f(b);

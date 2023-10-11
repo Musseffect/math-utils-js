@@ -1,4 +1,4 @@
-import { assert, Epsilon, SmallEpsilon, SmallestEpsilon } from "../../utils";
+import { assert, Tolerance, SmallTolerance, SmallestTolerance } from "../../utils";
 import Vector from "../../vector";
 import { LineSearch, LineSearchProblem } from "./lineSearch";
 
@@ -6,7 +6,7 @@ export class ArmijoBacktracking extends LineSearch {
     tau: number = 0.5;
     c: number = 0.5;
     numIters = 100;
-    tolerance = SmallEpsilon;
+    tolerance = SmallTolerance;
     constructor(problem: LineSearchProblem) {
         super(problem);
     }
@@ -28,7 +28,7 @@ export class ArmijoBacktracking extends LineSearch {
         let initialValue = this.problem.f(x);
         let step = initialStep;
         const m = Vector.dot(this.problem.grad(x), direction);
-        if (m > -SmallestEpsilon) return this.tolerance;
+        if (m > -SmallestTolerance) return this.tolerance;
         const t = -this.c * m;
         for (let iter = 0; iter < this.numIters && step > this.tolerance; ++iter) {
             let curValue = this.problem.f(Vector.add(x, Vector.scale(direction, step)));
@@ -48,7 +48,7 @@ class ArmijoTwoWayBacktracing extends ArmijoBacktracking {
         let initialValue = this.problem.f(x);
         let step = initialStep;
         const m = Vector.dot(this.problem.grad(x), direction);
-        if (m > -SmallestEpsilon) return this.tolerance;
+        if (m > -SmallestTolerance) return this.tolerance;
         const t = -this.c * m;
         assert(t < 0, "Invalid direction");
         let iter = 0;

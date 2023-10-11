@@ -1,39 +1,55 @@
-import { SmallestEpsilon, assert, assertFail } from "../../utils";
+import { complex } from "./complex";
+import Matrix from "./denseMatrix";
+import { SmallTolerance, SmallestTolerance, assert, assertFail } from "./utils";
 
+// coefficients from 0 to N -> c_0 + c_1 * x + c_2 * x^2 + ... + c_N * x^N
 export class Polynomial {
     coeffs: number[];
     constructor(coeffs: number[]) {
-        assert(coeffs.length > 1, "Invalid size");
+        assert(coeffs.length >= 1, "Invalid size");
+    }
+    numCoeffs(): number {
+        return this.coeffs.length;
     }
     degree(): number {
-        return this.coeffs.length;
+        return this.coeffs.length - 1;
     }
     eval(x: number): number {
         let value = 0.0;
-        for (let i = this.degree() - 1; i > 0; --i) {
+        for (let i = this.numCoeffs() - 1; i > 0; --i) {
             value += this.coeffs[i];
             value *= x;
         }
         return value + this.coeffs[0];
     }
     derivative(): Polynomial {
+        assert(this.coeffs.length > 1, "Invalid size");
         let result: number[] = [];
-        for (let i = 1; i < this.degree(); ++i) {
+        for (let i = 1; i < this.numCoeffs(); ++i) {
             result.push(this.coeffs[i] * i);
         }
         return new Polynomial(result);
     }
-    shrink() {
+    shrink(): void {
         while (this.coeffs.length > 0 && this.coeffs[-1] == 0)
             this.coeffs.pop();
+    }
+    companionMatrix(): Matrix {
+        let matrix = Matrix.empty(this.degree(), this.degree());
+        let lastCoeff = this.coeffs[-1];
+        for (let i = 0; i < this.degree(); ++i) {
+            matrix.set(i + 1, i, 1);
+            matrix.set(i, this.degree(), -this.coeffs[i] / lastCoeff)
+        }
+        return matrix;
     }
 }
 
 export class PolynomialSolver {
     protected numIters: number = 10;
-    protected tol: number = SmallestEpsilon;
+    protected tol: number = SmallestTolerance;
     protected delta: number = 1.0;
-    constructor(numIters: number = 10, tol: number = SmallestEpsilon, delta: number = 1) {
+    constructor(numIters: number = 10, tol: number = SmallestTolerance, delta: number = 1) {
         this.numIters = numIters;
         this.tol = tol;
         this.delta = delta;
@@ -66,7 +82,7 @@ export class PolynomialSolver {
 
             let value = f.eval(xCenter);
             let derivative = df.eval(xCenter);
-            if (Math.abs(derivative) > SmallestEpsilon) {
+            if (Math.abs(derivative) > SmallestTolerance) {
                 let xNext = xCenter - value / derivative;
                 if (xNext > xMin && xNext < xMax) {
                     xCenter = xNext;
@@ -89,7 +105,7 @@ export class PolynomialSolver {
         return (xMax + xMin) * 0.5;
     }
     private infSign(x: number, f: Polynomial) {
-        for (let i = f.degree() - 1; i >= 0; --i) {
+        for (let i = f.numCoeffs() - 1; i >= 0; --i) {
             if (f.coeffs[i] == 0) continue;
             let sign = Math.sign(f.coeffs[i]);
             if (i & 1)
@@ -103,7 +119,7 @@ export class PolynomialSolver {
         return -b / a;
     }
     // ax^2 + bx + c
-    static solveQuadratic(a: number, b: number, c: number, xMin: number = Number.NEGATIVE_INFINITY, xMax: number = Number.POSITIVE_INFINITY): number[] {
+    static solveQuadratic(a: number, b: number, c: number, xStart: number = Number.NEGATIVE_INFINITY, xEnd: number = Number.POSITIVE_INFINITY): number[] {
         let d = b * b - 4 * a * c;
         if (d < 0.0)
             return [];
@@ -111,18 +127,18 @@ export class PolynomialSolver {
         let x0 = -c / d;
         let x1 = -d / a;
         let result: number[] = [];
-        if (x0 >= xMin && x0 <= xMax)
+        if (x0 >= xStart && x0 <= xEnd)
             result.push(x0);
-        if (x1 >= xMin && x1 <= xMax)
+        if (x1 >= xStart && x1 <= xEnd)
             result.push(x1);
         return result
     }
-    solveCubic(a: number, b: number, c: number, d: number, xMin: number = Number.NEGATIVE_INFINITY, xMax: number = Number.POSITIVE_INFINITY): number[] {
+    solveCubic(a: number, b: number, c: number, d: number, deflation: boolean = true, xStart: number = Number.NEGATIVE_INFINITY, xEnd: number = Number.POSITIVE_INFINITY): number[] {
         let f = new Polynomial([d, c, b, a]);
         let df = new Polynomial([c, 2 * b, 3 * a]);
-        let criticalPoints = PolynomialSolver.solveQuadratic(df.coeffs[0], df.coeffs[1], df.coeffs[2], xMin, xMax);
-        criticalPoints.unshift(xMin);
-        criticalPoints.unshift(xMax);
+        let criticalPoints = PolynomialSolver.solveQuadratic(df.coeffs[0], df.coeffs[1], df.coeffs[2], xStart, xEnd);
+        criticalPoints.unshift(xStart);
+        criticalPoints.push(xEnd);
         let roots: number[] = [];
         let i = 0;
         for (; i < criticalPoints.length - 1; ++i) {
@@ -133,13 +149,17 @@ export class PolynomialSolver {
             if (Math.sign(fMin) != Math.sign(fMax)) {
                 let root = this.findRoot(f, df, xMin, xMax, fMin, fMax);
                 roots.push(root);
-                // todo: deflate
-                throw new Error("Not implemented");
-                let otherRoots = PolynomialSolver.solveQuadratic();
+                if (!deflation) continue;
+                // deflation
+                let aq = a;
+                let bq = b + aq * root;
+                let cq = d;
+                let otherRoots = PolynomialSolver.solveQuadratic(aq, bq, cq, xMax, xEnd);
+                roots = roots.concat(otherRoots);
                 break;
             }
         }
-        if (roots.length > 1) {
+        if (deflation && roots.length > 1) {
             for (let j = i + 1; j < criticalPoints.length; ++j) {
                 let xMin = criticalPoints[i];
                 let xMax = criticalPoints[i + 1];
@@ -184,29 +204,24 @@ export class PolynomialSolver {
         }
         return value + a[0];
     }
-    solveInRegion(polynomial: Polynomial, x0: number = Number.NEGATIVE_INFINITY, x1: number = Number.POSITIVE_INFINITY) {
-        assert(x0 < x1, "Invalid interval");
+    solveInRegion(polynomial: Polynomial, xStart: number = Number.NEGATIVE_INFINITY, xEnd: number = Number.POSITIVE_INFINITY) {
+        assert(xStart < xEnd, "Invalid interval");
         polynomial.shrink();
         let stack: Polynomial[] = [polynomial];
-        for (let i = polynomial.degree(); i >= 2; --i)
+        for (let i = polynomial.numCoeffs(); i >= 2; --i)
             stack.push(stack[-1].derivative());
 
         const quadraticPolynomial = stack[-1];
-        assert(quadraticPolynomial.degree() == 2, "Quadratic polynomial expected");
-        // todo: implement cubic solver with deflation and use it here
-        let criticalPoints: number[] = PolynomialSolver.solveQuadratic(quadraticPolynomial.coeffs[2], quadraticPolynomial.coeffs[1], quadraticPolynomial.coeffs[0]);
-        // remove roots outside of interval
-        while (criticalPoints.length > 0 && criticalPoints[-1] > x1)
-            criticalPoints.pop();
-        while (criticalPoints.length > 0 && criticalPoints[0] < x0)
-            criticalPoints.shift();
-        criticalPoints.unshift(x0);
-        criticalPoints.push(x1);
+        assert(quadraticPolynomial.numCoeffs() == 2, "Quadratic polynomial expected");
+        // todo: use cubic solver with deflation here
+        let criticalPoints: number[] = PolynomialSolver.solveQuadratic(quadraticPolynomial.coeffs[2], quadraticPolynomial.coeffs[1], quadraticPolynomial.coeffs[0], xStart, xEnd);
+        criticalPoints.unshift(xStart);
+        criticalPoints.push(xEnd);
         while (stack.length != 1) {
             let df = stack[-1];
             let f = stack[-2];
             let newRoots: number[] = [];
-            newRoots.push(x0);
+            newRoots.push(xStart);
             for (let i = 0; i < criticalPoints.length - 1; ++i) {
                 let xMin = criticalPoints[i];
                 let xMax = criticalPoints[i + 1];
@@ -217,10 +232,48 @@ export class PolynomialSolver {
                     newRoots.push(newRoot);
                 }
             }
-            newRoots.push(x1);
+            newRoots.push(xEnd);
             criticalPoints = newRoots;
             stack.pop();
         }
         return criticalPoints;
     }
+}
+export function generatePolynomialWithComplexRoots(roots: complex[]) {
+    assert(roots.length == 0, "Zero roots");
+    assert(roots.length <= 63, "Too many roots");
+    let coeffs: complex[] = [];
+    for (let i = 0; i < roots.length; ++i)
+        coeffs.push(complex.empty());
+    for (let i = 0; i < 2 << roots.length; ++i) {
+        let coeffID = 0;
+        let value = new complex(-1.0, 0.0);
+        for (let j = 0, k = i; j < roots.length; ++j, k = k >> 1) {
+            coeffID += k & 1;
+            value = complex.mul(value, k & 1 ? new complex(-1, 0) : roots[j]);
+        }
+        coeffs[coeffID].addSelf(value);
+    }
+    let realCoeffs: number[] = [];
+    for (const coeff of coeffs) {
+        assert(Math.abs(coeff.y) < SmallTolerance, "Complex coefficient");
+        realCoeffs.push(coeff.x);
+    }
+    return new Polynomial(realCoeffs);
+}
+
+export function generatePolynomial(roots: number[]): Polynomial {
+    assert(roots.length == 0, "Zero roots");
+    assert(roots.length <= 63, "Too many roots");
+    let coeffs = Array(roots.length);
+    for (let i = 0; i < 2 << roots.length; ++i) {
+        let coeffID = 0;
+        let value = 1.0;
+        for (let j = 0, k = i; j < roots.length; ++j, k = k >> 1) {
+            coeffID += k & 1;
+            value *= k & 1 ? -1 : roots[j];
+        }
+        coeffs[coeffID] += value;
+    }
+    return new Polynomial(coeffs);
 }

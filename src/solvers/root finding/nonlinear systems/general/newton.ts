@@ -1,16 +1,16 @@
 import Matrix from "../../../../denseMatrix";
-import { assert, SmallEpsilon } from "../../../../utils";
+import { assert, SmallTolerance } from "../../../../utils";
 import vector from "../../../../vector";
-import { ConvergenseFailureException } from "../../linear systems/exceptions";
-import FullPivLU from "../../linear systems/fullPivLU";
+import { ConvergenseFailureException } from "../../../linear systems/exceptions";
+import FullPivLU from "../../../linear systems/fullPivLU";
 
 
 const SolverName = "Newton";
 class Params {
     jacobian?: (x: vector) => Matrix;
-    fDotTolAbs: number = SmallEpsilon;
-    fTolAbs: number = SmallEpsilon;
-    jacobianEpsilon: number = SmallEpsilon;
+    fDotTolAbs: number = SmallTolerance;
+    fTolAbs: number = SmallTolerance;
+    jacobianEpsilon: number = SmallTolerance;
 }
 
 class Solver {
@@ -31,7 +31,7 @@ class Solver {
         let x = x0.clone();
         let fVec = vector.negate(f(x));
         let maxNorm = fVec.lInfNorm();
-        let calcJ = params.jacobian ? params.jacobian : (y: vector) => { return Solver.numericJacobian(f, y, SmallEpsilon) };
+        let calcJ = params.jacobian ? params.jacobian : (y: vector) => { return Solver.numericJacobian(f, y, SmallTolerance) };
         for (let iter = 0; iter < numIters; ++iter) {
             if (maxNorm < params.fTolAbs) return x;
             let J: Matrix = calcJ(x);

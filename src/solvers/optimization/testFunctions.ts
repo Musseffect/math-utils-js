@@ -1,6 +1,6 @@
 import Matrix from "../../denseMatrix";
 import { forwardDifference, secondOrderDifference } from "../../numericalDifferentiation";
-import { assert, SmallEpsilon } from "../../utils";
+import { assert, SmallTolerance } from "../../utils";
 import Vector from "../../vector";
 import { OptimizationProblem } from "./optimizationProblem";
 
@@ -436,7 +436,7 @@ export const StyblinskiTangFunc: OptimizationTestFunction = {
 // constrained functions
 
 export abstract class ConstrainedProblem {
-    derivativeDelta: number = SmallEpsilon;
+    derivativeDelta: number = SmallTolerance;
     public abstract numConstraints(): number;
     public abstract numVariables(): number;
     public abstract constraints(p: Vector): Vector;

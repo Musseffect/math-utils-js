@@ -1,5 +1,5 @@
 import axisAngle from "./axisAngle";
-import { lerp, Epsilon, SmallEpsilon, SmallestEpsilon } from "./utils";
+import { lerp, Tolerance, SmallTolerance, SmallestTolerance } from "./utils";
 import vector from "./vector";
 
 export default class vec3 {
@@ -32,7 +32,7 @@ export default class vec3 {
             out.set(this);
 
         let l = this.l2norm();
-        if (l < SmallestEpsilon) {
+        if (l < SmallestTolerance) {
             out.x = 0;
             out.y = 0;
             out.z = 0;
@@ -64,7 +64,7 @@ export default class vec3 {
             lerp(a.z, b.z, t)
         );
     }
-    static near(a: vec3, b: vec3, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+    static near(a: vec3, b: vec3, absTolerance: number = SmallTolerance, relTolerance: number = 0): boolean {
         let norm = vec3.sub(a, b).lInfnorm();
         if (relTolerance == 0)
             return norm <= absTolerance;

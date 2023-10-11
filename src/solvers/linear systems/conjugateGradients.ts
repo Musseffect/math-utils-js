@@ -1,13 +1,13 @@
-import Matrix from "../../../denseMatrix";
-import { assert, SmallEpsilon } from "../../../utils";
-import Vector from "../../../vector";
+import Matrix from "../../denseMatrix";
+import { assert, SmallTolerance } from "../../utils";
+import Vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
 const SolverName = "'Cholesky'";
 
 export default class ConjugateGradients {
 
-    static solve(A: Matrix, b: Vector, maxIterations: number = 20, tolerance: number = SmallEpsilon): Vector {
+    static solve(A: Matrix, b: Vector, maxIterations: number = 20, tolerance: number = SmallTolerance): Vector {
         assert(A.width() == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A.isSquare(), "Non-square matrix");
         let x = Vector.empty(b.size());

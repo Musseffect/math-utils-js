@@ -1,9 +1,9 @@
 import Matrix from "./denseMatrix";
 import Vector from "./vector";
 
-export const Epsilon = 1e-4;
-export const SmallEpsilon = 1e-6;
-export const SmallestEpsilon = 1e-8;
+export const Tolerance = 1e-4;
+export const SmallTolerance = 1e-6;
+export const SmallestTolerance = 1e-8;
 
 export function assert(condition: boolean, message: string): void {
     if (!condition)
@@ -26,7 +26,7 @@ export function clamp(value: number, min: number, max: number): number {
     return Math.max(Math.min(value, max), min);
 }
 
-export function near(a: number, b: number, absTolerance: number = SmallEpsilon, relTolerance: number = 0): boolean {
+export function near(a: number, b: number, absTolerance: number = SmallTolerance, relTolerance: number = 0): boolean {
     if (relTolerance == 0)
         return Math.abs(b - a) <= absTolerance;
     return Math.abs(b - a) <= Math.max(absTolerance, relTolerance * Math.max(Math.abs(a), Math.abs(b)));

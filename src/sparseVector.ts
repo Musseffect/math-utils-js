@@ -1,7 +1,7 @@
 import vector from "./vector";
-import { assert, SmallestEpsilon } from "./utils";
+import { assert, SmallestTolerance } from "./utils";
 
-const DefaultTolerance = SmallestEpsilon;
+const DefaultTolerance = SmallestTolerance;
 
 export default class SparseVector {
     length: number;

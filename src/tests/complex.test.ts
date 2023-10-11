@@ -1,8 +1,8 @@
-import complex from "../complex";
+import { complex } from "../complex";
 import vec2 from "../vec2";
 
 
-test('Complex operations', () => {
+test('Complex cartesian operations', () => {
     let z1 = new complex(1, 2);
     let z2 = complex.polar(2.0, 1.1);
     expect(z2.length()).toBeCloseTo(2.0);
@@ -17,4 +17,13 @@ test('Complex operations', () => {
     expect(vec2.near(z1, complex.log(zExp))).toBeTruthy();
     expect(vec2.near(z1, complex.exp(zLog))).toBeTruthy();
     expect(vec2.near(z2, complex.div(complex.log(zPow), complex.log(z1)))).toBeTruthy();
+});
+
+test.skip('Complex polar operations', () => {
+
+
+});
+
+test.skip('Complex polar/cartesian operations', () => {
+
 });

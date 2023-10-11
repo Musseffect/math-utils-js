@@ -3,7 +3,7 @@ import mat2 from "../mat2";
 import mat3 from "../mat3";
 import mat4 from "../mat4";
 import Triplet from "../triplet";
-import { Epsilon, SmallEpsilon, assert } from "../utils";
+import { Tolerance, SmallTolerance, assert } from "../utils";
 import vec2 from "../vec2";
 import vec3 from "../vec3";
 import vec4 from "../vec4";
@@ -81,33 +81,33 @@ test('Matrix operations', () => {
         6, 8, 3, -2,
         -5, 3, 2, 1,
         3, 4, 5, 2);
-    expect(Matrix.near(m4.transpose().transpose(), m4, Epsilon)).toBeTruthy();
+    expect(Matrix.near(m4.transpose().transpose(), m4, Tolerance)).toBeTruthy();
 
-    expect(Matrix.near(mat4.identity(), mat4.mul(m4, m4.inverse()), Epsilon)).toBeTruthy();
+    expect(Matrix.near(mat4.identity(), mat4.mul(m4, m4.inverse()), Tolerance)).toBeTruthy();
 
     let m3a = new mat3(1, 3, 2, 4, 6, 8, 3, -2, -5);
     let m3b = new mat3(4, -2, -1, -31, 21, -4, 51, -13, 10);
     let m3c = new mat3(13, 35, 7, 238, 14, 52, -181, 17, -45);
-    expect(Matrix.near(m3a, mat3.mul(m3a, mat3.identity()), Epsilon)).toBeTruthy();
-    expect(Matrix.near(m3c, mat3.mul(m3a, m3b), Epsilon)).toBeTruthy();
-    expect(Matrix.near(mat3.identity(), mat3.mul(m3a, m3a.inverse()), Epsilon)).toBeTruthy();
+    expect(Matrix.near(m3a, mat3.mul(m3a, mat3.identity()), Tolerance)).toBeTruthy();
+    expect(Matrix.near(m3c, mat3.mul(m3a, m3b), Tolerance)).toBeTruthy();
+    expect(Matrix.near(mat3.identity(), mat3.mul(m3a, m3a.inverse()), Tolerance)).toBeTruthy();
 
     //let m2 = new mat2(-13.1, 0.6, -1.7, 2.3);
-    //expect(mat2.near(mat2.identity(), mat2.mul(m2, m2.inverse()), Epsilon)).toBeTruthy();
+    //expect(mat2.near(mat2.identity(), mat2.mul(m2, m2.inverse()), Tolerance)).toBeTruthy();
 
 });
 
 test('Vector operations', () => {
     let a3D = new vec3(1., 3., 2.);
     let b3D = new vec3(2., -1., -4.);
-    expect(a3D.l1norm()).toBeCloseTo(6, Epsilon);
-    expect(a3D.l2norm()).toBeCloseTo(Math.sqrt(vec3.dot(a3D, a3D)), Epsilon);
-    expect(a3D.lInfnorm()).toBeCloseTo(3, Epsilon);
+    expect(a3D.l1norm()).toBeCloseTo(6, Tolerance);
+    expect(a3D.l2norm()).toBeCloseTo(Math.sqrt(vec3.dot(a3D, a3D)), Tolerance);
+    expect(a3D.lInfnorm()).toBeCloseTo(3, Tolerance);
     expect(vec3.dot(a3D, vec3.cross(a3D, b3D))).toBeCloseTo(0.0);
-    expect(vec3.near(vec3.add(a3D, b3D), new vec3(3, 2, -2), Epsilon)).toBeTruthy();
-    expect(vec3.near(vec3.mul(a3D, b3D), new vec3(2, -3, -8), Epsilon)).toBeTruthy();
-    expect(vec3.near(vec3.sub(a3D, b3D), new vec3(-1, 4, 6), Epsilon)).toBeTruthy();
-    expect(vec3.near(vec3.div(a3D, b3D), new vec3(0.5, -3, -0.5), Epsilon)).toBeTruthy();
+    expect(vec3.near(vec3.add(a3D, b3D), new vec3(3, 2, -2), Tolerance)).toBeTruthy();
+    expect(vec3.near(vec3.mul(a3D, b3D), new vec3(2, -3, -8), Tolerance)).toBeTruthy();
+    expect(vec3.near(vec3.sub(a3D, b3D), new vec3(-1, 4, 6), Tolerance)).toBeTruthy();
+    expect(vec3.near(vec3.div(a3D, b3D), new vec3(0.5, -3, -0.5), Tolerance)).toBeTruthy();
 });
 
 test('Matrix-vector operations', () => {
@@ -147,8 +147,8 @@ test('Matrix-vector operations', () => {
     );*/
     let mat = m4D.toMatrix();
     let rhs = p4D.toVector();
-    expect(Vector.near(Matrix.postMulVec(mat, rhs), m4D.postMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
-    expect(Vector.near(Matrix.preMulVec(mat, rhs), m4D.preMulVec(p4D).toVector(), SmallEpsilon)).toBeTruthy();
+    expect(Vector.near(Matrix.postMulVec(mat, rhs), m4D.postMulVec(p4D).toVector(), SmallTolerance)).toBeTruthy();
+    expect(Vector.near(Matrix.preMulVec(mat, rhs), m4D.preMulVec(p4D).toVector(), SmallTolerance)).toBeTruthy();
 
     //expect(new Matrix([1, 2, 3, 4], 2, 2).determinantNaive()).toBeCloseTo(-2.0);
 
@@ -156,11 +156,11 @@ test('Matrix-vector operations', () => {
     //expect(mat.determinantNaive()).toBeCloseTo(m4D.determinant());
     //console.log(`InverseNaive ${mat.inverseNaive().toString()}`);
     console.log(`Inverse ${m4D.inverse().toString()}`);
-    //expect(Matrix.near(mat.inverseNaive(), m4D.inverse().toMatrix(), SmallEpsilon)).toBeTruthy();
+    //expect(Matrix.near(mat.inverseNaive(), m4D.inverse().toMatrix(), SmallTolerance)).toBeTruthy();
 
-    //expect(Matrix.near(Matrix.mul(mat, mat.inverseNaive()), Matrix.identity(4), SmallEpsilon)).toBeTruthy();
-    expect(Vector.near(m4D.inverse().postMulVec(p4D).toVector(), Matrix.solve(mat.clone(), rhs), SmallEpsilon)).toBeTruthy();
-    expect(Matrix.near(mat.transpose(), m4D.transpose().toMatrix(), SmallEpsilon)).toBeTruthy();
+    //expect(Matrix.near(Matrix.mul(mat, mat.inverseNaive()), Matrix.identity(4), SmallTolerance)).toBeTruthy();
+    expect(Vector.near(m4D.inverse().postMulVec(p4D).toVector(), Matrix.solve(mat.clone(), rhs), SmallTolerance)).toBeTruthy();
+    expect(Matrix.near(mat.transpose(), m4D.transpose().toMatrix(), SmallTolerance)).toBeTruthy();
 });
 test("General dense matrix", () => {
     // test nonsingular matrices

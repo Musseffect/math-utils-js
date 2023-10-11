@@ -1,5 +1,5 @@
 import mat3 from "./mat3";
-import { Epsilon, near } from "./utils";
+import { Tolerance, near } from "./utils";
 import vec3 from "./vec3";
 
 export default class axisAngle {
@@ -11,7 +11,7 @@ export default class axisAngle {
     }
     static near(a: axisAngle, b: axisAngle, threshold?: number): boolean {
         if (!threshold)
-            threshold = Epsilon;
+            threshold = Tolerance;
         return vec3.near(a.axis, b.axis, threshold) && near(a.angle, b.angle, threshold);
     }
     rotate(point: vec3): vec3 {

@@ -1,13 +1,13 @@
 import Matrix from "../../denseMatrix";
 import { forwardDifference, secondOrderDifference } from "../../numericalDifferentiation";
-import { SmallEpsilon } from "../../utils";
+import { SmallTolerance } from "../../utils";
 import Vector from "../../vector";
 
 
 
 export abstract class OptimizationProblem {
     initialPoint: Vector;
-    derivativeDelta: number = SmallEpsilon;
+    derivativeDelta: number = SmallTolerance;
     constructor(initialPoint: Vector) {
         this.initialPoint = initialPoint.clone();
     }

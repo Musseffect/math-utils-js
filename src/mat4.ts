@@ -1,7 +1,7 @@
 import mat3 from "./mat3";
 import quat from "./quat";
 import vec3 from "./vec3";
-import { determinant3x3, determinant4x4, Epsilon, SmallEpsilon } from "./utils";
+import { determinant3x3, determinant4x4, Tolerance, SmallTolerance } from "./utils";
 import vec4 from "./vec4";
 import Matrix from "./denseMatrix";
 import AbstractDenseMatrix from "./abstractDenseMatrix";
@@ -25,7 +25,7 @@ export default class mat4 extends AbstractDenseMatrix {
     numCols(): number {
         return 4;
     }
-    isIdentity(tolerance: number = SmallEpsilon): boolean {
+    isIdentity(tolerance: number = SmallTolerance): boolean {
         let diff = 0;
         for (let i = 0; i < 4; ++i) {
             for (let j = 0; j < 4; ++j) {

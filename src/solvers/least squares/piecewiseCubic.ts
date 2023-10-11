@@ -1,5 +1,5 @@
 import Matrix from "../../denseMatrix";
-import { assert, clamp, SmallestEpsilon } from "../../utils";
+import { assert, clamp, SmallestTolerance } from "../../utils";
 import Vector from "../../vector";
 
 interface CubicSpline {
@@ -20,7 +20,7 @@ class CubicSplines {
         assert(splines.length > 0, "Empty splines array");
     }
     calc(param: number): number {
-        let normalizedParam = this.max - this.min > SmallestEpsilon ? (param - this.min) / (this.max - this.min) : 0.0;
+        let normalizedParam = this.max - this.min > SmallestTolerance ? (param - this.min) / (this.max - this.min) : 0.0;
         normalizedParam *= this.splines.length;
         let iParam = clamp(Math.floor(normalizedParam), 0, this.splines.length - 1);
         let fParam = (normalizedParam - iParam);

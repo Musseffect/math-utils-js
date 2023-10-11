@@ -1,7 +1,7 @@
 import Matrix from "../../denseMatrix";
 import { assert } from "../../utils";
 import Vector from "../../vector";
-import PartialPivLU from "../root finding/linear systems/partialPivLU";
+import PartialPivLU from "../linear systems/partialPivLU";
 
 
 export class LinearSolver {

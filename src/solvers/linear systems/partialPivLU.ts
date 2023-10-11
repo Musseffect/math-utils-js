@@ -1,8 +1,8 @@
-import Matrix from "../../../denseMatrix";
-import PermutationMatrix from "../../../permutationMatrix";
-import { assert, SmallEpsilon, swap } from "../../../utils";
-import Vector from "../../../vector";
-import { TriMatrixType, TriMatrixView } from "../../../triMatrixView";
+import Matrix from "../../denseMatrix";
+import PermutationMatrix from "../../permutationMatrix";
+import { assert, SmallTolerance, swap } from "../../utils";
+import Vector from "../../vector";
+import { TriMatrixType, TriMatrixView } from "../../triMatrixView";
 
 const SolverName = "'PartialPivLU'";
 
@@ -17,11 +17,11 @@ export default class PartialPivLU {
     private compute(): void {
         throw new Error("Not implemented");
     }
-    constructor(A: Matrix, tolerance: number = SmallEpsilon) {
+    constructor(A: Matrix, tolerance: number = SmallTolerance) {
         this.A = A;
         this.compute();
     }
-    static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallEpsilon): Matrix {
+    static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance): Matrix {
         assert(A.height() == B.height(), "Not determined system");
         assert(A.isSquare(), "Non-square matrix");
         let rank = B.height();
@@ -72,7 +72,7 @@ export default class PartialPivLU {
         }
         return x;
     }
-    static solve(A: Matrix, b: Vector, tolerance: number = SmallEpsilon): Vector {
+    static solve(A: Matrix, b: Vector, tolerance: number = SmallTolerance): Vector {
         assert(A.width() == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A.width() == A.height(), "Non-square matrix");
 

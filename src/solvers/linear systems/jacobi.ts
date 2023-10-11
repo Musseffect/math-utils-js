@@ -1,12 +1,12 @@
-import Matrix from "../../../denseMatrix";
-import { assert, SmallEpsilon } from "../../../utils";
-import vector from "../../../vector";
+import Matrix from "../../denseMatrix";
+import { assert, SmallTolerance } from "../../utils";
+import vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
 const SolverName = "'Jacobi'";
 
 export default class Jacobi {
-    static solve(m: Matrix, rhs: vector, maxIterations: number, tolerance: number = SmallEpsilon, initialGuess?: vector) {
+    static solve(m: Matrix, rhs: vector, maxIterations: number, tolerance: number = SmallTolerance, initialGuess?: vector) {
         assert(m.width() == m.height(), "Matrix isn't square");
         assert(m.width() == rhs.size(), "Dimensions don't match");
         const rank = rhs.size();

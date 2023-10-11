@@ -1,10 +1,15 @@
 import Matrix from "./denseMatrix";
-import { assert, clamp, Epsilon, SmallestEpsilon } from "./utils";
+import { assert, clamp, Tolerance, SmallestTolerance } from "./utils";
 
 export default class Vector {
     data: number[];
     constructor(data: number[]) {
         this.data = data;
+    }
+    toMatrix(rowMajor: boolean = false): Matrix {
+        if (rowMajor)
+            return new Matrix(this.data, 1, this.data.length);
+        return new Matrix(this.data, this.data.length, 1);
     }
     static outer(a: Vector, b: Vector): Matrix {
         let result: Matrix = Matrix.empty(a.size(), b.size());
@@ -18,7 +23,7 @@ export default class Vector {
     static near(a: Vector, b: Vector, threshold?: number): boolean {
         assert(a.size() == b.size(), "Vectors should have equal sizes");
         if (!threshold)
-            threshold = Epsilon;
+            threshold = Tolerance;
 
         for (let i = 0; i < a.size(); i++) {
             if (Math.abs(a.get(i) - b.get(i)) > threshold)
@@ -189,8 +194,7 @@ export default class Vector {
     }
     normalize() {
         let l = this.l2Norm();
-        if (l > SmallestEpsilon)
-        {
+        if (l > SmallestTolerance) {
             for (let i = 0; i < this.data.length; ++i)
                 this.data[i] /= l;
         }

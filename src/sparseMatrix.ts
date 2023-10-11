@@ -1,7 +1,7 @@
 import Matrix from "./denseMatrix";
 import sparseVector from "./sparseVector";
 import Triplet from "./triplet";
-import { assert, SmallEpsilon, SmallestEpsilon } from "./utils";
+import { assert, SmallTolerance, SmallestTolerance } from "./utils";
 import vector from "./vector";
 
 export class CellRef {
@@ -35,7 +35,7 @@ export default class SparseMatrix {
     numRows: number;
     numCols: number;
     tolerance: number;
-    constructor(numRows: number, numCols: number, tolerance: number = SmallestEpsilon) {
+    constructor(numRows: number, numCols: number, tolerance: number = SmallestTolerance) {
         this.numRows = numRows;
         this.numCols = numCols;
         this.innerIndices = [];
@@ -62,7 +62,7 @@ export default class SparseMatrix {
             result = Math.max(result, Math.abs(value));
         return result;
     }
-    static near(m1: SparseMatrix, m2: SparseMatrix, tolerance: number = SmallEpsilon): boolean {
+    static near(m1: SparseMatrix, m2: SparseMatrix, tolerance: number = SmallTolerance): boolean {
         assert(m1.width() == m2.width() && m1.height() == m2.height(), "Incompatible sizes");
         throw new Error("Method not implemented.");
     }
@@ -121,7 +121,7 @@ export default class SparseMatrix {
     static fromDense(dense: Matrix, tolerance: number): SparseMatrix {
         throw new Error("Method not implemented.");
     }
-    static fromTriplets(triplets: Triplet[], numRows: number, numCols: number, tolerance: number = SmallestEpsilon): SparseMatrix {
+    static fromTriplets(triplets: Triplet[], numRows: number, numCols: number, tolerance: number = SmallestTolerance): SparseMatrix {
         // sorted in ascending "row by row" order
         triplets.sort((a: Triplet, b: Triplet) => {
             let rowSign = a.row - b.row;

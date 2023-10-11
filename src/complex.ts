@@ -1,6 +1,6 @@
 import vec2 from "./vec2";
 
-export default class complex extends vec2 {
+export class complex extends vec2 {
     constructor(x: number, y: number) {
         super(x, y);
     }
@@ -48,4 +48,25 @@ export default class complex extends vec2 {
         let angle = b.y * lnR + b.x * theta;
         return complex.polar(r, angle);
     }
+}
+
+export class complexPolar {
+    private r: number;
+    private angle: number;
+    constructor(r: number, angle: number) {
+        this.r = r;
+        this.angle = angle;
+    }
+    static empty(): complexPolar {
+        return new complexPolar(0, 0);
+    }/*
+    public pow(power: number | complex | complexPolar): complexPolar {
+        if (power instanceof Number) {
+            return new complexPolar(this.r, power * this.angle);
+        }
+        if (power instanceof complex) {
+            return new complexPolar();
+        }
+        return new complexPolar();
+    }*/
 }
