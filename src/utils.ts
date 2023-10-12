@@ -1,6 +1,3 @@
-import Matrix from "./denseMatrix";
-import Vector from "./vector";
-
 export const Tolerance = 1e-4;
 export const SmallTolerance = 1e-6;
 export const SmallestTolerance = 1e-8;

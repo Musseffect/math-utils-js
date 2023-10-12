@@ -54,6 +54,33 @@ describe.skip('Linear solvers (dense square matrices)', () => {
 
     testExamples.push({ m: choleskyMat, rhs: choleskyRhs, exactSolution });
 
+    describe('Symmetric positive definite', ()=> {
+
+        let Q = new Matrix([1, 1, 1, 1, 1, 2, 2, 2, 1, 2, 3, 3, 1, 2, 3, 4], 4, 4);
+        let b = new Vector([-4, -7, -9, -10]);
+        let x = new Vector([-1, -1, -1, -1]);
+        expect(Q.isSymmetric()).toBeTruthy();
+        test('ConjGrad', ()=> {
+
+            let solver = new linSolvers.ConjugateGradients();
+            solver.solve(Q, b);
+        });
+        test('LL', ()=> {
+
+            let solver = new linSolvers.cholesky(Q);
+        });
+        test('LDL', ()=> {
+
+            let solver = new linSolvers.LDL(Q);
+        });
+        test('PPLU', ()=>{
+
+        });
+        test('FPLU', ()=>{
+
+        });
+    });
+
     describe('Iterative', () => {
         test('gauss-zeidel', () => {
 
@@ -63,6 +90,8 @@ describe.skip('Linear solvers (dense square matrices)', () => {
         });
         test('sor', () => {
 
+        });
+        test('ConjGrad', () => {
         });
     });
 

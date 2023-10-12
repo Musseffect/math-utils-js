@@ -1,7 +1,7 @@
 import mat from "./abstractDenseMatrix";
 import FullPivLU from "./solvers/linear systems/fullPivLU";
 import Triplet from "./triplet";
-import { assert, Tolerance, SmallTolerance, SmallestTolerance, swap } from "./utils";
+import { assert, near, SmallTolerance, SmallestTolerance, swap } from "./utils";
 import vector from "./vector";
 
 export default class Matrix extends mat {
@@ -20,6 +20,17 @@ export default class Matrix extends mat {
     }
     numRows(): number {
         return this._numRows;
+    }
+    isSymmetric(tolerance:number = SmallTolerance): boolean 
+    {
+        if (!this.isSquare()) return false;
+        for (let i = 1; i < this._numCols; ++i)
+        {
+            for (let j = 0; j < i; ++j) {
+                if (!near(this.get(i, j), this.get(j, i), tolerance)) return false;
+            }
+        }
+        return true;
     }
     static random(numRows: number, numCols: number): Matrix {
         let data = [];
