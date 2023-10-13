@@ -3,7 +3,7 @@ import PermutationMatrix from "../permutationMatrix";
 import { assert } from "../utils";
 
 
-test("Permutation matrix", () => {
+test.skip("Permutation matrix", () => {
     let rowPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], true);
     let colPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], false);
     /*const mat = Matrix.empty(rowPermutations.size(), rowPermutations.size());

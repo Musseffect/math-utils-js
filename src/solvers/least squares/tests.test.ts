@@ -1,3 +1,3 @@
 
 
-test.only('Least squares', () => { });
+test.skip('Least squares', () => { });

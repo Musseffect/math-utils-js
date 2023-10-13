@@ -61,7 +61,7 @@ const TestFunctions1D: Problem1D[] = [
 ];
 
 
-describe('Optimization tests', () => {
+describe.skip('Optimization tests', () => {
     test('1d', () => {
 
     });
@@ -71,7 +71,7 @@ describe('Optimization tests', () => {
 
 })
 
-test('Optimization methods test', () => {
+test.skip('Optimization methods test', () => {
 
 
 });

@@ -21,11 +21,9 @@ export default class Matrix extends mat {
     numRows(): number {
         return this._numRows;
     }
-    isSymmetric(tolerance:number = SmallTolerance): boolean 
-    {
+    isSymmetric(tolerance: number = SmallTolerance): boolean {
         if (!this.isSquare()) return false;
-        for (let i = 1; i < this._numCols; ++i)
-        {
+        for (let i = 1; i < this._numCols; ++i) {
             for (let j = 0; j < i; ++j) {
                 if (!near(this.get(i, j), this.get(j, i), tolerance)) return false;
             }
@@ -105,9 +103,13 @@ export default class Matrix extends mat {
         return result;
     }
     get(row: number, column: number): number {
+        assert(row < this._numRows && row >= 0, "Invalid row");
+        assert(column < this._numCols && column >= 0, "Invalid column");
         return this.data[row * this._numCols + column];
     }
     set(row: number, column: number, value: number): void {
+        assert(row < this._numRows && row >= 0, "Invalid row");
+        assert(column < this._numCols && column >= 0, "Invalid column");
         this.data[row * this._numCols + column] = value;
     }
     transposeInPlace(): Matrix {
@@ -373,12 +375,12 @@ export default class Matrix extends mat {
     static sub(a: Matrix, b: Matrix) {
         let result = a.clone();
         result.subSelf(b);
-        return a;
+        return result;
     }
     static add(a: Matrix, b: Matrix) {
         let result = a.clone();
         result.addSelf(b);
-        return a;
+        return result;
     }
     makeSquare(): Matrix {
         if (this.isSquare()) return this.clone();

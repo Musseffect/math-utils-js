@@ -54,32 +54,32 @@ describe.skip('Linear solvers (dense square matrices)', () => {
 
     testExamples.push({ m: choleskyMat, rhs: choleskyRhs, exactSolution });
 
-    describe('Symmetric positive definite', ()=> {
+    describe('Symmetric positive definite', () => {
 
         let Q = new Matrix([1, 1, 1, 1, 1, 2, 2, 2, 1, 2, 3, 3, 1, 2, 3, 4], 4, 4);
         let b = new Vector([-4, -7, -9, -10]);
         let x = new Vector([-1, -1, -1, -1]);
         expect(Q.isSymmetric()).toBeTruthy();
-        test('ConjGrad', ()=> {
+        test('ConjGrad', () => {
             let solver = new linSolvers.CG();
             linSolvers.CG.solve(Q, b);
         });
-        test('LL', ()=> {
+        test('LL', () => {
             let solver = new linSolvers.LLT();
-            expect(solver.factorize(Q)).not.toThrow();
+            expect(() => solver.factorize(Q)).not.toThrow();
             expect(Vector.sub(solver.solve(b), x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
         });
-        test('LDL', ()=> {
+        test('LDL', () => {
             let solver = new linSolvers.LDLT(SmallTolerance);
-            expect(solver.factorize(Q)).not.toThrow();
+            expect(() => solver.factorize(Q)).not.toThrow();
             expect(Vector.sub(solver.solve(b), x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
         });
-        test('PPLU', ()=>{
+        test('PPLU', () => {
             let solve = new linSolvers.PartialPivLU(Q, SmallTolerance);
             //solve.factorize();
 
         });
-        test('FPLU', ()=>{
+        test('FPLU', () => {
 
         });
         test('gauss-zeidel', () => {

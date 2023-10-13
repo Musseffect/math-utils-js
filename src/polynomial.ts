@@ -8,6 +8,31 @@ export class Polynomial {
     constructor(coeffs: number[]) {
         assert(coeffs.length >= 1, "Invalid size");
         this.coeffs = coeffs;
+        this.shrink();
+    }
+    static mul(a: Polynomial, b: Polynomial): Polynomial {
+        let resultCoeffs = new Array(a.degree() + b.degree() + 1).fill(0);
+        for (let i = 0; i < a.numCoeffs(); ++i) {
+            for (let j = 0; j < b.numCoeffs(); ++j)
+                resultCoeffs[i + j] += a.coeffs[i] * b.coeffs[j];
+        }
+        return new Polynomial(resultCoeffs);
+    }
+    static add(a: Polynomial, b: Polynomial): Polynomial {
+        let result = new Array(Math.max(a.degree(), b.degree()) + 1);
+        for (let i = 0; i < a.coeffs.length; ++i)
+            result[i] += a.coeffs[i];
+        for (let i = 0; i < b.coeffs.length; ++i)
+            result[i] += b.coeffs[i];
+        return new Polynomial(result);
+    }
+    static sub(a: Polynomial, b: Polynomial): Polynomial {
+        let result = new Array(Math.max(a.degree(), b.degree()) + 1);
+        for (let i = 0; i < a.coeffs.length; ++i)
+            result[i] -= a.coeffs[i];
+        for (let i = 0; i < b.coeffs.length; ++i)
+            result[i] -= b.coeffs[i];
+        return new Polynomial(result);
     }
     numCoeffs(): number {
         return this.coeffs.length;
@@ -31,18 +56,37 @@ export class Polynomial {
         }
         return new Polynomial(result);
     }
+    integral(): Polynomial {
+        let result: number[] = [0];
+        for (let i = 0; i < this.numCoeffs(); ++i)
+            result.push(this.coeffs[i] / (i + 1));
+        return new Polynomial(result);
+    }
+    definiteIntegral(x0: number, x1: number): number {
+        let ip = this.integral();
+        return ip.eval(x1) - ip.eval(x0);
+    }
     shrink(): void {
-        while (this.coeffs.length > 0 && this.coeffs[-1] == 0)
+        while (this.coeffs.length > 0 && this.coeffs[this.coeffs.length - 1] == 0)
             this.coeffs.pop();
     }
     companionMatrix(): Matrix {
         let matrix = Matrix.empty(this.degree(), this.degree());
-        let lastCoeff = this.coeffs[-1];
+        let lastCoeff = this.coeffs[this.coeffs.length - 1];
         for (let i = 0; i < this.degree(); ++i) {
             matrix.set(i + 1, i, 1);
-            matrix.set(i, this.degree(), -this.coeffs[i] / lastCoeff)
+            matrix.set(i, this.degree() - 1, -this.coeffs[i] / lastCoeff)
         }
         return matrix;
+    }
+    toString(): string {
+        let result = "P(x) = ";
+        result += this.coeffs[0];
+        if (this.coeffs.length > 1)
+            result += ` + ${this.coeffs[1]}x`
+        for (let i = 2; i < this.coeffs.length; ++i)
+            result += ` + ${this.coeffs[i]}x^${i}`;
+        return result;
     }
 }
 
@@ -209,18 +253,18 @@ export class PolynomialSolver {
         assert(xStart < xEnd, "Invalid interval");
         polynomial.shrink();
         let stack: Polynomial[] = [polynomial];
-        for (let i = polynomial.numCoeffs(); i >= 2; --i)
-            stack.push(stack[-1].derivative());
+        for (let i = polynomial.numCoeffs(); i > 3; --i)
+            stack.push(stack[stack.length - 1].derivative());
 
-        const quadraticPolynomial = stack[-1];
-        assert(quadraticPolynomial.numCoeffs() == 2, "Quadratic polynomial expected");
+        const quadraticPolynomial = stack[stack.length - 1];
+        assert(quadraticPolynomial.numCoeffs() == 3, "Quadratic polynomial expected");
         // todo: use cubic solver with deflation here
         let criticalPoints: number[] = PolynomialSolver.solveQuadratic(quadraticPolynomial.coeffs[2], quadraticPolynomial.coeffs[1], quadraticPolynomial.coeffs[0], xStart, xEnd);
         criticalPoints.unshift(xStart);
         criticalPoints.push(xEnd);
         while (stack.length != 1) {
-            let df = stack[-1];
-            let f = stack[-2];
+            let df = stack.pop();
+            let f = stack[stack.length - 1];
             let newRoots: number[] = [];
             newRoots.push(xStart);
             for (let i = 0; i < criticalPoints.length - 1; ++i) {
@@ -235,23 +279,30 @@ export class PolynomialSolver {
             }
             newRoots.push(xEnd);
             criticalPoints = newRoots;
-            stack.pop();
         }
+        assert(criticalPoints.length >= 0, "Invalid number of critical points");
+        criticalPoints.pop();
+        criticalPoints.shift();
         return criticalPoints;
     }
 }
+/**
+ * Calculate coefficients of polynomial from list of complex roots by unwrapping \prod (z - z_i).
+ * It is expected that resulting coefficients will be real.
+ */
 export function generatePolynomialWithComplexRoots(roots: complex[]) {
     assert(roots.length != 0, "Zero roots");
     assert(roots.length <= 63, "Too many roots");
     let coeffs: complex[] = [];
-    for (let i = 0; i < roots.length; ++i)
+    for (let i = 0; i < roots.length + 1; ++i)
         coeffs.push(complex.empty());
-    for (let i = 0; i < 2 << roots.length; ++i) {
+    let numProducts = 1 << roots.length;
+    for (let i = 0; i < numProducts; ++i) {
         let coeffID = 0;
-        let value = new complex(-1.0, 0.0);
+        let value = new complex(1.0, 0.0);
         for (let j = 0, k = i; j < roots.length; ++j, k = k >> 1) {
             coeffID += k & 1;
-            value = complex.mul(value, k & 1 ? new complex(-1, 0) : roots[j]);
+            value = (k & 1 ? value.negateSelf() as complex : complex.mul(value, roots[j]));
         }
         coeffs[coeffID].addSelf(value);
     }
@@ -263,11 +314,15 @@ export function generatePolynomialWithComplexRoots(roots: complex[]) {
     return new Polynomial(realCoeffs);
 }
 
+/** 
+*    Calculate coefficients of polynomial from list of roots by unwrapping \prod (x - x_i)
+*/
 export function generatePolynomial(roots: number[]): Polynomial {
     assert(roots.length != 0, "Zero roots");
     assert(roots.length <= 63, "Too many roots");
-    let coeffs = Array(roots.length);
-    for (let i = 0; i < 2 << roots.length; ++i) {
+    let coeffs = new Array(roots.length + 1).fill(0);
+    let numProducts = 1 << roots.length;
+    for (let i = 0; i < numProducts; ++i) {
         let coeffID = 0;
         let value = 1.0;
         for (let j = 0, k = i; j < roots.length; ++j, k = k >> 1) {
@@ -278,3 +333,5 @@ export function generatePolynomial(roots: number[]): Polynomial {
     }
     return new Polynomial(coeffs);
 }
+
+// todo: RPoly and complex polynomials

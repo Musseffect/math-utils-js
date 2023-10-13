@@ -8,6 +8,49 @@ import { assert } from "../../utils";
 import Vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
+export function makeHessinberg(A: Matrix, Q?: Matrix) {
+    throw new Error("Not implemented");
+    let u = Vector.empty(A.numCols());
+    for (let i = 0; i < u.size() - 2; i++) {
+        let xNorm = 0.0;
+        for (let k = 0, j = i + 1; j < u.size(); j++, k++) {
+            u.set(k, A.get(j, i));
+            xNorm += u.get(k) * u.get(k);
+        }
+        let ro = -Math.sign(A.get(i + 1, i));
+        let uNorm = xNorm - A.get(i + 1, i) * A.get(i + 1, i);
+        u.set(0, u.get(0) - ro * Math.sqrt(xNorm));
+        uNorm += u.get(0) * u.get(0);
+        uNorm = Math.sqrt(uNorm);
+        u.scaleSelf(1.0 / uNorm);
+        let u_a = Vector.empty(u.size() - i); //uk* Ak+1:n,k:n
+
+        for (let j = i; j < u.size(); j++) {
+            let value = 0.0;
+            for (let k = i + 1; k < u.size(); k++)
+                value += u.get(k - i - 1) * A.get(k, j);
+            u_a.set(j - i, value);
+        }
+
+        for (let j = i + 1; j < u.size(); j++) {
+            for (let k = i; k < u.size(); k++)
+                A.set(j, k, A.get(j, k) - u.get(j - i - 1) * 2.0 * u_a.get(k - i));
+        }
+        u_a = Vector.empty(u.size());
+        for (let j = 0; j < u.size(); j++) {
+            let value = 0.0;
+            for (let k = i + 1; k < u.size(); k++)
+                value += u.get(k - i - 1) * A.get(j, k);
+            u_a.set(j, value);
+        }
+
+        for (let j = 0; j < u.size(); j++) {
+            for (let k = i + 1; k < u.size(); k++)
+                A.set(j, k, A.get(j, k) - 2.0 * u_a.get(j) * u.get(k - i - 1));
+        }
+    }
+}
+
 // todo: Givens rotations, complex eigenvalues
 export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number): number[] {
     assert(A.isSquare(), "Expected square matrix");
@@ -71,6 +114,7 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
                 A.set(j, k, A.get(j, k) - 2.0 * u_a.get(j) * u.get(k - i - 1));
         }
     }
+    // A = makeHessinberg(A);
 
     for (let i = 0; i < u.size() - 2; i++) {
         for (let j = i + 2; j < u.size(); j++)
@@ -180,4 +224,16 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
         }
     }
     return eigenvalues;
+}
+
+// todo: use for regularization of Newton optimization method by clamping negative eigenvalues
+/**
+ * Q - orthogonal matrix, D - diagonal matrix of eigenvalues of A
+ */
+export function calcSymmetricEigendecomposition(A: Matrix): { Q: Matrix, D: Vector } {
+    throw new Error("Not implemented");
+}
+
+export function calcEigendecomposition(A: Matrix): { Q: Matrix, D: Matrix } {
+    throw new Error("Not implemented");
 }

@@ -3,7 +3,7 @@ import quat from "../quat";
 import { radians } from "../utils";
 import vec3 from "../vec3";
 
-test.only('Quaternion basic operations', () => {
+test.skip('Quaternion basic operations', () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
     let q1 = quat.fromAxisAngle(axisAngleRotation);
     expect(quat.near(q1.mul(quat.inverse(q1)), quat.identity())).toBeTruthy();

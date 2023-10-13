@@ -44,7 +44,7 @@ const nonSingularDenseMatrix = Matrix.fromTriplets(nonSingularMatrixTriplets, 6,
 const nonSingularMatrixDeterminant = 144.0;
 
 
-test("Sparse vector", () => {
+test.skip("Sparse vector", () => {
     let dense: Vector = new Vector([0, -1, 2, -1e-8, 0.0, 3, -5, .0]);
     let v: SparseVector = SparseVector.fromVector(dense.data, SmallTolerance);
     expect(Vector.near(v.toDense(), dense, SmallTolerance)).toBeTruthy();

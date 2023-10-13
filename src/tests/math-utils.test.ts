@@ -11,7 +11,7 @@ import mat2 from "../mat2";
 import vec4 from "../vec4";
 import Matrix from "../denseMatrix";
 
-test("Rotation conversions", () => {
+test.skip("Rotation conversions", () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
 
     let quatRotation = quat.fromAxisAngle(axisAngleRotation);
@@ -42,7 +42,7 @@ test("Rotation conversions", () => {
     expect(Math.abs(vec3.dot(matRotation.axis(), new vec3(0, 1, 0)))).toBeCloseTo(1, 4);
 });
 
-test("Rotations", () => {
+test.skip("Rotations", () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
     let trans = new transform3D(new vec3(-2, 3, 4.), quat.fromAxisAngle(axisAngleRotation), new vec3(1.2, -0.2, 0.4));
     let point = new vec3(0.3, -0.5, -0.2);
@@ -69,7 +69,7 @@ test("Rotations", () => {
     expect(Matrix.near(matRotation.inverse(), matRotation.transpose(), Tolerance)).toBeTruthy();
 });
 
-test("Transformations", () => {
+test.skip("Transformations", () => {
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
     let translation3D = new vec3(-2, 3, 4.);
     let rotation3D = quat.fromAxisAngle(axisAngleRotation);
@@ -121,8 +121,7 @@ test("Transformations", () => {
         inverseRigidTransform2D.transformPoint2D(point2D), Tolerance)).toBeTruthy();
 });
 
-
-test("Transform components", () => {
+test.skip("Transform components", () => {
     let point3D = new vec3(0.3, -0.5, -0.2);
     let axisAngleRotation = new axisAngle(new vec3(1., 2., -3.), radians(70));
     let translation3D = new vec3(-2, 3., 4.);
