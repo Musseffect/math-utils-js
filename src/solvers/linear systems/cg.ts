@@ -7,7 +7,7 @@ import { ConvergenseFailureException } from "./exceptions";
 const SolverName = "'Cholesky'";
 
 // for sparce systems
-export default class ConjugateGradients {
+export default class CG {
     static solve(A: Matrix, b: Vector, maxIterations: number = 20, tolerance: number = SmallTolerance): Vector {
         assert(A.width() == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A.isSquare(), "Non-square matrix");

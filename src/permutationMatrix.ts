@@ -14,6 +14,9 @@ export default class PermutationMatrix {
     swap(i: number, j: number) {
         swap(this.permutations, i, j);
     }
+    size() {
+        return this.permutations.length;
+    }
     isValid(): boolean {
         let values = new Array(this.permutations.length);
         values.fill(0);
@@ -39,7 +42,7 @@ export default class PermutationMatrix {
     inverse(): PermutationMatrix {
         return new PermutationMatrix(PermutationMatrix.inverse(this.permutations), this.isRow);
     }
-    permutIndex(row: number, column: number) {
+    permuteIndex(row: number, column: number) {
         if (this.isRow)
             row = this.permutations[row];
         else column = this.permutations[column];

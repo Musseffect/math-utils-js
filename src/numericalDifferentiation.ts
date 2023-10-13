@@ -54,9 +54,9 @@ export function secondOrderDifference(f: ScalarFunc, p: Vector, step: number): M
             if (i == j) {
                 let x = p.get(i);
                 p.set(i, x + step);
-                const f1 = this.f(p);
+                const f1 = f(p);
                 p.set(i, x - step);
-                const f_1 = this.f(p);
+                const f_1 = f(p);
                 p.set(i, x);
                 value = (f1 + f_1 - 2 * f00) / (2.0 * step);
             } else {
@@ -64,16 +64,16 @@ export function secondOrderDifference(f: ScalarFunc, p: Vector, step: number): M
                 let y = p.get(j);
                 p.set(i, x + step);
                 p.set(j, y + step);
-                const f11 = this.f(p);
+                const f11 = f(p);
                 p.set(i, x - step);
                 p.set(j, y + step);
-                const f_11 = this.f(p);
+                const f_11 = f(p);
                 p.set(i, x + step);
                 p.set(j, y - step);
-                const f1_1 = this.f(p);
+                const f1_1 = f(p);
                 p.set(i, x - step);
                 p.set(j, y - step);
-                const f_1_1 = this.f(p);
+                const f_1_1 = f(p);
                 p.set(i, x);
                 p.set(j, y);
                 value = (f11 - f1_1 - f_11 + f_1_1) / (2 * step * step);

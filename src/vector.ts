@@ -176,6 +176,12 @@ export default class Vector {
             result = Math.max(Math.abs(this.data[i]), result);
         return result;
     }
+    lpNorm(p:number): number {
+        let result = 0.0;
+        for (const value of this.data)
+            result += Math.pow(value, p);
+        return Math.pow(result, 1 / p);
+    }
     squaredLength(): number {
         let result = 0;
         for (let i = 0; i < this.data.length; i++)

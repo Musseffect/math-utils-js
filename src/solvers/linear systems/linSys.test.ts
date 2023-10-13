@@ -61,29 +61,43 @@ describe.skip('Linear solvers (dense square matrices)', () => {
         let x = new Vector([-1, -1, -1, -1]);
         expect(Q.isSymmetric()).toBeTruthy();
         test('ConjGrad', ()=> {
-
-            let solver = new linSolvers.ConjugateGradients();
-            solver.solve(Q, b);
+            let solver = new linSolvers.CG();
+            linSolvers.CG.solve(Q, b);
         });
         test('LL', ()=> {
-
-            let solver = new linSolvers.cholesky(Q);
+            let solver = new linSolvers.LLT();
+            expect(solver.factorize(Q)).not.toThrow();
+            expect(Vector.sub(solver.solve(b), x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
         });
         test('LDL', ()=> {
-
-            let solver = new linSolvers.LDL(Q);
+            let solver = new linSolvers.LDLT(SmallTolerance);
+            expect(solver.factorize(Q)).not.toThrow();
+            expect(Vector.sub(solver.solve(b), x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
         });
         test('PPLU', ()=>{
+            let solve = new linSolvers.PartialPivLU(Q, SmallTolerance);
+            //solve.factorize();
 
         });
         test('FPLU', ()=>{
 
         });
+        test('gauss-zeidel', () => {
+            let result = linSolvers.gaussSeidel.solve(Q, b, 30, SmallTolerance);
+            expect(Vector.sub(result, x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
+        });
+        test('jacobi', () => {
+            let result = linSolvers.jacobi.solve(Q, b, 30, SmallTolerance);
+            expect(Vector.sub(result, x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
+        });
+        test('sor', () => {
+            let result = linSolvers.sor.solve(Q, b, 30, 1.0, SmallTolerance);
+            expect(Vector.sub(result, x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
+        });
     });
 
     describe('Iterative', () => {
         test('gauss-zeidel', () => {
-
         });
         test('jacobi', () => {
 
@@ -204,7 +218,7 @@ test.skip('Linear solvers (dense)', () => {
     m.set(2, 2, 98);
     exactSolution = new Vector([1, 2, -3]);
     rhs = Matrix.postMulVec(m, exactSolution);
-    expect(Vector.near(linSolvers.cholesky.solve(m.clone(), rhs), exactSolution, Tolerance)).toBeTruthy();
+    expect(Vector.near(linSolvers.LLT.solve(m.clone(), rhs), exactSolution, Tolerance)).toBeTruthy();
 
     /*
         let singularMatrix = Matrix.empty(3, 3);

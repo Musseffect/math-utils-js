@@ -7,6 +7,7 @@ export class Polynomial {
     coeffs: number[];
     constructor(coeffs: number[]) {
         assert(coeffs.length >= 1, "Invalid size");
+        this.coeffs = coeffs;
     }
     numCoeffs(): number {
         return this.coeffs.length;
@@ -240,7 +241,7 @@ export class PolynomialSolver {
     }
 }
 export function generatePolynomialWithComplexRoots(roots: complex[]) {
-    assert(roots.length == 0, "Zero roots");
+    assert(roots.length != 0, "Zero roots");
     assert(roots.length <= 63, "Too many roots");
     let coeffs: complex[] = [];
     for (let i = 0; i < roots.length; ++i)
@@ -263,7 +264,7 @@ export function generatePolynomialWithComplexRoots(roots: complex[]) {
 }
 
 export function generatePolynomial(roots: number[]): Polynomial {
-    assert(roots.length == 0, "Zero roots");
+    assert(roots.length != 0, "Zero roots");
     assert(roots.length <= 63, "Too many roots");
     let coeffs = Array(roots.length);
     for (let i = 0; i < 2 << roots.length; ++i) {

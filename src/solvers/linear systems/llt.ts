@@ -8,39 +8,64 @@ import { NotPositiveDefiniteMatrixException } from "./exceptions";
 
 const SolverName = "'Cholesky'";
 
-export default class LL {
-    ll: Matrix;
-    A: Matrix;
-    private compute() {
-        assert(this.A.isSquare(), "Non-square matrix");
-
-        let rank = this.A.width();
+export default class LLT {
+    llt: Matrix;
+    constructor() {
+    }
+    factorize(A:Matrix): void {
+        assert(A.isSquare(), "Non-square matrix");
+        this.llt = A.clone();
+        let rank = A.width();
         for (let row = 0; row < rank; ++row) {
             for (let column = 0; column <= row; ++column) {
-                let value = this.A.get(row, column);
+                let value = this.llt.get(row, column);
                 for (let k = 0; k < column; ++k)
-                    value -= this.ll.get(row, k) * this.ll.get(column, k);
+                    value -= this.llt.get(row, k) * this.llt.get(column, k);
                 if (row == column) {
                     if (value < 0.0) throw new NotPositiveDefiniteMatrixException(SolverName);
                     value = Math.sqrt(value);
                 }
                 else {
-                    value = value / this.ll.get(column, column);
+                    value = value / this.llt.get(column, column);
                 }
-                this.ll.set(row, column, value);
-                this.ll.set(column, row, value);
+                this.llt.set(row, column, value);
+                this.llt.set(column, row, value);
             }
         }
-    }
-    constructor(A: Matrix) {
-        this.A = A;
-        this.compute();
-    }
+    };
     L(): TriMatrixView {
-        return new TriMatrixView(this.ll, TriMatrixType.lower, false);
+        return new TriMatrixView(this.llt, TriMatrixType.lower, false);
     }
     LT(): TriMatrixView {
-        return new TriMatrixView(this.ll, TriMatrixType.upper, false);
+        return new TriMatrixView(this.llt, TriMatrixType.upper, false);
+    }
+    solve(rhs:Vector):Vector {
+        assert(rhs.size() == this.llt.width(), "Incompatible RHS");
+        const rank = this.llt.width();
+        let y = Vector.empty(this.llt.width());
+        for (let row = 0; row < rank; ++row) {
+            let value = rhs.get(row);
+            for (let column = 0; column < row; ++column)
+                value -= this.llt.get(row, column) * y.get(column);
+            value /= this.llt.get(row, row);
+            y.set(row, value);
+        }
+        let x = Vector.empty(rank);
+        for (let row = rank - 1; row >= 0; --row) {
+            let value = y.get(row);
+            for (let column = row + 1; column < rank; ++column)
+                value -= this.llt.get(row, column) * x.get(column);
+            value /= this.llt.get(row, row);
+            x.set(row, value);
+        }
+        return x;
+    }
+    solveMatrix(rhs:Matrix):Matrix {
+        assert(rhs.height() == this.llt.width(), "Incompatible RHS");
+        throw new Error("Not implemented");
+    }
+    inverse(): Matrix {
+        throw new Error("Not implemented");
     }
     // Solve inplace
     static solve(A: Matrix, b: Vector) {
