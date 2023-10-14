@@ -2,13 +2,24 @@ import { complex } from "./complex";
 import Matrix from "./denseMatrix";
 import { SmallTolerance, SmallestTolerance, assert, assertFail } from "./utils";
 
-// coefficients from 0 to N -> c_0 + c_1 * x + c_2 * x^2 + ... + c_N * x^N
+/** 
+ * Polynomial represented as an array of coefficients from 0 to N: c_0 + c_1 * x + c_2 * x^2 + ... + c_N * x^N
+ * */
 export class Polynomial {
     coeffs: number[];
     constructor(coeffs: number[]) {
         assert(coeffs.length >= 1, "Invalid size");
         this.coeffs = coeffs;
-        this.shrink();
+    }
+    clone(): Polynomial {
+        return new Polynomial(this.coeffs.slice());
+    }
+    isEmpty(): boolean {
+        for (const value of this.coeffs) {
+            if (Math.abs(value) > 0)
+                return false;
+        }
+        return true;
     }
     static mul(a: Polynomial, b: Polynomial): Polynomial {
         let resultCoeffs = new Array(a.degree() + b.degree() + 1).fill(0);
@@ -19,20 +30,53 @@ export class Polynomial {
         return new Polynomial(resultCoeffs);
     }
     static add(a: Polynomial, b: Polynomial): Polynomial {
-        let result = new Array(Math.max(a.degree(), b.degree()) + 1);
+        let result = new Array(Math.max(a.degree(), b.degree()) + 1).fill(0);
         for (let i = 0; i < a.coeffs.length; ++i)
-            result[i] += a.coeffs[i];
+            result[i] = a.coeffs[i];
         for (let i = 0; i < b.coeffs.length; ++i)
             result[i] += b.coeffs[i];
         return new Polynomial(result);
     }
     static sub(a: Polynomial, b: Polynomial): Polynomial {
-        let result = new Array(Math.max(a.degree(), b.degree()) + 1);
+        let result = new Array(Math.max(a.degree(), b.degree()) + 1).fill(0);
         for (let i = 0; i < a.coeffs.length; ++i)
-            result[i] -= a.coeffs[i];
+            result[i] = a.coeffs[i];
         for (let i = 0; i < b.coeffs.length; ++i)
             result[i] -= b.coeffs[i];
         return new Polynomial(result);
+    }
+    static scale(a: Polynomial, s: number): Polynomial {
+        let result = a.clone();
+        for (let i = 0; i < result.coeffs.length; ++i)
+            result.coeffs[i] *= s;
+        return result;
+    }
+    shiftLeft(power: number) {
+        for (let i = 0; i < power; ++i)
+            this.coeffs.unshift(0);
+    }
+    /**
+     * Computes quotient Q and remainder R such that a = bq + r
+     * @param a first polynomial
+     * @param b second polynomial
+     * @returns quotient and remainder
+     */
+    static div(a: Polynomial, b: Polynomial): { Q: Polynomial, R: Polynomial } {
+        let Q = new Polynomial([0]);
+        let R = a.clone();
+        if (a.degree() < b.degree()) {
+            return { Q, R };
+        }
+        while (R.degree() >= b.degree() && !R.isEmpty()) {
+            let t = R.coeffs[R.coeffs.length - 1] / b.coeffs[b.coeffs.length - 1];
+            Q.coeffs.unshift(t);
+            for (let i = 1; i <= b.coeffs.length; ++i)
+                R.coeffs[R.coeffs.length - i] -= b.coeffs[b.coeffs.length - i] * t;
+            R.shrink();
+        }
+        if (Q.coeffs.length > 1)
+            Q.coeffs.pop();
+        return { Q, R };
     }
     numCoeffs(): number {
         return this.coeffs.length;
@@ -49,7 +93,8 @@ export class Polynomial {
         return value + this.coeffs[0];
     }
     derivative(): Polynomial {
-        assert(this.coeffs.length > 1, "Invalid size");
+        assert(this.coeffs.length > 0, "Invalid size");
+        if (this.coeffs.length == 1) new Polynomial([0]);
         let result: number[] = [];
         for (let i = 1; i < this.numCoeffs(); ++i) {
             result.push(this.coeffs[i] * i);
@@ -66,8 +111,8 @@ export class Polynomial {
         let ip = this.integral();
         return ip.eval(x1) - ip.eval(x0);
     }
-    shrink(): void {
-        while (this.coeffs.length > 0 && this.coeffs[this.coeffs.length - 1] == 0)
+    shrink(tolerance: number = 0): void {
+        while (this.coeffs.length > 1 && Math.abs(this.coeffs[this.coeffs.length - 1]) <= tolerance)
             this.coeffs.pop();
     }
     companionMatrix(): Matrix {
@@ -160,8 +205,12 @@ export class PolynomialSolver {
         assertFail("Empty polynomial");
     }
     // ax + b
-    static solveLinear(a: number, b: number): number {
-        return -b / a;
+    static solveLinear(a: number, b: number, xStart: number = Number.NEGATIVE_INFINITY, xEnd: number = Number.POSITIVE_INFINITY): number[] {
+        let result: number[] = [];
+        if (Math.abs(a) == 0) return result;
+        result.push(-b / a);
+        if (result[0] > xEnd || result[0] < xStart) return [];
+        return result;
     }
     // ax^2 + bx + c
     static solveQuadratic(a: number, b: number, c: number, xStart: number = Number.NEGATIVE_INFINITY, xEnd: number = Number.POSITIVE_INFINITY): number[] {
@@ -234,13 +283,6 @@ export class PolynomialSolver {
         }
         return roots;
     }
-    // a[0] + a[1]*x + ...a[n]*x^n
-    static solve(a: number[]): number[] {
-        assert(a.length > 1, "Empty coefficients");
-        if (a.length == 2)
-            return [this.solveLinear(a[1], a[0])];
-        if (a.length == 3) return this.solveQuadratic(a[2], a[1], a[0]);
-    }
     static eval(x: number, a: number[]) {
         let value = 0.0;
         for (let l = a.length - 1; l > 0; --l) {
@@ -249,11 +291,20 @@ export class PolynomialSolver {
         }
         return value + a[0];
     }
-    solveInRegion(polynomial: Polynomial, xStart: number = Number.NEGATIVE_INFINITY, xEnd: number = Number.POSITIVE_INFINITY) {
+    /**
+     * Find roots inside region
+     * @param polynomial polynomial
+     * @param xStart start of interval, default value: NEGATIVE_INFINITY
+     * @param xEnd end of interval, default value: POSITIVE_INFINITY
+     * @returns sorted array of real roots
+     */
+    public solveInRegion(polynomial: Polynomial, xStart: number = Number.NEGATIVE_INFINITY, xEnd: number = Number.POSITIVE_INFINITY): number[] {
         assert(xStart < xEnd, "Invalid interval");
         polynomial.shrink();
+        if (polynomial.degree() < 1) return [];
+        if (polynomial.degree() == 1) return PolynomialSolver.solveLinear(polynomial.coeffs[1], polynomial.coeffs[1], xStart, xEnd);
         let stack: Polynomial[] = [polynomial];
-        for (let i = polynomial.numCoeffs(); i > 3; --i)
+        for (let i = polynomial.degree(); i > 2; --i)
             stack.push(stack[stack.length - 1].derivative());
 
         const quadraticPolynomial = stack[stack.length - 1];
