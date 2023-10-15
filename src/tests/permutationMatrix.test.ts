@@ -6,6 +6,8 @@ import { assert } from "../utils";
 test.skip("Permutation matrix", () => {
     let rowPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], true);
     let colPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], false);
+    //expect(rowPermutations.determinant()).toBeCloseTo(rowPermutations.toMatrix().determinant());
+    //expect(colPermutations.determinant()).toBeCloseTo(colPermutations.toMatrix().determinant());
     /*const mat = Matrix.empty(rowPermutations.size(), rowPermutations.size());
     for (let i = 0; i < mat.width(); ++i)
     {

@@ -1,5 +1,5 @@
+import { LeastSquaresFunction, LeastSquaresProblem } from "./problem";
 
-export class LeastSquaresSolver {
-
-
+export abstract class LeastSquaresSolver {
+    abstract solve(problem:LeastSquaresFunction, samples:LeastSquaresProblem, initialParams?: number[]): number[] 
 }

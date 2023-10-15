@@ -24,7 +24,7 @@ export class ArmijoBacktracking extends LineSearch {
     setTolerance(tolerance: number) {
         this.tolerance = tolerance;
     }
-    public step(x: Vector, direction: Vector, initialStep: number = 1.0): number {
+    public override step(x: Vector, direction: Vector, initialStep: number = 1.0): number {
         let initialValue = this.problem.f(x);
         let step = initialStep;
         const m = Vector.dot(this.problem.grad(x), direction);
@@ -39,7 +39,7 @@ export class ArmijoBacktracking extends LineSearch {
     }
 }
 
-class ArmijoTwoWayBacktracing extends ArmijoBacktracking {
+export class ArmijoTwoWayBacktracing extends ArmijoBacktracking {
     largestStep: number;
     setLargestStep(value: number) {
         this.largestStep = value;

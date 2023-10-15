@@ -1,8 +1,8 @@
 
-import { complex } from "./complex";
-import { Polynomial, PolynomialSolver, generatePolynomial, generatePolynomialWithComplexRoots } from "./polynomial";
-import { calcEigenvalues } from "./solvers/linear systems/eigenvalues";
-import { SmallTolerance, SmallestTolerance, near } from "./utils";
+import { complex } from "../complex";
+import { Polynomial, PolynomialSolver, generatePolynomial, generatePolynomialWithComplexRoots } from "../polynomial";
+import { calcEigenvalues } from "../solvers/linear systems/eigenvalues";
+import { SmallTolerance, SmallestTolerance, near } from "../utils";
 
 
 

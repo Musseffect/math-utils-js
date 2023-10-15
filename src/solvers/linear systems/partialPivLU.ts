@@ -2,7 +2,7 @@ import Matrix from "../../denseMatrix";
 import PermutationMatrix from "../../permutationMatrix";
 import { assert, SmallTolerance, swap } from "../../utils";
 import Vector from "../../vector";
-import { TriMatrixType, TriMatrixView } from "../../triMatrixView";
+import { DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
 
 const SolverName = "'PartialPivLU'";
 
@@ -11,7 +11,7 @@ const SolverName = "'PartialPivLU'";
     for Ax = b square problems
 */
 export default class PartialPivLU {
-    private lu: Matrix;
+    private lu: Matrix = null;
     private p: PermutationMatrix;
     private A: Matrix;
     private compute(): void {
@@ -72,6 +72,18 @@ export default class PartialPivLU {
         }
         return x;
     }
+    isSingular(): boolean {return this.lu == null;}
+    determinant():number {
+        if (this.isSingular()) return 0.0;
+        let determinant = this.p.determinant();
+        for (let i = 0; i < this.lu.width(); ++i)
+            determinant *= this.lu.get(i, i);
+        return determinant;
+    }
+    inverse(): Matrix|null {
+        if (this.lu == null) return null;
+        throw new Error("Not implemented");
+    }
     static solve(A: Matrix, b: Vector, tolerance: number = SmallTolerance): Vector {
         assert(A.width() == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A.width() == A.height(), "Non-square matrix");
@@ -121,10 +133,10 @@ export default class PartialPivLU {
         return x;
     }
     public L(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.lower, true);
+        return new TriMatrixView(this.lu, TriMatrixType.lower, DiagonalType.Unit);
     }
     public U(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.upper, false);
+        return new TriMatrixView(this.lu, TriMatrixType.upper, DiagonalType.Existing);
     }
     public P(): Matrix {
         return this.p.toMatrix();

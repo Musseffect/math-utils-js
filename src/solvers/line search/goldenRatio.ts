@@ -1,3 +1,6 @@
+import { SmallTolerance } from "../../utils";
+import Vector from "../../vector";
+import { LineSearch, LineSearchProblem } from "./lineSearch";
 
 /**
  * 1-dimensional continuous optimization
@@ -21,11 +24,34 @@ export interface Solver1D {
     solve(problem: Problem1D): number;
 }
 
+class SearchAlongDirectionProblem extends Problem1D {
+    x0: Vector;
+    direction: Vector;
+    problem: LineSearchProblem;
+    maxStep: number;
+    constructor(problem:LineSearchProblem, x0:Vector, direction:Vector, maxStep: number) {
+        super();
+        this.problem = problem;
+        this.x0 = x0;
+        this.direction = direction;
+        this.maxStep = maxStep;
+    }
+    override f(x:number): number {
+        return this.problem.f(Vector.add(this.x0, Vector.scale(this.direction, x)));
+    }
+    dfdx(x: number): number {
+        throw new Error("Method not implemented.");
+    }
+    dfdxdx(x: number): number {
+        throw new Error("Method not implemented.");
+    }
+}
+
 export class GoldenSearch1D implements Solver1D {
-    epsilon: number;
+    threshold: number;
     iterations: number;
-    constructor(epsilon: number, iterations: number) {
-        this.epsilon = epsilon;
+    constructor(threshold: number, iterations: number) {
+        this.threshold = threshold;
         this.iterations = iterations;
     }
     solve(problem: Problem1D): number {
@@ -53,12 +79,28 @@ export class GoldenSearch1D implements Solver1D {
                 x2 = a + (b - a) / t;
                 fx2 = problem.f(x2);
             }
-            if (Math.abs(a - b) < this.epsilon) {
+            if (Math.abs(a - b) < this.threshold) {
                 break;
             }
             i++;
         }
         let x = (a + b) * 0.5;
         return x;
+    }
+}
+
+export class GoldenLineSearch extends LineSearch {
+    numIters :number = 100;
+    tolerance:number = SmallTolerance;
+    stMaxIters(numIters: number) {
+        this.numIters = numIters;
+    }
+    setTolerance(tolerance: number) {
+        this.tolerance = tolerance;
+    }
+    public override step(x: Vector, direction: Vector, initialStep: number = 1.0): number {
+        let problem = new SearchAlongDirectionProblem(this.problem, x, direction, initialStep);
+        let search = new GoldenSearch1D(this.tolerance, this.numIters);
+        return search.solve(problem);
     }
 }

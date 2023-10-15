@@ -1,5 +1,6 @@
 import mat from "./abstractDenseMatrix";
 import FullPivLU from "./solvers/linear systems/fullPivLU";
+import PartialPivLU from "./solvers/linear systems/partialPivLU";
 import Triplet from "./triplet";
 import { assert, near, SmallTolerance, SmallestTolerance, swap } from "./utils";
 import vector from "./vector";
@@ -188,8 +189,12 @@ export default class Matrix extends mat {
     pseudoInverse(): Matrix {
         throw new Error("Not implemented");
     }
+    determinant(): number {
+        return new PartialPivLU(this).determinant();
+    }
     inverse(tolerance: number = SmallTolerance): Matrix {
-        return FullPivLU.solveMatrix(this, Matrix.identity(this.width()), tolerance);
+        // return new PartialPivLU(this).inverse();
+        return PartialPivLU.solveMatrix(this, Matrix.identity(this.width()), tolerance);
     }
     // analytic solution
     inverseNaive(): Matrix {

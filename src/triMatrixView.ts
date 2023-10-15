@@ -44,18 +44,29 @@ export class TriMatrix {
     }
 }
 
+export enum DiagonalType {
+    Unit,
+    Zero,
+    Existing        
+};
+
 export class TriMatrixView {
     private m: Matrix;
     private type: TriMatrixType;
-    private unitDiag: boolean;
-    constructor(m: Matrix, type: TriMatrixType, unitDiag: boolean) {
+    private diagType: DiagonalType;
+    constructor(m: Matrix, type: TriMatrixType, diagType: DiagonalType) {
         this.m = m;
         this.type = type;
-        this.unitDiag = unitDiag;
+        this.diagType = diagType;
     }
     get(row: number, column: number): number {
-        if (row == column && this.unitDiag)
-            return 1.0;
+        if (row == column)
+        {
+            switch(this.diagType) {
+                case DiagonalType.Zero: return 0.0;
+                case DiagonalType.Unit: return 1.0;
+            }
+        }
         switch (this.type) {
             case TriMatrixType.lower:
                 if (column > row)

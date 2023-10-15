@@ -158,4 +158,4 @@ class PiecewiseCubicSpline {
     }
 }
 
-export { CubicSplines, PiecewiseCubicSpline };
+export { CubicSpline, CubicSplines, PiecewiseCubicSpline };

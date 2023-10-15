@@ -17,6 +17,12 @@ export default class PermutationMatrix {
     size() {
         return this.permutations.length;
     }
+    determinant(): number {
+        let s = 0;
+        for (let i = 0; i < this.permutations.length; ++i)
+            s += Number(i == this.permutations[i]);
+        return s & 1?-1:1;
+    }
     isValid(): boolean {
         let values = new Array(this.permutations.length);
         values.fill(0);

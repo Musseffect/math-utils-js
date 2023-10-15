@@ -4,7 +4,7 @@ import Vector from "../../vector";
 import PartialPivLU from "../linear systems/partialPivLU";
 
 
-export class LinearSolver {
+export default class LinearLeastSquaresSolver {
     run(x: Vector[], y: number[]): number[] {
         assert(x.length == y.length, "Incorrect sizes");
         assert(x.length > 0, "Zero size");

@@ -32,10 +32,10 @@ class Fourier {
                 let b = f.get(1 + j + numHarmonics) + sa * y[i];
                 f.set(b, 1 + j + numHarmonics);
                 m.set(x.length, 0, 0);
-                m.set(m.get(j + 1, 0) + ca, j + 1, 0);//first column
-                m.set(m.get(j + numHarmonics + 1, 0) + sa, j + numHarmonics + 1, 0);//first column
-                m.set(m.get(0, j + 1) + ca, 0, j + 1);//first row
-                m.set(m.get(0, j + numHarmonics + 1) + sa, 0, j + numHarmonics + 1);//first row
+                m.set(m.get(j + 1, 0) + ca, j + 1, 0);// first column
+                m.set(m.get(j + numHarmonics + 1, 0) + sa, j + numHarmonics + 1, 0);// first column
+                m.set(m.get(0, j + 1) + ca, 0, j + 1);//f irst row
+                m.set(m.get(0, j + numHarmonics + 1) + sa, 0, j + numHarmonics + 1);// first row
                 for (let k = 0; k < numHarmonics; k++) {
                     let angle2 = 2 * Math.PI * (k + 1) * x[i] / period;
                     let ca2 = Math.cos(angle2);
