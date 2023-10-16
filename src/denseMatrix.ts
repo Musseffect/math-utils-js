@@ -16,6 +16,14 @@ export default class Matrix extends mat {
         this._numRows = numRows;
         assert(this.data.length == numRows * numCols, "Wrong size of data array");
     }
+    static generate(numRows: number, numCols: number, f: (r: number, c: number) => number): Matrix {
+        let result = Matrix.empty(numRows, numCols);
+        for (let j = 0; j < numRows; ++j) {
+            for (let i = 0; i < numCols; ++i)
+                result.set(j, i, f(j, i));
+        }
+        return result;
+    }
     numCols(): number {
         return this._numCols;
     }
@@ -91,13 +99,13 @@ export default class Matrix extends mat {
         }
         return result;
     }
-    static preMulVec(a: Matrix, b: vector): vector {
-        assert(a._numRows == b.data.length, "Width of matrix isn't compatible with vector's length");
-        let result = vector.empty(a._numCols);
-        for (let i = 0; i < a._numCols; i++) {
+    static preMulVec(a: vector, b: Matrix): vector {
+        assert(b._numRows == a.data.length, "Width of matrix isn't compatible with vector's length");
+        let result = vector.empty(b._numCols);
+        for (let i = 0; i < b._numCols; i++) {
             let v = 0;
-            for (let j = 0; j < a._numRows; j++) {
-                v += a.get(j, i) * b.get(j);
+            for (let j = 0; j < b._numRows; j++) {
+                v += b.get(j, i) * a.get(j);
             }
             result.set(i, v);
         }

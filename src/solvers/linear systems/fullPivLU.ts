@@ -1,6 +1,6 @@
 import Matrix from "../../denseMatrix";
 import PermutationMatrix from "../../permutationMatrix";
-import { TriMatrixType, TriMatrixView } from "../../triMatrixView";
+import { DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
 import { assert, SmallTolerance, swap } from "../../utils";
 import Vector from "../../vector";
 import { InsufficientRankException } from "./exceptions";
@@ -26,10 +26,10 @@ export default class FullPivLU {
         return this._rank;
     }
     public L(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.lower, true);
+        return new TriMatrixView(this.lu, TriMatrixType.lower, DiagonalType.Unit);
     }
     public U(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.upper, false);
+        return new TriMatrixView(this.lu, TriMatrixType.upper, DiagonalType.Zero);
     }
     public Q(): Matrix {
         return this.q.toMatrix();

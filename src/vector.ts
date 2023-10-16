@@ -52,6 +52,12 @@ export default class Vector {
         data.fill(0);
         return new Vector(data);
     }
+    static generate(size: number, f: (i: number) => number) {
+        let result = Vector.empty(size);
+        for (let i = 0; i < size; ++i)
+            result.set(i, f(i));
+        return result;
+    }
     static dot(a: Vector, b: Vector) {
         let result = 0;
         for (let i = 0; i < a.size(); i++)
@@ -176,7 +182,7 @@ export default class Vector {
             result = Math.max(Math.abs(this.data[i]), result);
         return result;
     }
-    lpNorm(p:number): number {
+    lpNorm(p: number): number {
         let result = 0.0;
         for (const value of this.data)
             result += Math.pow(value, p);

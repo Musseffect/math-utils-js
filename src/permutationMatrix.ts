@@ -1,7 +1,8 @@
 import Matrix from "./denseMatrix";
 import SparseMatrix from "./sparseMatrix";
 import Triplet from "./triplet";
-import { swap } from "./utils";
+import { assert, swap } from "./utils";
+import Vector from "./vector";
 
 // row permutation - pre multiplied, col permutation - post multiplied
 export default class PermutationMatrix {
@@ -17,11 +18,19 @@ export default class PermutationMatrix {
     size() {
         return this.permutations.length;
     }
+    findIndexByValue(value: number) {
+        assert(value >= 0 && value < this.permutations.length, "Invalid value");
+        let index = this.permutations.findIndex((v) => {
+            return v == value;
+        });
+        assert(index != -1, "Invalid permutation");
+        return index;
+    }
     determinant(): number {
         let s = 0;
         for (let i = 0; i < this.permutations.length; ++i)
             s += Number(i == this.permutations[i]);
-        return s & 1?-1:1;
+        return s & 1 ? -1 : 1;
     }
     isValid(): boolean {
         let values = new Array(this.permutations.length);
@@ -48,7 +57,29 @@ export default class PermutationMatrix {
     inverse(): PermutationMatrix {
         return new PermutationMatrix(PermutationMatrix.inverse(this.permutations), this.isRow);
     }
+    permuteVector(v: Vector): Vector {
+        let result = v.clone();
+        for (let i = 0; i < result.size(); ++i)
+            result.set(i, v.get(i));
+        return result;
+    }
+    permuteMatrix(m: Matrix): Matrix {
+        let result = m.clone();
+        for (let i = 0; i < result.numCols(); ++i) {
+            for (let j = 0; j < result.numRows(); ++j) {
+                let { row, column } = this.permuteIndex(j, i);
+                result.set(j, i, m.get(row, column));
+            }
+        }
+        return result;
+    }
     permuteIndex(row: number, column: number) {
+        if (this.isRow)
+            row = this.findIndexByValue(row);
+        else column = this.findIndexByValue(column);
+        return { row, column };
+    }
+    unpermuteIndex(row: number, column: number) {
         if (this.isRow)
             row = this.permutations[row];
         else column = this.permutations[column];

@@ -1,7 +1,7 @@
 //todo:
 
 import Matrix from "../../denseMatrix";
-import { TriMatrixType, TriMatrixView } from "../../triMatrixView";
+import { DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
 import { assert, near, SmallTolerance } from "../../utils";
 import Vector from "../../vector";
 import { NotPositiveDefiniteMatrixException } from "./exceptions";
@@ -12,7 +12,7 @@ export default class LLT {
     llt: Matrix;
     constructor() {
     }
-    factorize(A:Matrix): void {
+    factorize(A: Matrix): void {
         assert(A.isSquare(), "Non-square matrix");
         this.llt = A.clone();
         let rank = A.width();
@@ -34,12 +34,12 @@ export default class LLT {
         }
     };
     L(): TriMatrixView {
-        return new TriMatrixView(this.llt, TriMatrixType.lower, false);
+        return new TriMatrixView(this.llt, TriMatrixType.lower, DiagonalType.Unit);
     }
     LT(): TriMatrixView {
-        return new TriMatrixView(this.llt, TriMatrixType.upper, false);
+        return new TriMatrixView(this.llt, TriMatrixType.upper, DiagonalType.Existing);
     }
-    solve(rhs:Vector):Vector {
+    solve(rhs: Vector): Vector {
         assert(rhs.size() == this.llt.width(), "Incompatible RHS");
         const rank = this.llt.width();
         let y = Vector.empty(this.llt.width());
@@ -60,7 +60,7 @@ export default class LLT {
         }
         return x;
     }
-    solveMatrix(rhs:Matrix):Matrix {
+    solveMatrix(rhs: Matrix): Matrix {
         assert(rhs.height() == this.llt.width(), "Incompatible RHS");
         throw new Error("Not implemented");
     }
