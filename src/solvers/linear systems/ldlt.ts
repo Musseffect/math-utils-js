@@ -1,5 +1,5 @@
 import Matrix from "../../denseMatrix";
-import { TriMatrixView } from "../../triMatrixView";
+import { DiagonalMatrixView, TriMatrixView } from "../../triMatrixView";
 import { assert } from "../../utils";
 import Vector from "../../vector";
 
@@ -28,11 +28,29 @@ class TriangularMatrix {
 }
 
 export default class LDLT {
-    LDLT: Matrix;
+    LDLT: TriangularMatrix;
+    A: Matrix;
     constructor(tolerance: number) {
     }
-    factorize(A: Matrix) {
-        throw new Error("Not implemented");
+    factorize(A: Matrix | null) {
+        this.A = A;
+        if (A == null) return;
+        assert(A.isSquare(), "Non-square matrix");
+        const size = A.width();
+        let L = new TriangularMatrix(size, true);
+        for (let row = 0; row < size; ++row) {
+            for (let col = 0; col < row; ++col) {
+                let value = A.get(row, col);
+                for (let i = 0; i < col; ++i) {
+                    value -= L.get(row, i) * L.get(col, i) * L.get(i, i);
+                }
+                L.set(row, col, value / L.get(col, col));
+            }
+            let value = A.get(row, row);
+            for (let i = 0; i < row; ++i)
+                value -= L.get(row, i) * L.get(row, i) * L.get(row, row);
+            L.set(row, row, value);
+        }
     }
     solve(rhs: Vector): Vector {
         throw new Error("Not implemented");
@@ -40,7 +58,10 @@ export default class LDLT {
     L(): TriMatrixView {
         throw new Error("Not implemented");
     }
-    D(): Vector {
+    LT(): TriMatrixView {
+        throw new Error("Not implemented");
+    }
+    D(): DiagonalMatrixView {
         throw new Error("Not implemented");
     }
     inverse(): Matrix {

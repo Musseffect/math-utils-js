@@ -7,27 +7,63 @@ import { InsufficientRankException } from "./exceptions";
 
 const SolverName = "'fullPivLU'";
 
-/* LU decomposition with row and column permutations in the form PAQ = LU*/
+/** LU decomposition with row and column permutations in the form PAQ = LU
+ * 
+ * L - lower unitriangular matrix
+ * 
+ * U - upper triangular matrix
+ */
 export default class FullPivLU {
     protected lu: Matrix = null;
     protected p: PermutationMatrix;
     protected q: PermutationMatrix;
     protected A: Matrix;
-    protected tolerance: number = SmallestTolerance;
+    protected _tolerance: number = SmallestTolerance;
     protected _rank: number;
-    private decompose(): void {
+    constructor(A: Matrix | null = null, tolerance: number = SmallestTolerance) {
+        this.tolerance = tolerance;
+        this.decompose(A);
+    }
+    set tolerance(value: number) {
+        this._tolerance = value;
+    }
+    public rank(): number {
+        return this._rank;
+    }
+    get L(): TriMatrixView {
+        return new TriMatrixView(this.lu, TriMatrixType.lower, DiagonalType.Unit);
+    }
+    get U(): TriMatrixView {
+        return new TriMatrixView(this.lu, TriMatrixType.upper, DiagonalType.Zero);
+    }
+    get LU(): Matrix {
+        return this.lu;
+    }
+    get Q(): Matrix {
+        return this.q.toMatrix();
+    }
+    get P(): Matrix {
+        return this.p.toMatrix();
+    }
+    public decompose(A: Matrix | null): void {
+        this.A = A;
+        this.lu = null;
+        this.p = null;
+        this.q = null;
+        if (A == null)
+            return;
+        assert(A.isSquare(), "Non-square matrix");
         this.p = PermutationMatrix.identity(this.A._numRows, true);
         this.q = PermutationMatrix.identity(this.A._numCols, false);
-        this.lu = null;
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
         for (let step = 0; step < this.lu._numRows; step++) {
             let maxPivotRow = step;
             let maxPivotColumn = step;
-            let maxPivot = lu.get(this.p.value(maxPivotRow), this.q.value(maxPivotColumn));
+            let maxPivot = lu.get(step, step);
             for (let row = step; row < lu._numRows; ++row) {
                 for (let column = step; column < lu._numCols; ++column) {
-                    let value = lu.get(this.p.value(row), this.q.value(column));
+                    let value = lu.get(row, column);
                     if (Math.abs(value) > Math.abs(maxPivot)) {
                         maxPivotRow = row;
                         maxPivotColumn = column;
@@ -35,7 +71,7 @@ export default class FullPivLU {
                     }
                 }
             }
-            if (Math.abs(maxPivot) < this.tolerance) {
+            if (Math.abs(maxPivot) < this._tolerance) {
                 this._rank = step;
                 this.lu = lu;
                 return;
@@ -44,6 +80,8 @@ export default class FullPivLU {
             this.p.swap(step, maxPivotRow);
             this.q.swap(step, maxPivotColumn);
 
+            lu.swapRows(step, maxPivotRow);
+            lu.swapColumns(step, maxPivotColumn);
             // console.log(`Step ${step}`);
             // console.log(`rowPermutations ${this.p.toString()}, maxPivotRow ${maxPivotRow}`);
             // console.log(`columnPermutations ${this.q.toString()}, maxPivotColumn ${maxPivotColumn}`);
@@ -54,44 +92,29 @@ export default class FullPivLU {
             console.log(`Initial Rhs ${Rhs.toString()}`)
             console.log(`Initial permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
             */
+            let ratio = lu.get(step, step) / maxPivot;
             for (let row = step + 1; row < lu._numRows; row++) {
-                let curRow = this.p.value(row);
-                let ratio = lu.get(curRow, maxPivotColumn) / maxPivot;
-                for (let column = step + 1; column < lu._numCols; column++) {
-                    let curColIdx = this.q.value(column);
-                    lu.set(curRow, curColIdx, lu.get(curRow, curColIdx) - ratio * lu.get(maxPivotRow, curColIdx));
-                }
-                lu.set(curRow, maxPivotColumn, 0);
+                for (let column = step + 1; column < lu._numCols; column++)
+                    lu.set(row, column, lu.get(row, column) - ratio * lu.get(row, step));
+                lu.set(step, maxPivotColumn, ratio);
             }
             // console.log(`Result LU ${LU.toString()}`)
             // console.log(`Result permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
             // console.log(`Result Rhs ${Rhs.toString()}`)
             // console.log(`Result permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
         }
-        throw new Error("Not implemented");
+        lu = this.lu;
     }
-    constructor(A: Matrix | null) {
-        this.A = A;
-        if (A != null)
-            this.decompose();
-    }
-    public setTolerance(value: number = SmallestTolerance): void {
-        this.tolerance = value;
-    }
-    public rank(): number {
-        return this._rank;
-    }
-    public L(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.lower, DiagonalType.Unit);
-    }
-    public U(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.upper, DiagonalType.Zero);
-    }
-    public Q(): Matrix {
-        return this.q.toMatrix();
-    }
-    public P(): Matrix {
-        return this.p.toMatrix();
+    solver(rhs: Matrix | Vector): Vector {
+        assert(this.A != null, "Decomposition is not available");
+        if (rhs instanceof Matrix) {
+            assert(this.A._numRows == rhs._numRows, "Incompatible RHS");
+            throw new Error("Not implemented");
+
+        } else {
+            assert(this.A._numRows == rhs.size(), "Incompatible RHS");
+            throw new Error("Not implemented");
+        }
     }
     static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance) {
         assert(A.height() == B.height(), "Not determined system");
