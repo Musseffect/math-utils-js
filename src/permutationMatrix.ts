@@ -6,11 +6,23 @@ import Vector from "./vector";
 
 // row permutation - pre multiplied, col permutation - post multiplied
 export default class PermutationMatrix {
-    permutations: number[];
-    isRow: boolean;
+    private permutations: number[];
+    private _isRow: boolean;
     constructor(permutations: number[], isRow: boolean) {
         this.permutations = permutations.slice();
-        this.isRow = isRow;
+        this._isRow = isRow;
+    }
+    static identity(size: number, isRow: boolean): PermutationMatrix {
+        let data = Array(size);
+        for (let i = 0; i < size; ++i)
+            data[i] = i;
+        return new PermutationMatrix(data, isRow);
+    }
+    clone(): PermutationMatrix {
+        return new PermutationMatrix(this.permutations.slice(), this._isRow);
+    }
+    isRow() {
+        return this.isRow;
     }
     swap(i: number, j: number) {
         swap(this.permutations, i, j);
@@ -55,7 +67,10 @@ export default class PermutationMatrix {
         return this.permutations[i];
     }
     inverse(): PermutationMatrix {
-        return new PermutationMatrix(PermutationMatrix.inverse(this.permutations), this.isRow);
+        return new PermutationMatrix(PermutationMatrix.inverse(this.permutations), this._isRow);
+    }
+    array(): number[] {
+        return this.permutations;
     }
     permuteVector(v: Vector): Vector {
         let result = v.clone();

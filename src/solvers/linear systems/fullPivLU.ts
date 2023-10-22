@@ -1,26 +1,82 @@
 import Matrix from "../../denseMatrix";
 import PermutationMatrix from "../../permutationMatrix";
 import { DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
-import { assert, SmallTolerance, swap } from "../../utils";
+import { assert, SmallestTolerance, SmallTolerance, swap } from "../../utils";
 import Vector from "../../vector";
 import { InsufficientRankException } from "./exceptions";
 
 const SolverName = "'fullPivLU'";
 
-/* LU decomposition with row and column permutations*/
+/* LU decomposition with row and column permutations in the form PAQ = LU*/
 export default class FullPivLU {
-    protected lu: Matrix;
+    protected lu: Matrix = null;
     protected p: PermutationMatrix;
     protected q: PermutationMatrix;
     protected A: Matrix;
+    protected tolerance: number = SmallestTolerance;
     protected _rank: number;
     private decompose(): void {
-        this._rank = 0;
+        this.p = PermutationMatrix.identity(this.A._numRows, true);
+        this.q = PermutationMatrix.identity(this.A._numCols, false);
+        this.lu = null;
+        let lu: Matrix = this.A.clone();
+        // todo: check for rectangular matrices
+        for (let step = 0; step < this.lu._numRows; step++) {
+            let maxPivotRow = step;
+            let maxPivotColumn = step;
+            let maxPivot = lu.get(this.p.value(maxPivotRow), this.q.value(maxPivotColumn));
+            for (let row = step; row < lu._numRows; ++row) {
+                for (let column = step; column < lu._numCols; ++column) {
+                    let value = lu.get(this.p.value(row), this.q.value(column));
+                    if (Math.abs(value) > Math.abs(maxPivot)) {
+                        maxPivotRow = row;
+                        maxPivotColumn = column;
+                        maxPivot = value;
+                    }
+                }
+            }
+            if (Math.abs(maxPivot) < this.tolerance) {
+                this._rank = step;
+                this.lu = lu;
+                return;
+            }
+
+            this.p.swap(step, maxPivotRow);
+            this.q.swap(step, maxPivotColumn);
+
+            // console.log(`Step ${step}`);
+            // console.log(`rowPermutations ${this.p.toString()}, maxPivotRow ${maxPivotRow}`);
+            // console.log(`columnPermutations ${this.q.toString()}, maxPivotColumn ${maxPivotColumn}`);
+            // console.log(`Initial LU ${lu.toString()}`)
+            /*const rowMat = this.p.toMatrix();
+            const colMat = this.q.toMatrix();
+            console.log(`Initial permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
+            console.log(`Initial Rhs ${Rhs.toString()}`)
+            console.log(`Initial permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
+            */
+            for (let row = step + 1; row < lu._numRows; row++) {
+                let curRow = this.p.value(row);
+                let ratio = lu.get(curRow, maxPivotColumn) / maxPivot;
+                for (let column = step + 1; column < lu._numCols; column++) {
+                    let curColIdx = this.q.value(column);
+                    lu.set(curRow, curColIdx, lu.get(curRow, curColIdx) - ratio * lu.get(maxPivotRow, curColIdx));
+                }
+                lu.set(curRow, maxPivotColumn, 0);
+            }
+            // console.log(`Result LU ${LU.toString()}`)
+            // console.log(`Result permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
+            // console.log(`Result Rhs ${Rhs.toString()}`)
+            // console.log(`Result permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
+        }
         throw new Error("Not implemented");
     }
-    constructor(A: Matrix) {
+    constructor(A: Matrix | null) {
         this.A = A;
-        this.decompose();
+        if (A != null)
+            this.decompose();
+    }
+    public setTolerance(value: number = SmallestTolerance): void {
+        this.tolerance = value;
     }
     public rank(): number {
         return this._rank;

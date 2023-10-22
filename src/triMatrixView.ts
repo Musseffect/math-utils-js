@@ -9,8 +9,12 @@ export enum TriMatrixType {
 export class TriMatrix {
     private type: TriMatrixType;
     private data: number[];
-    private size: number;
-    constructor(size: number, type: TriMatrixType) {
+    private width: number;
+    constructor(width: number, type: TriMatrixType) {
+        // todo: support rectangular matrices
+        let size = width * (width + 1) / 2;
+        this.data = new Array(size).fill(0);
+        this.width = width;
         throw new Error("Not implemented");
     }
     private fromIndex(index: number): { row: number, column: number } {
@@ -42,13 +46,33 @@ export class TriMatrix {
         assert(index < 0, "Invalid index");
         this.data[index] = value;
     }
+    toMatrix(): Matrix {
+        throw new Error("Not implemented");
+    }
 }
 
 export enum DiagonalType {
     Unit,
     Zero,
-    Existing        
+    Existing
 };
+
+export class DiagonalMatrixView {
+    private m: Matrix;
+    constructor(m: Matrix) {
+        this.m = m;
+    }
+    get(row: number, column: number) {
+        if (row != column) return 0.0;
+        return this.m.get(row, column);
+    }
+    toMatrix() {
+        let result = Matrix.empty(this.m.numRows(), this.m.numCols());
+        for (let i = 0; i < Math.min(this.m.numRows(), this.m.numCols()); ++i)
+            result.set(i, i, this.m.get(i, i));
+        return result;
+    }
+}
 
 export class TriMatrixView {
     private m: Matrix;
@@ -60,9 +84,8 @@ export class TriMatrixView {
         this.diagType = diagType;
     }
     get(row: number, column: number): number {
-        if (row == column)
-        {
-            switch(this.diagType) {
+        if (row == column) {
+            switch (this.diagType) {
                 case DiagonalType.Zero: return 0.0;
                 case DiagonalType.Unit: return 1.0;
             }
