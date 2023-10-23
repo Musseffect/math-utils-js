@@ -231,6 +231,7 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
  * Q - orthogonal matrix, D - diagonal matrix of eigenvalues of A
  */
 export function calcSymmetricEigendecomposition(A: Matrix): { Q: Matrix, D: Vector } {
+    assert(A.isSymmetric(), "A is not symmetric");
     throw new Error("Not implemented");
 }
 

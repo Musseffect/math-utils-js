@@ -6,7 +6,7 @@ import { ConvergenseFailureException } from "./exceptions";
 const SolverName = "'GaussSeidel'";
 
 export default class GaussSeidel {
-    static solve(m: Matrix, rhs: Vector, maxIterations: number, tolerance: number = SmallTolerance, initialGuess?: Vector) {
+    static solve(m: Matrix, rhs: Vector, maxIterations: number, tolerance: number = SmallTolerance, initialGuess?: Vector): Vector {
         assert(m.width() == m.height(), "Matrix isn't square");
         assert(m.width() == rhs.size(), "Dimensions don't match");
         const rank = rhs.size();
