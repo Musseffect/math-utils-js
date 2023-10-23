@@ -2,70 +2,107 @@
 
 import Matrix from "../../denseMatrix";
 import { DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
-import { assert, near, SmallTolerance } from "../../utils";
+import { assert, near, SmallestTolerance, SmallTolerance } from "../../utils";
 import Vector from "../../vector";
 import { NotPositiveDefiniteMatrixException } from "./exceptions";
 
 const SolverName = "'Cholesky'";
 
 export default class LLT {
-    llt: Matrix;
-    constructor() {
+    llt: Matrix | null = null;
+    // todo: replace with TriangularMatrix or SymmetricMatrix
+    A: Matrix | null = null;
+    _tolerance: number = SmallestTolerance;
+    constructor(A: Matrix | null = null, tolerance: number = SmallestTolerance) {
+        this._tolerance = tolerance;
+        this.factorize(A);
     }
-    factorize(A: Matrix): void {
+    factorize(A: Matrix | null): void {
+        this.A = A;
+        this.llt = null;
+        if (A == null)
+            return;
         assert(A.isSquare(), "Non-square matrix");
-        this.llt = A.clone();
-        let rank = A.width();
-        for (let row = 0; row < rank; ++row) {
+        assert(A.isSymmetric(), "Non-symmetric");
+        let llt = A.clone();
+        let size = A.width();
+        for (let row = 0; row < size; ++row) {
             for (let column = 0; column <= row; ++column) {
-                let value = this.llt.get(row, column);
+                let value = llt.get(row, column);
                 for (let k = 0; k < column; ++k)
-                    value -= this.llt.get(row, k) * this.llt.get(column, k);
+                    value -= llt.get(row, k) * this.llt.get(column, k);
                 if (row == column) {
-                    if (value < 0.0) throw new NotPositiveDefiniteMatrixException(SolverName);
+                    if (value < this._tolerance) throw new NotPositiveDefiniteMatrixException(SolverName);
                     value = Math.sqrt(value);
+                    llt.set(row, row, value);
                 }
                 else {
                     value = value / this.llt.get(column, column);
+                    this.llt.set(row, column, value);
+                    this.llt.set(column, row, value);
                 }
-                this.llt.set(row, column, value);
-                this.llt.set(column, row, value);
             }
         }
+        this.llt = llt;
     };
-    L(): TriMatrixView {
+    get L(): TriMatrixView {
         return new TriMatrixView(this.llt, TriMatrixType.lower, DiagonalType.Unit);
     }
-    LT(): TriMatrixView {
+    get LT(): TriMatrixView {
         return new TriMatrixView(this.llt, TriMatrixType.upper, DiagonalType.Existing);
     }
-    solve(rhs: Vector): Vector {
-        assert(rhs.size() == this.llt.width(), "Incompatible RHS");
-        const rank = this.llt.width();
-        let y = Vector.empty(this.llt.width());
-        for (let row = 0; row < rank; ++row) {
-            let value = rhs.get(row);
-            for (let column = 0; column < row; ++column)
-                value -= this.llt.get(row, column) * y.get(column);
-            value /= this.llt.get(row, row);
-            y.set(row, value);
-        }
-        let x = Vector.empty(rank);
-        for (let row = rank - 1; row >= 0; --row) {
-            let value = y.get(row);
-            for (let column = row + 1; column < rank; ++column)
-                value -= this.llt.get(row, column) * x.get(column);
-            value /= this.llt.get(row, row);
-            x.set(row, value);
-        }
-        return x;
+    get LLT(): Matrix {
+        return this.llt;
     }
-    solveMatrix(rhs: Matrix): Matrix {
-        assert(rhs.height() == this.llt.width(), "Incompatible RHS");
-        throw new Error("Not implemented");
+    solve(rhs: Matrix | Vector): Matrix | Vector {
+        if (rhs instanceof Matrix)
+            return this.solveInplace(rhs.clone());
+        else
+            return this.solveInplace(rhs.clone());
+    }
+    solveInplace(rhs: Matrix | Vector): Matrix | Vector {
+        const size = this.llt.width();
+        if (rhs instanceof Matrix) {
+            assert(rhs.height() == size, "Incompatible RHS");
+            for (let col = 0; col < rhs.width(); ++col) {
+                for (let row = 0; row < size; ++row) {
+                    let value = rhs.get(row, col);
+                    for (let column = 0; column < row; ++column)
+                        value -= this.llt.get(row, column) * rhs.get(column, col);
+                    value /= this.llt.get(row, row);
+                    rhs.set(row, col, value);
+                }
+                for (let row = size - 1; row >= 0; --row) {
+                    let value = rhs.get(row, col);
+                    for (let column = row + 1; column < size; ++column)
+                        value -= this.llt.get(row, column) * rhs.get(column, col);
+                    value /= this.llt.get(row, row);
+                    rhs.set(row, col, value);
+                }
+            }
+            return rhs;
+        } else {
+            assert(rhs.size() == size, "Incompatible RHS");
+            for (let row = 0; row < size; ++row) {
+                let value = rhs.get(row);
+                for (let column = 0; column < row; ++column)
+                    value -= this.llt.get(row, column) * rhs.get(column);
+                value /= this.llt.get(row, row);
+                rhs.set(row, value);
+            }
+            for (let row = size - 1; row >= 0; --row) {
+                let value = rhs.get(row);
+                for (let column = row + 1; column < size; ++column)
+                    value -= this.llt.get(row, column) * rhs.get(column);
+                value /= this.llt.get(row, row);
+                rhs.set(row, value);
+            }
+            return rhs;
+        }
     }
     inverse(): Matrix {
-        throw new Error("Not implemented");
+        let result = Matrix.identity(this.llt.width());
+        return this.solveInplace(result) as Matrix;
     }
     // Solve inplace
     static solve(A: Matrix, b: Vector) {
@@ -81,12 +118,13 @@ export default class LLT {
                 if (row == column) {
                     if (value < 0.0) throw new NotPositiveDefiniteMatrixException(SolverName);
                     value = Math.sqrt(value);
+                    A.set(row, column, value);
                 }
                 else {
                     value = value / A.get(column, column);
+                    A.set(row, column, value);
+                    A.set(column, row, value);
                 }
-                A.set(row, column, value);
-                A.set(column, row, value);
             }
         }
         let y = Vector.empty(rank);

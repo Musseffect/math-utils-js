@@ -1,6 +1,6 @@
 import Matrix from "../../denseMatrix";
 import { DiagonalMatrixView, TriMatrixView } from "../../triMatrixView";
-import { assert } from "../../utils";
+import { SmallestTolerance, assert } from "../../utils";
 import Vector from "../../vector";
 
 
@@ -28,9 +28,12 @@ class TriangularMatrix {
 }
 
 export default class LDLT {
-    LDLT: TriangularMatrix;
-    A: Matrix;
-    constructor(tolerance: number) {
+    LDLT: TriangularMatrix = null;
+    A: Matrix = null;
+    _tolerance: number = SmallestTolerance;
+    constructor(A: Matrix | null = null, tolerance: number = SmallestTolerance) {
+        this._tolerance = tolerance;
+        this.factorize(A);
     }
     factorize(A: Matrix | null) {
         this.A = A;
@@ -51,6 +54,7 @@ export default class LDLT {
                 value -= L.get(row, i) * L.get(row, i) * L.get(row, row);
             L.set(row, row, value);
         }
+        this.LDLT = L;
     }
     solve(rhs: Vector): Vector {
         throw new Error("Not implemented");
