@@ -45,6 +45,7 @@ export default class PartialPivLU {
             this.p.swap(step, maxPivotRow);
 
             lu.swapRows(step, maxPivotRow);
+            
             let ratio = lu.get(step, step) / maxPivot;
             for (let row = step + 1; row < lu._numRows; row++) {
                 for (let column = step + 1; column < lu._numCols; column++)

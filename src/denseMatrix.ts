@@ -6,6 +6,21 @@ import { assert, near, SmallTolerance, SmallestTolerance, swap } from "./utils";
 import vector from "./vector";
 
 export default class Matrix extends mat {
+    private toIndex(row:number, column:number): number {
+        return row * this._numCols + column;
+    }
+    swapColumns(column1: number, column2: number) {
+        assert(Math.max(column1, column2) < this._numCols && Math.min(column1, column2) >= 0, "Invalid indices");
+        if (column1 == column2) return;
+        for (let i = 0; i < this._numRows; ++i) 
+            swap(this.data, this.toIndex(i, column1), this.toIndex(i, column2));
+    }
+    swapRows(row1: number, row2: number) {
+        assert(Math.max(row1, row2) < this._numCols && Math.min(row1, row2) >= 0, "Invalid indices");
+        if (row1 == row2) return;
+        for (let i = 0; i < this._numCols; ++i) 
+            swap(this.data, this.toIndex(row1, i), this.toIndex(row2, i));
+    }
     _numCols: number;
     _numRows: number;
     data: number[];
@@ -114,12 +129,12 @@ export default class Matrix extends mat {
     get(row: number, column: number): number {
         assert(row < this._numRows && row >= 0, "Invalid row");
         assert(column < this._numCols && column >= 0, "Invalid column");
-        return this.data[row * this._numCols + column];
+        return this.data[this.toIndex(row, column)];
     }
     set(row: number, column: number, value: number): void {
         assert(row < this._numRows && row >= 0, "Invalid row");
         assert(column < this._numCols && column >= 0, "Invalid column");
-        this.data[row * this._numCols + column] = value;
+        this.data[this.toIndex(row, column)] = value;
     }
     transposeInPlace(): Matrix {
         assert(this.isSquare(), "Non-square matrix");
@@ -134,7 +149,7 @@ export default class Matrix extends mat {
         let result = [];
         for (let col = 0; col < this._numCols; col++) {
             for (let row = 0; row < this._numRows; row++) {
-                result.push(this.data[col + row * this._numCols]);
+                result.push(this.data[this.toIndex(row, col)]);
             }
         }
         return new Matrix(result, this._numCols, this._numRows);
