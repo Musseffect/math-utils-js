@@ -64,7 +64,7 @@ export default class PartialPivLU {
             this.p.swap(step, maxPivotRow);
 
             lu.swapRows(step, maxPivotRow);
-            
+
             let ratio = lu.get(step, step) / maxPivot;
             for (let row = step + 1; row < lu._numRows; row++) {
                 for (let column = step + 1; column < lu._numCols; column++)
@@ -73,6 +73,47 @@ export default class PartialPivLU {
             }
         }
         this.lu = lu;
+    }
+    solveInplace(rhs: Matrix | Vector): Matrix | Vector {
+        let size = this.LU.width();
+        if (rhs instanceof Matrix) {
+            assert(rhs.height() == size, "Incompatible RHS");
+            for (let column = 0; column < rhs.width(); ++column) {
+                for (let row = 0; row < size; ++row) {
+                    let value = rhs.get(row, column);
+                    for (let col = 0; col < row; ++col)
+                        value -= rhs.get(this.p.value(column), column) * this.LU.get(row, col);
+                    rhs.set(this.p.value(row), column, value);
+                }
+                for (let row = size - 1; row >= 0; --row) {
+                    let value = rhs.get(row, column);
+                    for (let col = row + 1; col < size; ++col)
+                        value -= rhs.get(this.p.value(column), column) * this.LU.get(row, col);
+                    rhs.set(this.p.value(row), column, value / this.LU.get(row, row));
+                }
+            }
+        } else {
+            assert(rhs.size() == size, "Incompatible RHS");
+            for (let row = 0; row < size; ++row) {
+                let value = rhs.get(row);
+                for (let col = 0; col < row; ++col)
+                    value -= rhs.get(this.p.value(col)) * this.LU.get(row, col);
+                rhs.set(this.p.value(row), value);
+            }
+            for (let row = size - 1; row >= 0; --row) {
+                let value = rhs.get(row);
+                for (let col = row + 1; col < size; ++col)
+                    value -= rhs.get(this.p.value(col)) * this.LU.get(row, col);
+                rhs.set(this.p.value(row), value / this.LU.get(row, row));
+            }
+        }
+        return rhs;
+    }
+    solve(rhs: Matrix | Vector): Matrix | Vector {
+        if (rhs instanceof Matrix)
+            return this.solveInplace(rhs.clone());
+        else
+            return this.solveInplace(rhs.clone());
     }
     static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance): Matrix {
         assert(A.height() == B.height(), "Not determined system");

@@ -45,6 +45,14 @@ export default class FullPivLU {
     get P(): PermutationMatrix {
         return this.p;
     }
+    isSingular(): boolean { return this.lu == null; }
+    determinant(): number {
+        if (this.isSingular()) return 0.0;
+        let determinant = this.p.determinant() * this.q.determinant();
+        for (let i = 0; i < this.lu.width(); ++i)
+            determinant *= this.lu.get(i, i);
+        return determinant;
+    }
     public factorize(A: Matrix | null): void {
         this.A = A;
         this.lu = null;
@@ -105,16 +113,51 @@ export default class FullPivLU {
         }
         lu = this.lu;
     }
-    solve(rhs: Matrix | Vector): Vector {
-        assert(this.A != null, "Decomposition is not available");
+    solveInplace(rhs: Matrix | Vector): Matrix | Vector {
+        assert(this.A != null, "Factorization is not available");
+        let size = this.LU.width();
         if (rhs instanceof Matrix) {
-            assert(this.A._numRows == rhs._numRows, "Incompatible RHS");
-            throw new Error("Not implemented");
-
+            assert(rhs.height() == size, "Incompatible RHS");
+            for (let column = 0; column < rhs.width(); ++column) {
+                for (let row = 0; row < size; ++row) {
+                    let value = rhs.get(row, column);
+                    for (let col = 0; col < row; ++col)
+                        value -= rhs.get(this.p.value(column), column) * this.LU.get(row, col);
+                    rhs.set(this.p.value(row), this.q.value(column), value);
+                }
+                for (let row = size - 1; row >= 0; --row) {
+                    let value = rhs.get(row, column);
+                    for (let col = row + 1; col < size; ++col)
+                        value -= rhs.get(this.p.value(column), column) * this.LU.get(row, col);
+                    rhs.set(this.p.value(row), this.q.value(column), value / this.LU.get(row, row));
+                }
+            }
         } else {
-            assert(this.A._numRows == rhs.size(), "Incompatible RHS");
-            throw new Error("Not implemented");
+            assert(rhs.size() == size, "Incompatible RHS");
+            for (let row = 0; row < size; ++row) {
+                let value = rhs.get(row);
+                for (let col = 0; col < row; ++col)
+                    value -= rhs.get(this.p.value(col)) * this.LU.get(row, col);
+                rhs.set(this.p.value(row), value);
+            }
+            for (let row = size - 1; row >= 0; --row) {
+                let value = rhs.get(row);
+                for (let col = row + 1; col < size; ++col)
+                    value -= rhs.get(this.p.value(col)) * this.LU.get(row, col);
+                rhs.set(this.p.value(row), value / this.LU.get(row, row));
+            }
         }
+        return rhs;
+    }
+    solve(rhs: Matrix | Vector): Matrix | Vector {
+        if (rhs instanceof Matrix)
+            return this.solveInplace(rhs.clone());
+        else
+            return this.solveInplace(rhs.clone());
+    }
+    inverse(): Matrix | null {
+        if (this.lu == null) return null;
+        throw new Error("Not implemented");
     }
     static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance) {
         assert(A.height() == B.height(), "Not determined system");

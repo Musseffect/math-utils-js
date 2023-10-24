@@ -6,19 +6,19 @@ import { assert, near, SmallTolerance, SmallestTolerance, swap } from "./utils";
 import vector from "./vector";
 
 export default class Matrix extends mat {
-    private toIndex(row:number, column:number): number {
+    private toIndex(row: number, column: number): number {
         return row * this._numCols + column;
     }
     swapColumns(column1: number, column2: number) {
         assert(Math.max(column1, column2) < this._numCols && Math.min(column1, column2) >= 0, "Invalid indices");
         if (column1 == column2) return;
-        for (let i = 0; i < this._numRows; ++i) 
+        for (let i = 0; i < this._numRows; ++i)
             swap(this.data, this.toIndex(i, column1), this.toIndex(i, column2));
     }
     swapRows(row1: number, row2: number) {
         assert(Math.max(row1, row2) < this._numCols && Math.min(row1, row2) >= 0, "Invalid indices");
         if (row1 == row2) return;
-        for (let i = 0; i < this._numCols; ++i) 
+        for (let i = 0; i < this._numCols; ++i)
             swap(this.data, this.toIndex(row1, i), this.toIndex(row2, i));
     }
     _numCols: number;
@@ -50,6 +50,34 @@ export default class Matrix extends mat {
         for (let i = 1; i < this._numCols; ++i) {
             for (let j = 0; j < i; ++j) {
                 if (!near(this.get(i, j), this.get(j, i), tolerance)) return false;
+            }
+        }
+        return true;
+    }
+    // todo: add offset
+    isDiagonal(tolerance: number = SmallTolerance): boolean {
+        for (let row = 0; row < this._numRows; ++row) {
+            for (let col = 0; col < this._numCols; ++col) {
+                if (row == col) continue;
+                if (Math.abs(this.get(row, col)) > tolerance) return false;
+            }
+        }
+        return true;
+    }
+    isTriangular(upper: boolean = false, tolerance: number = SmallTolerance) {
+        for (let i = 1; i < this._numCols; ++i) {
+            for (let j = 0; j < i; ++j) {
+                let value = upper ? this.get(i, j) : this.get(j, i);
+                if (Math.abs(value) > tolerance) return false;
+            }
+        }
+        return true;
+    }
+    isHessenberg(upper: boolean = false, tolerance: number = SmallTolerance) {
+        for (let i = 2; i < this._numCols; ++i) {
+            for (let j = 0; j + 1 < i; ++j) {
+                let value = upper ? this.get(i, j) : this.get(j, i);
+                if (Math.abs(value) > tolerance) return false;
             }
         }
         return true;
@@ -209,13 +237,13 @@ export default class Matrix extends mat {
             result.set(triplet.row, triplet.column, triplet.value);
         return result;
     }
-    toTriplets(tolerance:number = SmallestTolerance):Triplet[] {
-        let result:Triplet[] = [];
+    toTriplets(tolerance: number = SmallestTolerance): Triplet[] {
+        let result: Triplet[] = [];
         for (let row = 0; row < this._numRows; ++row) {
             for (let column = 0; column < this._numCols; +column) {
                 let value = this.get(row, column);
                 if (Math.abs(value) < tolerance) continue;
-                result.push({row, column, value});
+                result.push({ row, column, value });
             }
         }
         return result;

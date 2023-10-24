@@ -1,6 +1,14 @@
 import Matrix from "./denseMatrix";
 import { assert, clamp, Tolerance, SmallestTolerance } from "./utils";
 
+function reduceVectorsDiff(a: Vector, b: Vector, f: (prev: number, cur: number) => number) {
+    assert(a.size() == b.size(), "Sizes don't match");
+    let result = 0;
+    for (let i = 0; i < a.size(); ++i)
+        result = f(result, Math.abs(b.data[i] - a.data[i]));
+    return result;
+}
+
 export default class Vector {
     data: number[];
     constructor(data: number[]) {
@@ -14,9 +22,8 @@ export default class Vector {
     static outer(a: Vector, b: Vector): Matrix {
         let result: Matrix = Matrix.empty(a.size(), b.size());
         for (let j = 0; j < a.size(); j++) {
-            for (let i = 0; i < b.size(); i++) {
+            for (let i = 0; i < b.size(); i++)
                 result.set(j, i, a.get(j) * b.get(i));
-            }
         }
         return result;
     }
@@ -168,41 +175,41 @@ export default class Vector {
         return dest;
     }
     l1Norm(): number {
-        let result = 0;
-        for (let i = 0; i < this.data.length; i++)
-            result += Math.abs(this.data[i]);
-        return result;
+        return this.data.reduce((prev: number, cur: number) => { return prev + Math.abs(cur); }, 0);
+    }
+    squaredLength(): number {
+        return this.data.reduce((prev: number, cur: number) => { return prev + cur * cur }, 0);
     }
     l2Norm(): number {
         return Math.sqrt(this.squaredLength());
     }
     lInfNorm(): number {
-        let result = 0;
-        for (let i = 0; i < this.data.length; i++)
-            result = Math.max(Math.abs(this.data[i]), result);
-        return result;
+        return this.data.reduce((prev: number, cur: number) => { return Math.max(prev, Math.abs(cur)); }, 0);
     }
     lpNorm(p: number): number {
-        let result = 0.0;
-        for (const value of this.data)
-            result += Math.pow(value, p);
-        return Math.pow(result, 1 / p);
+        return Math.pow(this.data.reduce((prev: number, cur: number) => {
+            return prev + Math.pow(Math.abs(cur), p);
+        }, 0), 1 / p);
     }
-    squaredLength(): number {
-        let result = 0;
-        for (let i = 0; i < this.data.length; i++)
-            result += this.data[i] * this.data[i];
-        return result;
+    static l1Distance(a: Vector, b: Vector): number {
+        return reduceVectorsDiff(a, b, (prev: number, cur: number) => { return prev + cur; });
+    }
+    static l2Distance(a: Vector, b: Vector): number {
+        return Math.sqrt(reduceVectorsDiff(a, b, (prev: number, cur: number) => { return prev + cur * cur; }));
+    }
+    static lInfDistance(a: Vector, b: Vector): number {
+        return reduceVectorsDiff(a, b, (prev: number, cur: number) => { return Math.max(prev, cur); });
+    }
+    static lpDistance(a: Vector, b: Vector, p: number): number {
+        return Math.pow(reduceVectorsDiff(a, b, (prev: number, cur: number) => { return prev + Math.pow(cur, p); }), 1 / p);
     }
     clamp(min: Vector, max: Vector): void {
-        for (let i = 0; i < this.data.length; i++) {
+        for (let i = 0; i < this.data.length; i++)
             this.data[i] = clamp(this.data[i], min.data[i], max.data[i]);
-        }
     }
     clampScalar(min: number, max: number): void {
-        for (let i = 0; i < this.data.length; i++) {
+        for (let i = 0; i < this.data.length; i++)
             this.data[i] = clamp(this.data[i], min, max);
-        }
     }
     normalize() {
         let l = this.l2Norm();

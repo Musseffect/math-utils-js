@@ -54,30 +54,24 @@ export default class LLT {
     get LLT(): Matrix {
         return this.llt;
     }
-    solve(rhs: Matrix | Vector): Matrix | Vector {
-        if (rhs instanceof Matrix)
-            return this.solveInplace(rhs.clone());
-        else
-            return this.solveInplace(rhs.clone());
-    }
     solveInplace(rhs: Matrix | Vector): Matrix | Vector {
         const size = this.llt.width();
         if (rhs instanceof Matrix) {
             assert(rhs.height() == size, "Incompatible RHS");
-            for (let col = 0; col < rhs.width(); ++col) {
+            for (let column = 0; column < rhs.width(); ++column) {
                 for (let row = 0; row < size; ++row) {
-                    let value = rhs.get(row, col);
-                    for (let column = 0; column < row; ++column)
-                        value -= this.llt.get(row, column) * rhs.get(column, col);
+                    let value = rhs.get(row, column);
+                    for (let col = 0; col < row; ++col)
+                        value -= this.llt.get(row, col) * rhs.get(col, column);
                     value /= this.llt.get(row, row);
-                    rhs.set(row, col, value);
+                    rhs.set(row, column, value);
                 }
                 for (let row = size - 1; row >= 0; --row) {
-                    let value = rhs.get(row, col);
-                    for (let column = row + 1; column < size; ++column)
-                        value -= this.llt.get(row, column) * rhs.get(column, col);
+                    let value = rhs.get(row, column);
+                    for (let col = row + 1; col < size; ++col)
+                        value -= this.llt.get(row, col) * rhs.get(col, column);
                     value /= this.llt.get(row, row);
-                    rhs.set(row, col, value);
+                    rhs.set(row, column, value);
                 }
             }
             return rhs;
@@ -85,20 +79,26 @@ export default class LLT {
             assert(rhs.size() == size, "Incompatible RHS");
             for (let row = 0; row < size; ++row) {
                 let value = rhs.get(row);
-                for (let column = 0; column < row; ++column)
-                    value -= this.llt.get(row, column) * rhs.get(column);
+                for (let col = 0; col < row; ++col)
+                    value -= this.llt.get(row, col) * rhs.get(col);
                 value /= this.llt.get(row, row);
                 rhs.set(row, value);
             }
             for (let row = size - 1; row >= 0; --row) {
                 let value = rhs.get(row);
-                for (let column = row + 1; column < size; ++column)
-                    value -= this.llt.get(row, column) * rhs.get(column);
+                for (let col = row + 1; col < size; ++col)
+                    value -= this.llt.get(row, col) * rhs.get(col);
                 value /= this.llt.get(row, row);
                 rhs.set(row, value);
             }
             return rhs;
         }
+    }
+    solve(rhs: Matrix | Vector): Matrix | Vector {
+        if (rhs instanceof Matrix)
+            return this.solveInplace(rhs.clone());
+        else
+            return this.solveInplace(rhs.clone());
     }
     inverse(): Matrix {
         let result = Matrix.identity(this.llt.width());
@@ -144,5 +144,11 @@ export default class LLT {
             x.set(row, value);
         }
         return x;
+    }
+    determinant(): number {
+        let result = 1;
+        for (let i = 0; i < this.llt.width(); ++i)
+            result *= this.llt.get(i, i) * this.llt.get(i, i);
+        return result;
     }
 }

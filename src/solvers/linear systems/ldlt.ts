@@ -25,6 +25,18 @@ class TriangularMatrix {
         assert(i >= j, "Invalid index");
         this.data[(i * (i + 1)) / 2 + j] = value;
     }
+    width(): number {
+        return this.size;
+    }
+    height(): number {
+        return this.size;
+    }
+    determinant(): number {
+        let result = 1;
+        for (let i = 0; i < this.size; ++i)
+            result *= this.get(i, i);
+        return result;
+    }
 }
 
 export default class LDLT {
@@ -52,12 +64,57 @@ export default class LDLT {
             let value = A.get(row, row);
             for (let i = 0; i < row; ++i)
                 value -= ldlt.get(row, i) * ldlt.get(row, i) * ldlt.get(row, row);
-                ldlt.set(row, row, value);
+            ldlt.set(row, row, value);
         }
         this.ldlt = ldlt;
     }
-    solve(rhs: Vector): Vector {
-        throw new Error("Not implemented");
+    solveInplace(rhs: Matrix | Vector): Matrix | Vector {
+        const size = this.ldlt.width();
+        if (rhs instanceof Matrix) {
+            assert(rhs.height() == size, "Incompatible RHS");
+            for (let column = 0; column < rhs.width(); ++column) {
+                for (let row = 0; row < size; ++row) {
+                    let value = rhs.get(row, column);
+                    for (let col = 0; col < row; ++col)
+                        value -= this.ldlt.get(row, col) * rhs.get(col, column);
+                    value /= this.ldlt.get(row, row);
+                    rhs.set(row, column, value);
+                }
+                for (let row = size - 1; row >= 0; --row) {
+                    let value = rhs.get(row, column);
+                    for (let col = row + 1; col < size; ++col)
+                        value -= this.ldlt.get(row, col) * rhs.get(col, column);
+                    rhs.set(row, column, value);
+                }
+            }
+        } else {
+            assert(rhs.size() == size, "Incompatible RHS");
+            for (let row = 0; row < size; ++row) {
+                let value = rhs.get(row);
+                for (let col = 0; col < row; ++col)
+                    value -= this.ldlt.get(row, col) * rhs.get(col);
+                value /= this.ldlt.get(row, row);
+                rhs.set(row, value);
+            }
+            for (let row = size - 1; row >= 0; --row) {
+                let value = rhs.get(row);
+                for (let col = row + 1; col < size; ++col)
+                    value -= this.ldlt.get(row, col) * rhs.get(col);
+                rhs.set(row, value);
+            }
+        }
+        return rhs;
+    }
+    solve(rhs: Matrix | Vector): Matrix | Vector {
+        if (rhs instanceof Matrix)
+            return this.solveInplace(rhs.clone());
+        else
+            return this.solveInplace(rhs.clone());
+    }
+    inverse(): Matrix {
+        assert(this.LDLT != null, "Factorization is not available");
+        let result = Matrix.identity(this.ldlt.width());
+        return this.solveInplace(result) as Matrix;
     }
     get LDLT(): TriangularMatrix {
         return this.ldlt;
@@ -69,10 +126,6 @@ export default class LDLT {
         throw new Error("Not implemented");
     }
     get D(): DiagonalMatrixView {
-        throw new Error("Not implemented");
-    }
-    inverse(): Matrix {
-        assert(this.LDLT != null, "Factorization is not available");
         throw new Error("Not implemented");
     }
     static solve(A: Matrix, rhs: Vector) {
@@ -105,5 +158,12 @@ export default class LDLT {
                 value -= L.get(column, row) * x.get(column);
             x.set(row, value);
         }
+        return x;
+    }
+    determinant(): number {
+        let result = 1;
+        for (let i = 0; i < this.ldlt.width(); ++i)
+            result *= this.ldlt.get(i, i);
+        return result;
     }
 }
