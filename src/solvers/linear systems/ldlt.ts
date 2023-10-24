@@ -28,7 +28,7 @@ class TriangularMatrix {
 }
 
 export default class LDLT {
-    LDLT: TriangularMatrix = null;
+    ldlt: TriangularMatrix = null;
     A: Matrix = null;
     _tolerance: number = SmallestTolerance;
     constructor(A: Matrix | null = null, tolerance: number = SmallestTolerance) {
@@ -40,32 +40,35 @@ export default class LDLT {
         if (A == null) return;
         assert(A.isSquare(), "Non-square matrix");
         const size = A.width();
-        let L = new TriangularMatrix(size, true);
+        let ldlt = new TriangularMatrix(size, true);
         for (let row = 0; row < size; ++row) {
             for (let col = 0; col < row; ++col) {
                 let value = A.get(row, col);
                 for (let i = 0; i < col; ++i) {
-                    value -= L.get(row, i) * L.get(col, i) * L.get(i, i);
+                    value -= ldlt.get(row, i) * ldlt.get(col, i) * ldlt.get(i, i);
                 }
-                L.set(row, col, value / L.get(col, col));
+                ldlt.set(row, col, value / ldlt.get(col, col));
             }
             let value = A.get(row, row);
             for (let i = 0; i < row; ++i)
-                value -= L.get(row, i) * L.get(row, i) * L.get(row, row);
-            L.set(row, row, value);
+                value -= ldlt.get(row, i) * ldlt.get(row, i) * ldlt.get(row, row);
+                ldlt.set(row, row, value);
         }
-        this.LDLT = L;
+        this.ldlt = ldlt;
     }
     solve(rhs: Vector): Vector {
         throw new Error("Not implemented");
     }
-    L(): TriMatrixView {
+    get LDLT(): TriangularMatrix {
+        return this.ldlt;
+    }
+    get L(): TriMatrixView {
         throw new Error("Not implemented");
     }
-    LT(): TriMatrixView {
+    get LT(): TriMatrixView {
         throw new Error("Not implemented");
     }
-    D(): DiagonalMatrixView {
+    get D(): DiagonalMatrixView {
         throw new Error("Not implemented");
     }
     inverse(): Matrix {

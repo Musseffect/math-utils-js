@@ -209,6 +209,17 @@ export default class Matrix extends mat {
             result.set(triplet.row, triplet.column, triplet.value);
         return result;
     }
+    toTriplets(tolerance:number = SmallestTolerance):Triplet[] {
+        let result:Triplet[] = [];
+        for (let row = 0; row < this._numRows; ++row) {
+            for (let column = 0; column < this._numCols; +column) {
+                let value = this.get(row, column);
+                if (Math.abs(value) < tolerance) continue;
+                result.push({row, column, value});
+            }
+        }
+        return result;
+    }
     pseudoInverse(): Matrix {
         throw new Error("Not implemented");
     }

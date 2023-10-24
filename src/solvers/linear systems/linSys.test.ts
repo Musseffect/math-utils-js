@@ -3,147 +3,147 @@
 // todo: eigenvalue solvers
 
 import Matrix from "../../denseMatrix";
-import { Tolerance, SmallTolerance } from "../../utils";
+import { Tolerance, SmallTolerance, assert } from "../../utils";
 import Vector from "../../vector";
 import * as linSolvers from "./exports";
 
+interface TestCase {
+    m:Matrix;
+    rhs:Vector;
+    exactSolution:Vector;
+    inverse:Matrix;
+    determinant:number;
+}
+
+interface Tests {
+    posDef:TestCase[],
+    general:TestCase[]
+};
+
+const tests:Tests = {posDef:[], general:[]};
+
+(function(){
+    tests.posDef.push({
+        m: new Matrix([10, -1, 2, 0, -1, 11, -1, 3, 2, -1, 10, -1, 0, 3,-1, 8], 4, 4),
+        rhs: new Vector([6, 25, -11, 15]),
+        exactSolution:new Vector([1, 2, -1, 1]),
+        inverse: new Matrix([259/2465, 23/2465, -3/145,-3/493, 23/2465, 758/7395, 2/435, -56/1479, -3/145, 2/435, 46/435, 1/87, -3/493, -56/1479, 1/87, 208/1479], 4, 4),
+        determinant:7395
+    });
+    tests.posDef.push({
+        m:new Matrix([1, 1, 1, 1, 1, 2, 2, 2, 1, 2, 3, 3, 1, 2, 3, 4], 4, 4),
+        rhs:new Vector([-4, -7, -9, -10]),
+        exactSolution:new Vector([-1, -1, -1, -1]),
+        inverse:new Matrix([2, -1, 0, 0, -1, 2, -1, -1, -1, -1, 2, -1, 0, 0, -1, 1], 3, 3),
+        determinant: 1
+    });
+    tests.posDef.push({
+        m:new Matrix([4, 12, -16, 12, 37, -43, -16, -43, 98], 3, 3),
+        rhs:new Vector([76, 215, -396]),
+        exactSolution:new Vector([1, 2, -3]),
+        inverse: new Matrix([1777/36, -122/9, 19/9, -122/9, 34/9, -5/9, 19/9, -5/9, 1/9], 4, 4),
+        determinant:36
+    });
+    const checkTest = (test:TestCase) => {
+        assert(test.m.isSquare(), "Expected square matrix");
+        assert(test.inverse.isSquare(), "Expected square inverse");
+        assert(Vector.lInfDistance(test.rhs, Matrix.postMulVec(test.m, test.exactSolution)), "Incorrect solution");
+        assert(Vector.lInfDistance(test.exactSolution, Matrix.postMulVec(test.inverse, test.rhs)), "Incorrect inverse");
+    };
+    for (const test of tests.posDef) {
+        assert(test.m.isSymmetric(), "Expected symmetric matrix");
+        assert(test.inverse.isSymmetric(), "Expected symmetric inverse");
+        checkTest(test);
+    }
+    for (const test of tests.general) {
+        checkTest(test);
+    }
+})();
 
 describe.skip('Linear solvers (dense square matrices)', () => {
-    interface testData {
-        m: Matrix;
-        rhs: Vector;
-        exactSolution: Vector;
-    };
-    let testExamples: testData[] = [];
-
-    const mat4 = Matrix.empty(4, 4);
-    let rhs = new Vector([6, 25, -11, 15]);
-    mat4.set(0, 0, 10);
-    mat4.set(0, 1, -1);
-    mat4.set(0, 2, 2);
-
-    mat4.set(1, 0, -1);
-    mat4.set(1, 1, 11);
-    mat4.set(1, 2, -1);
-    mat4.set(1, 3, 3);
-
-    mat4.set(2, 0, 2);
-    mat4.set(2, 1, -1);
-    mat4.set(2, 2, 10);
-    mat4.set(2, 3, -1);
-
-    mat4.set(3, 1, 3);
-    mat4.set(3, 2, -1);
-    mat4.set(3, 3, 8);
-    let exactSolution = new Vector([1, 2, -1, 1]);
-    testExamples.push({ m: mat4, rhs, exactSolution });
-    const choleskyMat = Matrix.empty(3, 3);
-    choleskyMat.set(0, 0, 4);
-    choleskyMat.set(0, 1, 12);
-    choleskyMat.set(0, 2, -16);
-
-    choleskyMat.set(1, 0, 12);
-    choleskyMat.set(1, 1, 37);
-    choleskyMat.set(1, 2, -43);
-
-    choleskyMat.set(2, 0, -16);
-    choleskyMat.set(2, 1, -43);
-    choleskyMat.set(2, 2, 98);
-    exactSolution = new Vector([1, 2, -3]);
-    const choleskyRhs = Matrix.postMulVec(choleskyMat, exactSolution);
-
-    testExamples.push({ m: choleskyMat, rhs: choleskyRhs, exactSolution });
-
-    describe('Symmetric positive definite', () => {
-
-        let Q = new Matrix([1, 1, 1, 1, 1, 2, 2, 2, 1, 2, 3, 3, 1, 2, 3, 4], 4, 4);
-        let b = new Vector([-4, -7, -9, -10]);
-        let x = new Vector([-1, -1, -1, -1]);
+    describe.each(tests.posDef)('Symmetric positive definite matrices %#', (testCase:TestCase) => {
         expect(Q.isSymmetric()).toBeTruthy();
-        test('ConjGrad', () => {
-            let solver = new linSolvers.CG();
-            linSolvers.CG.solve(Q, b);
+        describe('Test factorizations', ()=>{
+            test('LL', () => {
+                let solver = new linSolvers.LLT(null, SmallTolerance);
+                expect(() => solver.factorize(testCase.m)).not.toThrow();
+                expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
+            });
+            test('LDL', () => {
+                let solver = new linSolvers.LDLT(null, SmallTolerance);
+                expect(() => solver.factorize(Q)).not.toThrow();
+                expect(Vector.sub(solver.solve(b), testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
+            });
+            test('PPLU', () => {
+                let solver = new linSolvers.PartialPivLU(null, SmallTolerance);
+                expect(() => solver.factorize(Q)).not.toThrow();
+                expect(Vector.sub(solver.solve(b) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
+    
+            });
+            test('FPLU', () => {
+                let solver = new linSolvers.FullPivLU(null, SmallTolerance);
+                expect(() => solver.factorize(Q)).not.toThrow();
+                expect(Vector.sub(solver.solve(b) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
+            });
         });
-        test('LL', () => {
-            let solver = new linSolvers.LLT();
-            expect(() => solver.factorize(Q)).not.toThrow();
-            expect(Vector.sub(solver.solve(b), x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
-        });
-        test('LDL', () => {
-            let solver = new linSolvers.LDLT(SmallTolerance);
-            expect(() => solver.factorize(Q)).not.toThrow();
-            expect(Vector.sub(solver.solve(b), x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
-        });
-        test('PPLU', () => {
-            let solve = new linSolvers.PartialPivLU(Q, SmallTolerance);
-            //solve.factorize();
-
-        });
-        test('FPLU', () => {
-
-        });
-        test('gauss-zeidel', () => {
-            let result = linSolvers.gaussSeidel.solve(Q, b, 30, SmallTolerance);
-            expect(Vector.sub(result, x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
-        });
-        test('jacobi', () => {
-            let result = linSolvers.jacobi.solve(Q, b, 30, SmallTolerance);
-            expect(Vector.sub(result, x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
-        });
-        test('sor', () => {
-            let result = linSolvers.sor.solve(Q, b, 30, 1.0, SmallTolerance);
-            expect(Vector.sub(result, x).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
-        });
-    });
-
-    describe('Iterative', () => {
-        test('gauss-zeidel', () => {
-        });
-        test('jacobi', () => {
-
-        });
-        test('sor', () => {
-
-        });
-        test('ConjGrad', () => {
+        describe('Test solvers', ()=>{
+            test('ConjGrad', () => {
+                let result = linSolvers.CG.solve(Q, b);
+                expect(Vector.lInfDistance(result, testCase.exactSolution)).toBeLessThanOrEqual(SmallTolerance);
+            });
+            test('gauss-zeidel', () => {
+                let result = linSolvers.gaussSeidel.solve(Q, b, 30, SmallTolerance);
+                expect(Vector.lInfDistance(result, testCase.exactSolution)).toBeLessThanOrEqual(SmallTolerance);
+            });
+            test('jacobi', () => {
+                let result = linSolvers.jacobi.solve(Q, b, 30, SmallTolerance);
+                expect(Vector.lInfDistance(result, testCase.exactSolution)).toBeLessThanOrEqual(SmallTolerance);
+            });
+            test('sor', () => {
+                let result = linSolvers.sor.solve(Q, b, 30, 1.0, SmallTolerance);
+                expect(Vector.lInfDistance(result, testCase.exactSolution)).toBeLessThanOrEqual(SmallTolerance);
+            });
         });
     });
-
-    describe('Decompositions', () => {
-        test('PartialPivLU', () => {
-            for (let testExample of testExamples) {
-                expect(Vector.near(linSolvers.PartialPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
+    describe.each(tests.general)('General matrices', (testCase:TestCase)=>{
+        describe('Factorizations', ()=>{
+            test('PartialPivLU', () => {
+                expect(Vector.near(linSolvers.PartialPivLU.solve(testCase.m.clone(), testCase.rhs.clone(), SmallTolerance), testCase.exactSolution, Tolerance)).toBeTruthy();
                 // test decomposition
-                let luSolver = new linSolvers.PartialPivLU(testExample.m);
-                let PT = luSolver.P().transpose();
-                let PTLU = Matrix.mul(PT, Matrix.mul(luSolver.L().toMatrix(), luSolver.U().toMatrix()));
+                let luSolver = new linSolvers.PartialPivLU(testCase.m);
+                let PT = luSolver.P.inverse().toMatrix();
+                let PTLU = Matrix.mul(PT, Matrix.mul(luSolver.L.toMatrix(), luSolver.U.toMatrix()));
                 expect(Math.abs(PT.determinantNaive())).toBeCloseTo(1);
-                expect(Matrix.near(PTLU, testExample.m));
+                expect(Matrix.near(PTLU, testCase.m));
 
-                expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testExample.m.clone(), Matrix.identity(testExample.m.height())), testExample.m.inverseNaive()));
-            }
-        });
-
-        test('FullPivLU', () => {
-            for (let testExample of testExamples) {
-                expect(Vector.near(linSolvers.FullPivLU.solve(testExample.m.clone(), testExample.rhs.clone(), SmallTolerance), testExample.exactSolution, Tolerance)).toBeTruthy();
+                expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testCase.m.clone(), Matrix.identity(testCase.m.height())), testCase.m.inverseNaive()));
+            });
+            test('FullPivLU', () => {
+                expect(Vector.near(linSolvers.FullPivLU.solve(testCase.m.clone(), testCase.rhs.clone(), SmallTolerance), testCase.exactSolution, Tolerance)).toBeTruthy();
                 // test decomposition
-                let luSolver = new linSolvers.FullPivLU(testExample.m);
-                let PT = luSolver.P().transpose();
-                let QT = luSolver.Q().transpose();
-                let PTLUQT = Matrix.mul(Matrix.mul(PT, Matrix.mul(luSolver.L().toMatrix(), luSolver.U().toMatrix())), QT);
+                let luSolver = new linSolvers.FullPivLU(testCase.m);
+                let PT = luSolver.P.inverse().toMatrix();
+                let QT = luSolver.Q.inverse().toMatrix();
+                let PTLUQT = Matrix.mul(Matrix.mul(PT, Matrix.mul(luSolver.L.toMatrix(), luSolver.U.toMatrix())), QT);
                 expect(Math.abs(PT.determinantNaive())).toBeCloseTo(1);
                 expect(Math.abs(QT.determinantNaive())).toBeCloseTo(1);
-                expect(Matrix.near(PTLUQT, testExample.m));
+                expect(Matrix.near(PTLUQT, testCase.m));
 
-                expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testExample.m.clone(), Matrix.identity(testExample.m.height())), testExample.m.inverseNaive()));
-            }
-        });
-        test('LL', () => {
+                expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testCase.m.clone(), Matrix.identity(testCase.m.height())), testCase.m.inverseNaive()));
+            });
 
         });
-        test('LDL', () => {
-
+        describe('Iterative', () => {
+            test('gauss-zeidel', () => {
+            });
+            test('jacobi', () => {
+    
+            });
+            test('sor', () => {
+    
+            });
+            test('ConjGrad', () => {
+            });
         });
     });
 });

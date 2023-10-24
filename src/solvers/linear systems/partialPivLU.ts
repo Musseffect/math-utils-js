@@ -15,7 +15,26 @@ export default class PartialPivLU {
     private p: PermutationMatrix;
     private A: Matrix;
     private _tolerance: number = SmallestTolerance;
-    private decompose(A: Matrix | null): void {
+    constructor(A: Matrix | null = null, tolerance: number = SmallTolerance) {
+        this.tolerance = tolerance;
+        this.factorize(A);
+    }
+    get L(): TriMatrixView {
+        return new TriMatrixView(this.lu, TriMatrixType.lower, DiagonalType.Unit);
+    }
+    get U(): TriMatrixView {
+        return new TriMatrixView(this.lu, TriMatrixType.upper, DiagonalType.Existing);
+    }
+    get LU(): Matrix {
+        return this.lu;
+    }
+    get P(): PermutationMatrix {
+        return this.p;
+    }
+    set tolerance(value: number) {
+        this._tolerance = value;
+    }
+    public factorize(A: Matrix | null): void {
         this.A = A;
         this.lu = null;
         this.p = null;
@@ -54,26 +73,6 @@ export default class PartialPivLU {
             }
         }
         this.lu = lu;
-    }
-    get L(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.lower, DiagonalType.Unit);
-    }
-    get U(): TriMatrixView {
-        return new TriMatrixView(this.lu, TriMatrixType.upper, DiagonalType.Existing);
-    }
-    get LU(): Matrix {
-        return this.lu;
-    }
-    get P(): PermutationMatrix {
-        return this.p;
-    }
-    set tolerance(value: number) {
-        this._tolerance = value;
-    }
-    constructor(A: Matrix | null = null, tolerance: number = SmallTolerance) {
-        this.tolerance = tolerance;
-        this.A = A;
-        this.decompose(A);
     }
     static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance): Matrix {
         assert(A.height() == B.height(), "Not determined system");

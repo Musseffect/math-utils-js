@@ -22,7 +22,7 @@ export default class FullPivLU {
     protected _rank: number;
     constructor(A: Matrix | null = null, tolerance: number = SmallestTolerance) {
         this.tolerance = tolerance;
-        this.decompose(A);
+        this.factorize(A);
     }
     set tolerance(value: number) {
         this._tolerance = value;
@@ -39,13 +39,13 @@ export default class FullPivLU {
     get LU(): Matrix {
         return this.lu;
     }
-    get Q(): Matrix {
-        return this.q.toMatrix();
+    get Q(): PermutationMatrix {
+        return this.q;
     }
-    get P(): Matrix {
-        return this.p.toMatrix();
+    get P(): PermutationMatrix {
+        return this.p;
     }
-    public decompose(A: Matrix | null): void {
+    public factorize(A: Matrix | null): void {
         this.A = A;
         this.lu = null;
         this.p = null;
@@ -105,7 +105,7 @@ export default class FullPivLU {
         }
         lu = this.lu;
     }
-    solver(rhs: Matrix | Vector): Vector {
+    solve(rhs: Matrix | Vector): Vector {
         assert(this.A != null, "Decomposition is not available");
         if (rhs instanceof Matrix) {
             assert(this.A._numRows == rhs._numRows, "Incompatible RHS");
