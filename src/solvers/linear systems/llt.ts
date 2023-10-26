@@ -30,16 +30,16 @@ export default class LLT {
             for (let column = 0; column <= row; ++column) {
                 let value = llt.get(row, column);
                 for (let k = 0; k < column; ++k)
-                    value -= llt.get(row, k) * this.llt.get(column, k);
+                    value -= llt.get(row, k) * llt.get(column, k);
                 if (row == column) {
                     if (value < this._tolerance) throw new NotPositiveDefiniteMatrixException(SolverName);
                     value = Math.sqrt(value);
                     llt.set(row, row, value);
                 }
                 else {
-                    value = value / this.llt.get(column, column);
-                    this.llt.set(row, column, value);
-                    this.llt.set(column, row, value);
+                    value = value / llt.get(column, column);
+                    llt.set(row, column, value);
+                    llt.set(column, row, value);
                 }
             }
         }

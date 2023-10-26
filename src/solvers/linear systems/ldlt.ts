@@ -16,7 +16,7 @@ class TriangularMatrix {
     get(row: number, col: number) {
         let i = this.isLower ? row : col;
         let j = this.isLower ? col : row;
-        if (i >= j) return 0.0;
+        if (j > i) return 0.0;
         return this.data[(i * (i + 1)) / 2 + j];
     }
     set(row: number, col: number, value: number) {
@@ -35,6 +35,15 @@ class TriangularMatrix {
         let result = 1;
         for (let i = 0; i < this.size; ++i)
             result *= this.get(i, i);
+        return result;
+    }
+    toMatrix(): Matrix {
+        let result = Matrix.empty(this.size, this.size);
+        for (let i = 0; i < this.size; ++i) {
+            for (let j = 0; j < this.size; ++j) {
+                result.set(i, j, this.get(i, j)) ;
+            }
+        }
         return result;
     }
 }
@@ -63,7 +72,7 @@ export default class LDLT {
             }
             let value = A.get(row, row);
             for (let i = 0; i < row; ++i)
-                value -= ldlt.get(row, i) * ldlt.get(row, i) * ldlt.get(row, row);
+                value -= ldlt.get(row, i) * ldlt.get(row, i) * ldlt.get(i, i);
             ldlt.set(row, row, value);
         }
         this.ldlt = ldlt;
@@ -77,13 +86,15 @@ export default class LDLT {
                     let value = rhs.get(row, column);
                     for (let col = 0; col < row; ++col)
                         value -= this.ldlt.get(row, col) * rhs.get(col, column);
-                    value /= this.ldlt.get(row, row);
                     rhs.set(row, column, value);
                 }
+                for (let row = 0; row < size; ++row)
+                    rhs.set(row, column, rhs.get(row, column) / this.ldlt.get(row, row));
                 for (let row = size - 1; row >= 0; --row) {
                     let value = rhs.get(row, column);
+                    // pay attention to ldlt.get(col, row) order of indices
                     for (let col = row + 1; col < size; ++col)
-                        value -= this.ldlt.get(row, col) * rhs.get(col, column);
+                        value -= this.ldlt.get(col, row) * rhs.get(col, column);
                     rhs.set(row, column, value);
                 }
             }
@@ -93,13 +104,14 @@ export default class LDLT {
                 let value = rhs.get(row);
                 for (let col = 0; col < row; ++col)
                     value -= this.ldlt.get(row, col) * rhs.get(col);
-                value /= this.ldlt.get(row, row);
                 rhs.set(row, value);
             }
+            for (let row = 0; row < size; ++row)
+                rhs.set(row, rhs.get(row) / this.ldlt.get(row, row));
             for (let row = size - 1; row >= 0; --row) {
                 let value = rhs.get(row);
                 for (let col = row + 1; col < size; ++col)
-                    value -= this.ldlt.get(row, col) * rhs.get(col);
+                    value -= this.ldlt.get(col, row) * rhs.get(col);
                 rhs.set(row, value);
             }
         }

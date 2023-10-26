@@ -31,9 +31,6 @@ export default class CG {
         }
         throw new ConvergenseFailureException(SolverName);
     }
-    static solveAsymmetric(A: Matrix, b: Vector, maxIterations: number = 20, tolerance: number = SmallTolerance): Vector {
-        //ATAx=Atb
-    }
     /*
     static solveSparse(A: SparseMatrix, b:Vector, maxIterations:number = 20, tolerance: number = SmallTolerance):Vector
     {

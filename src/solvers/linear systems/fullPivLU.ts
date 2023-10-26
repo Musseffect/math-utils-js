@@ -65,7 +65,7 @@ export default class FullPivLU {
         this.q = PermutationMatrix.identity(this.A._numCols, false);
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
-        for (let step = 0; step < this.lu._numRows; step++) {
+        for (let step = 0; step < lu._numRows; step++) {
             let maxPivotRow = step;
             let maxPivotColumn = step;
             let maxPivot = lu.get(step, step);
@@ -81,6 +81,7 @@ export default class FullPivLU {
             }
             if (Math.abs(maxPivot) < this._tolerance) {
                 this._rank = step;
+                // todo: figure out what to do here
                 this.lu = lu;
                 return;
             }

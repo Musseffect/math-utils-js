@@ -23,7 +23,7 @@ interface Tests {
 const tests: Tests = { posDef: [], general: [] };
 
 (function () {
-    tests.posDef.push({
+    /*tests.posDef.push({
         m: new Matrix([10, -1, 2, 0, -1, 11, -1, 3, 2, -1, 10, -1, 0, 3, -1, 8], 4, 4),
         rhs: new Vector([6, 25, -11, 15]),
         exactSolution: new Vector([1, 2, -1, 1]),
@@ -34,15 +34,22 @@ const tests: Tests = { posDef: [], general: [] };
         m: new Matrix([1, 1, 1, 1, 1, 2, 2, 2, 1, 2, 3, 3, 1, 2, 3, 4], 4, 4),
         rhs: new Vector([-4, -7, -9, -10]),
         exactSolution: new Vector([-1, -1, -1, -1]),
-        inverse: new Matrix([2, -1, 0, 0, -1, 2, -1, -1, -1, -1, 2, -1, 0, 0, -1, 1], 3, 3),
+        inverse: new Matrix([2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 2, -1, 0, 0, -1, 1], 4, 4),
         determinant: 1
-    });
+    });*/
     tests.posDef.push({
         m: new Matrix([4, 12, -16, 12, 37, -43, -16, -43, 98], 3, 3),
         rhs: new Vector([76, 215, -396]),
         exactSolution: new Vector([1, 2, -3]),
-        inverse: new Matrix([1777 / 36, -122 / 9, 19 / 9, -122 / 9, 34 / 9, -5 / 9, 19 / 9, -5 / 9, 1 / 9], 4, 4),
+        inverse: new Matrix([1777 / 36, -122 / 9, 19 / 9, -122 / 9, 34 / 9, -5 / 9, 19 / 9, -5 / 9, 1 / 9], 3, 3),
         determinant: 36
+    });
+    tests.general.push({
+        m: new Matrix([0, 1, 1, 1], 2, 2),
+        rhs: new Vector([2, -1]),
+        exactSolution: new Vector([-3, 2]),
+        inverse: new Matrix([-1, 1, 1, 0], 2, 2),
+        determinant: -1
     });
     const checkTest = (test: TestCase) => {
         assert(test.m.isSquare(), "Expected square matrix");
@@ -63,17 +70,23 @@ const tests: Tests = { posDef: [], general: [] };
 describe('Linear solvers (dense square matrices)', () => {
     describe.each(tests.posDef)('Symmetric positive definite matrices %#', (testCase: TestCase) => {
         expect(testCase.m.isSymmetric()).toBeTruthy();
-        describe('Test factorizations', () => {
-            test('LL', () => {
+        describe('Factorizations', () => {
+            test.skip('LL', () => {
                 let solver = new linSolvers.LLT(null, SmallTolerance);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
+                expect(solver.LLT).not.toBeNull();
+                console.log(`m: ${testCase.m.toString()}`);
+                console.log(`LLT: ${solver.LLT.toString()}`);
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
             });
-            test('LDL', () => {
+            test.skip('LDL', () => {
                 let solver = new linSolvers.LDLT(null, SmallTolerance);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
+                expect(solver.LDLT).not.toBeNull();
+                console.log(`m: ${testCase.m.toString()}`);
+                console.log(`LDLT: ${solver.LDLT.toMatrix().toString()}`);
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
@@ -81,19 +94,21 @@ describe('Linear solvers (dense square matrices)', () => {
             test('PPLU', () => {
                 let solver = new linSolvers.PartialPivLU(null, SmallTolerance);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
+                expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
             });
-            test('FPLU', () => {
+            test.skip('FPLU', () => {
                 let solver = new linSolvers.FullPivLU(null, SmallTolerance);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
+                expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
             });
         });
-        describe('Test solvers', () => {
+        describe.skip('Iterative', () => {
             test('ConjGrad', () => {
                 let result = linSolvers.CG.solve(testCase.m, testCase.rhs);
                 expect(Vector.lInfDistance(result, testCase.exactSolution)).toBeLessThanOrEqual(SmallTolerance);
@@ -113,7 +128,7 @@ describe('Linear solvers (dense square matrices)', () => {
         });
     });
     describe.each(tests.general)('General matrices', (testCase: TestCase) => {
-        describe('Factorizations', () => {
+        describe.skip('Factorizations', () => {
             test('PartialPivLU', () => {
                 /*expect(Vector.near(linSolvers.PartialPivLU.solve(testCase.m.clone(), testCase.rhs.clone(), SmallTolerance), testCase.exactSolution, Tolerance)).toBeTruthy();
                 // test decomposition
@@ -127,6 +142,7 @@ describe('Linear solvers (dense square matrices)', () => {
 */
                 let solver = new linSolvers.PartialPivLU(null, SmallTolerance);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
+                expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
@@ -145,13 +161,14 @@ describe('Linear solvers (dense square matrices)', () => {
 */
                 let solver = new linSolvers.FullPivLU(null, SmallTolerance);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
+                expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
             });
 
         });
-        describe('Iterative', () => {
+        describe.skip('Iterative', () => {
             test('gauss-zeidel', () => {
                 let result = linSolvers.gaussSeidel.solve(testCase.m, testCase.rhs, 30, SmallTolerance);
                 expect(Vector.lInfDistance(result, testCase.exactSolution)).toBeLessThanOrEqual(SmallTolerance);

@@ -44,7 +44,7 @@ export default class PartialPivLU {
         this.p = PermutationMatrix.identity(this.A._numRows, true);
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
-        for (let step = 0; step < this.lu._numRows; step++) {
+        for (let step = 0; step < lu._numRows; step++) {
             let maxPivotRow = step;
             let maxPivotColumn = step;
             let maxPivot = lu.get(step, step);

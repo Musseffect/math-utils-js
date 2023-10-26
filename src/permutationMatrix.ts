@@ -22,7 +22,7 @@ export default class PermutationMatrix {
         return new PermutationMatrix(this.permutations.slice(), this._isRow);
     }
     isRow() {
-        return this.isRow;
+        return this._isRow;
     }
     swap(i: number, j: number) {
         swap(this.permutations, i, j);
@@ -59,7 +59,7 @@ export default class PermutationMatrix {
     static inverse(permutations: number[]): number[] {
         let values = new Array(permutations.length);
         permutations.forEach((v, i) => {
-            values[i] = v;
+            values[v] = i;
         });
         return values;
     }
@@ -75,33 +75,33 @@ export default class PermutationMatrix {
     permuteVector(v: Vector): Vector {
         let result = v.clone();
         for (let i = 0; i < result.size(); ++i)
-            result.set(i, v.get(i));
+            result.set(i, v.get(this.value(i)));
         return result;
     }
     permuteMatrix(m: Matrix): Matrix {
         let result = m.clone();
         for (let i = 0; i < result.numCols(); ++i) {
             for (let j = 0; j < result.numRows(); ++j) {
-                let { row, column } = this.permuteIndex(j, i);
+                let { row, column } = this.unpermuteIndex(j, i);
                 result.set(j, i, m.get(row, column));
             }
         }
         return result;
     }
     permuteIndex(row: number, column: number) {
-        if (this.isRow)
+        if (this.isRow())
             row = this.findIndexByValue(row);
         else column = this.findIndexByValue(column);
         return { row, column };
     }
     unpermuteIndex(row: number, column: number) {
-        if (this.isRow)
+        if (this.isRow())
             row = this.permutations[row];
         else column = this.permutations[column];
         return { row, column };
     }
     get(row: number, column: number): number {
-        if (this.isRow) {
+        if (this.isRow()) {
             if (column == this.permutations[row]) return 1;
         } else {
             if (row == this.permutations[column]) return 1;
@@ -112,7 +112,7 @@ export default class PermutationMatrix {
         let m: Matrix = Matrix.empty(this.permutations.length, this.permutations.length);
         for (let i = 0; i < this.permutations.length; ++i) {
             const index = this.permutations[i];
-            if (this.isRow)
+            if (this.isRow())
                 m.set(i, index, 1);
             else
                 m.set(index, i, 1)
@@ -123,7 +123,7 @@ export default class PermutationMatrix {
         let triplets: Triplet[] = [];
         for (let i = 0; i < this.permutations.length; ++i) {
             const index = this.permutations[i];
-            if (this.isRow)
+            if (this.isRow())
                 triplets.push({ row: i, column: index, value: 1 });
             else
                 triplets.push({ row: index, column: i, value: 1 });

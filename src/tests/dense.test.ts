@@ -153,7 +153,7 @@ describe.skip('Dense tests', () => {
         let mat = m4D.toMatrix();
         let rhs = p4D.toVector();
         expect(Vector.near(Matrix.postMulVec(mat, rhs), m4D.postMulVec(p4D).toVector(), SmallTolerance)).toBeTruthy();
-        expect(Vector.near(Matrix.preMulVec(mat, rhs), m4D.preMulVec(p4D).toVector(), SmallTolerance)).toBeTruthy();
+        expect(Vector.near(Matrix.preMulVec(rhs, mat), m4D.preMulVec(p4D).toVector(), SmallTolerance)).toBeTruthy();
 
         //expect(new Matrix([1, 2, 3, 4], 2, 2).determinantNaive()).toBeCloseTo(-2.0);
 

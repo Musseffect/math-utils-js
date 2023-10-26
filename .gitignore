@@ -6,4 +6,6 @@ dist/index.html
 
 /dist
 
+/coverage
+
 .vs
