@@ -6,6 +6,42 @@ import Vector from "./vector";
 
 // row permutation - pre multiplied, col permutation - post multiplied
 export default class PermutationMatrix {
+    permuteInplace(obj: Matrix | Vector) {
+        let elementAtPosition = Array(this.permutations.length);
+        let positionOfElement = Array(this.permutations.length);
+        for (let i = 0; i < this.permutations.length; ++i) {
+            elementAtPosition[i] = i;
+            positionOfElement[i] = i;
+        }
+        if (obj instanceof Matrix) {
+            if (this.isRow())
+                assert(obj.numRows() == this.permutations.length, "Incompatible sizes");
+            else
+                assert(obj.numCols() == this.permutations.length, "Incompatible sizes");
+        } else {
+
+            assert(obj.size() == this.permutations.length, "Incompatible sizes");
+        }
+        for (let i = 0; i < this.permutations.length; ++i) {
+            let curElementIdx = this.permutations[i];
+            let curElementPos = positionOfElement[curElementIdx];
+            let otherElementIdx = elementAtPosition[i];
+            if (obj instanceof Matrix) {
+                if (this.isRow())
+                    obj.swapRows(i, curElementPos);
+                else
+                    obj.swapColumns(i, curElementPos);
+            }
+            else {
+                obj.swap(i, curElementPos);
+            }
+            positionOfElement[otherElementIdx] = curElementPos;
+            elementAtPosition[i] = curElementIdx;
+            positionOfElement[curElementIdx] = i;
+            elementAtPosition[curElementIdx] = otherElementIdx;
+        }
+        return obj;
+    }
     private permutations: number[];
     private _isRow: boolean;
     constructor(permutations: number[], isRow: boolean) {

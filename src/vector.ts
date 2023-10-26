@@ -1,5 +1,5 @@
 import Matrix from "./denseMatrix";
-import { assert, clamp, Tolerance, SmallestTolerance } from "./utils";
+import { assert, clamp, Tolerance, SmallestTolerance, swap } from "./utils";
 
 function reduceVectorsDiff(a: Vector, b: Vector, f: (prev: number, cur: number) => number) {
     assert(a.size() == b.size(), "Sizes don't match");
@@ -10,6 +10,10 @@ function reduceVectorsDiff(a: Vector, b: Vector, f: (prev: number, cur: number) 
 }
 
 export default class Vector {
+    swap(firstIdx: number, secondIdx: number) {
+        if (firstIdx != secondIdx)
+            swap(this.data, firstIdx, secondIdx);
+    }
     data: number[];
     constructor(data: number[]) {
         this.data = data;

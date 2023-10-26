@@ -44,18 +44,14 @@ export default class PartialPivLU {
         this.p = PermutationMatrix.identity(this.A._numRows, true);
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
-        for (let step = 0; step < lu._numRows; step++) {
+        for (let step = 0; step + 1 < lu._numRows; step++) {
             let maxPivotRow = step;
-            let maxPivotColumn = step;
             let maxPivot = lu.get(step, step);
             for (let row = step; row < lu._numRows; ++row) {
-                for (let column = step; column < lu._numCols; ++column) {
-                    let value = lu.get(row, column);
-                    if (Math.abs(value) > Math.abs(maxPivot)) {
-                        maxPivotRow = row;
-                        maxPivotColumn = column;
-                        maxPivot = value;
-                    }
+                let value = lu.get(row, step);
+                if (Math.abs(value) > Math.abs(maxPivot)) {
+                    maxPivotRow = row;
+                    maxPivot = value;
                 }
             }
             if (Math.abs(maxPivot) < this._tolerance)
@@ -65,47 +61,52 @@ export default class PartialPivLU {
 
             lu.swapRows(step, maxPivotRow);
 
-            let ratio = lu.get(step, step) / maxPivot;
             for (let row = step + 1; row < lu._numRows; row++) {
+                let ratio = lu.get(row, step) / maxPivot;
                 for (let column = step + 1; column < lu._numCols; column++)
-                    lu.set(row, column, lu.get(row, column) - ratio * lu.get(row, step));
-                lu.set(step, maxPivotColumn, ratio);
+                    lu.set(row, column, lu.get(row, column) - ratio * lu.get(step, column));
+                lu.set(row, step, ratio);
             }
+            console.log(`Result LU at step ${step} ${lu.toString()}`);
         }
+        console.log(`Result P ${this.p.toMatrix()} ${this.p.array()}`)
         this.lu = lu;
     }
     solveInplace(rhs: Matrix | Vector): Matrix | Vector {
         let size = this.LU.width();
         if (rhs instanceof Matrix) {
             assert(rhs.height() == size, "Incompatible RHS");
+            this.p.permuteInplace(rhs);
             for (let column = 0; column < rhs.width(); ++column) {
                 for (let row = 0; row < size; ++row) {
                     let value = rhs.get(row, column);
                     for (let col = 0; col < row; ++col)
-                        value -= rhs.get(this.p.value(column), column) * this.LU.get(row, col);
-                    rhs.set(this.p.value(row), column, value);
+                        value -= rhs.get(column, column) * this.LU.get(row, col);
+                    rhs.set(row, column, value);
                 }
                 for (let row = size - 1; row >= 0; --row) {
                     let value = rhs.get(row, column);
                     for (let col = row + 1; col < size; ++col)
-                        value -= rhs.get(this.p.value(column), column) * this.LU.get(row, col);
-                    rhs.set(this.p.value(row), column, value / this.LU.get(row, row));
+                        value -= rhs.get(column, column) * this.LU.get(row, col);
+                    rhs.set(row, column, value / this.LU.get(row, row));
                 }
             }
         } else {
             assert(rhs.size() == size, "Incompatible RHS");
+            this.p.permuteInplace(rhs);
             for (let row = 0; row < size; ++row) {
                 let value = rhs.get(row);
                 for (let col = 0; col < row; ++col)
-                    value -= rhs.get(this.p.value(col)) * this.LU.get(row, col);
-                rhs.set(this.p.value(row), value);
+                    value -= rhs.get(col) * this.LU.get(row, col);
+                rhs.set(row, value);
             }
             for (let row = size - 1; row >= 0; --row) {
                 let value = rhs.get(row);
                 for (let col = row + 1; col < size; ++col)
-                    value -= rhs.get(this.p.value(col)) * this.LU.get(row, col);
-                rhs.set(this.p.value(row), value / this.LU.get(row, row));
+                    value -= rhs.get(col) * this.LU.get(row, col);
+                rhs.set(row, value / this.LU.get(row, row));
             }
+            console.log(`Rhs ${rhs.toString()}`);
         }
         return rhs;
     }

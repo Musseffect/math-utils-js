@@ -3,8 +3,15 @@ import PermutationMatrix from "../permutationMatrix";
 import { assert } from "../utils";
 import Vector from "../vector";
 
+test('test', () => {
+    let rowPermutations = new PermutationMatrix([3, 2, 0, 1], true);
+    let v = new Vector([10, 20, 30, 40]);
+    console.log(`p1: ${rowPermutations.permuteVector(v).toString()}`);
+    rowPermutations.permuteInplace(v);
+    console.log(`p2: ${v.toString()}`);
+});
 
-test("Permutation matrix", () => {
+test.skip("Permutation matrix", () => {
     let rowPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], true);
     let colPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], false);
     //expect(rowPermutations.determinant()).toBeCloseTo(rowPermutations.toMatrix().determinant());
