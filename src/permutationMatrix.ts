@@ -4,17 +4,23 @@ import Triplet from "./triplet";
 import { assert, swap } from "./utils";
 import Vector from "./vector";
 
+export enum PermutationType {
+    Row = 1,
+    Col = 0
+}
+
 // row permutation - pre multiplied, col permutation - post multiplied
-export default class PermutationMatrix {
-    permuteInplace(obj: Matrix | Vector) {
+export class PermutationMatrix {
+    permuteInplace(obj: Matrix | Vector, type?: PermutationType) {
         let elementAtPosition = Array(this.permutations.length);
         let positionOfElement = Array(this.permutations.length);
         for (let i = 0; i < this.permutations.length; ++i) {
             elementAtPosition[i] = i;
             positionOfElement[i] = i;
         }
+        if (type === undefined) type = this._type;
         if (obj instanceof Matrix) {
-            if (this.isRow())
+            if (type == PermutationType.Row)
                 assert(obj.numRows() == this.permutations.length, "Incompatible sizes");
             else
                 assert(obj.numCols() == this.permutations.length, "Incompatible sizes");
@@ -27,7 +33,7 @@ export default class PermutationMatrix {
             let curElementPos = positionOfElement[curElementIdx];
             let otherElementIdx = elementAtPosition[i];
             if (obj instanceof Matrix) {
-                if (this.isRow())
+                if (type)
                     obj.swapRows(i, curElementPos);
                 else
                     obj.swapColumns(i, curElementPos);
@@ -43,22 +49,25 @@ export default class PermutationMatrix {
         return obj;
     }
     private permutations: number[];
-    private _isRow: boolean;
-    constructor(permutations: number[], isRow: boolean) {
+    private _type: PermutationType;
+    constructor(permutations: number[], type: PermutationType) {
         this.permutations = permutations.slice();
-        this._isRow = isRow;
+        this.type = type;
     }
-    static identity(size: number, isRow: boolean): PermutationMatrix {
+    static identity(size: number, type: PermutationType): PermutationMatrix {
         let data = Array(size);
         for (let i = 0; i < size; ++i)
             data[i] = i;
-        return new PermutationMatrix(data, isRow);
+        return new PermutationMatrix(data, type);
     }
     clone(): PermutationMatrix {
-        return new PermutationMatrix(this.permutations.slice(), this._isRow);
+        return new PermutationMatrix(this.permutations.slice(), this._type);
     }
-    isRow() {
-        return this._isRow;
+    get type() {
+        return this._type;
+    }
+    protected set type(value: PermutationType) {
+        this._type = value;
     }
     swap(i: number, j: number) {
         swap(this.permutations, i, j);
@@ -103,7 +112,7 @@ export default class PermutationMatrix {
         return this.permutations[i];
     }
     inverse(): PermutationMatrix {
-        return new PermutationMatrix(PermutationMatrix.inverse(this.permutations), this._isRow);
+        return new PermutationMatrix(PermutationMatrix.inverse(this.permutations), this._type);
     }
     array(): number[] {
         return this.permutations;
@@ -125,19 +134,19 @@ export default class PermutationMatrix {
         return result;
     }
     permuteIndex(row: number, column: number) {
-        if (this.isRow())
+        if (this.type)
             row = this.findIndexByValue(row);
         else column = this.findIndexByValue(column);
         return { row, column };
     }
     unpermuteIndex(row: number, column: number) {
-        if (this.isRow())
+        if (this.type)
             row = this.permutations[row];
         else column = this.permutations[column];
         return { row, column };
     }
     get(row: number, column: number): number {
-        if (this.isRow()) {
+        if (this.type) {
             if (column == this.permutations[row]) return 1;
         } else {
             if (row == this.permutations[column]) return 1;
@@ -148,7 +157,7 @@ export default class PermutationMatrix {
         let m: Matrix = Matrix.empty(this.permutations.length, this.permutations.length);
         for (let i = 0; i < this.permutations.length; ++i) {
             const index = this.permutations[i];
-            if (this.isRow())
+            if (this.type)
                 m.set(i, index, 1);
             else
                 m.set(index, i, 1)
@@ -159,7 +168,7 @@ export default class PermutationMatrix {
         let triplets: Triplet[] = [];
         for (let i = 0; i < this.permutations.length; ++i) {
             const index = this.permutations[i];
-            if (this.isRow())
+            if (this.type)
                 triplets.push({ row: i, column: index, value: 1 });
             else
                 triplets.push({ row: index, column: i, value: 1 });

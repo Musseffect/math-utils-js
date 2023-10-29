@@ -1,8 +1,9 @@
 import Matrix from "../../denseMatrix";
-import PermutationMatrix from "../../permutationMatrix";
+import { PermutationType, PermutationMatrix } from "../../permutationMatrix";
 import { assert, SmallestTolerance, SmallTolerance, swap } from "../../utils";
 import Vector from "../../vector";
 import { DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
+import { InsufficientRankException } from "./exceptions";
 
 const SolverName = "'PartialPivLU'";
 
@@ -41,7 +42,7 @@ export default class PartialPivLU {
         if (A == null)
             return;
         assert(A.isSquare(), "Non-square matrix");
-        this.p = PermutationMatrix.identity(this.A._numRows, true);
+        this.p = PermutationMatrix.identity(this.A._numRows, PermutationType.Row);
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
         for (let step = 0; step + 1 < lu._numRows; step++) {
@@ -138,6 +139,8 @@ export default class PartialPivLU {
                     maxPivotValue = value;
                 }
             }
+
+            if (maxPivotValue < tolerance) throw new InsufficientRankException(SolverName, step);
 
             swap(permutations, step, maxPivotRow);
 

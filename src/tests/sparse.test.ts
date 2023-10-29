@@ -1,5 +1,5 @@
 import Matrix from "../denseMatrix";
-import PermutationMatrix from "../permutationMatrix";
+import { PermutationType, PermutationMatrix } from "../permutationMatrix";
 import SparseMatrix from "../sparseMatrix";
 import SparseVector from "../sparseVector";
 import Triplet from "../triplet";
@@ -99,7 +99,7 @@ test.skip("General sparse matrix", () => {
     expect(Matrix.lInfDistance(nonSingularSparseMatrix.toDense(), nonSingularDenseMatrix)).toBeCloseTo(0.0);
 
     expect(SparseMatrix.near(SparseMatrix.identity(10).inverse(), SparseMatrix.identity(10))).toBeTruthy();
-    let permutationMatrix = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], true);
+    let permutationMatrix = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], PermutationType.Row);
     assert(permutationMatrix.isValid(), "Invalid permutation");
     expect(SparseMatrix.near(permutationMatrix.toSparseMatrix().inverse(), permutationMatrix.inverse().toSparseMatrix()));
     //expect(Math.abs(permutationMatrix.toSparseMatrix().determinant())).toBeCloseTo(1.0);

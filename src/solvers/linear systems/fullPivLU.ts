@@ -1,5 +1,5 @@
 import Matrix from "../../denseMatrix";
-import PermutationMatrix from "../../permutationMatrix";
+import { PermutationType, PermutationMatrix } from "../../permutationMatrix";
 import { DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
 import { assert, SmallestTolerance, SmallTolerance, swap } from "../../utils";
 import Vector from "../../vector";
@@ -61,8 +61,8 @@ export default class FullPivLU {
         if (A == null)
             return;
         assert(A.isSquare(), "Non-square matrix");
-        this.p = PermutationMatrix.identity(this.A._numRows, true);
-        this.q = PermutationMatrix.identity(this.A._numCols, false);
+        this.p = PermutationMatrix.identity(this.A._numRows, PermutationType.Row);
+        this.q = PermutationMatrix.identity(this.A._numCols, PermutationType.Col);
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
         for (let step = 0; step + 1 < lu._numRows; step++) {
@@ -112,7 +112,7 @@ export default class FullPivLU {
             // console.log(`Result Rhs ${Rhs.toString()}`)
             // console.log(`Result permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
         }
-        lu = this.lu;
+        this.lu = lu;
     }
     solveInplace(rhs: Matrix | Vector): Matrix | Vector {
         assert(this.A != null, "Factorization is not available");
@@ -150,7 +150,7 @@ export default class FullPivLU {
                 rhs.set(row, value / this.LU.get(row, row));
             }
         }
-        return rhs;
+        return this.q.permuteInplace(rhs, PermutationType.Row);
     }
     solve(rhs: Matrix | Vector): Matrix | Vector {
         if (rhs instanceof Matrix)
@@ -205,8 +205,8 @@ export default class FullPivLU {
             let stepRowIdx = rowIdx(step);
 
             console.log(`Initial LU ${LU.toString()}`)
-            const rowMat = new PermutationMatrix(rowPermutations, true).toMatrix();
-            const colMat = new PermutationMatrix(columnPermutations, false).toMatrix();
+            const rowMat = new PermutationMatrix(rowPermutations, PermutationType.Row).toMatrix();
+            const colMat = new PermutationMatrix(columnPermutations, PermutationType.Col).toMatrix();
             console.log(`Initial permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
             console.log(`Initial Rhs ${Rhs.toString()}`)
             console.log(`Initial permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);

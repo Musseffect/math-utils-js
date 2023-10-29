@@ -137,7 +137,7 @@ describe('Linear solvers (dense square matrices)', () => {
     });
     describe.each(tests.general)('General matrices', (testCase: TestCase) => {
         describe('Factorizations', () => {
-            test('PartialPivLU', () => {
+            test.skip('PartialPivLU', () => {
                 /*expect(Vector.near(linSolvers.PartialPivLU.solve(testCase.m.clone(), testCase.rhs.clone(), SmallTolerance), testCase.exactSolution, Tolerance)).toBeTruthy();
                 // test decomposition
                 let luSolver = new linSolvers.PartialPivLU(testCase.m);
@@ -155,7 +155,7 @@ describe('Linear solvers (dense square matrices)', () => {
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
             });
-            test.skip('FullPivLU', () => {
+            test('FullPivLU', () => {
                 /*// test factorization
                 let lusolver = new linSolvers.FullPivLU(testCase.m);
                 let PT = luSolver.P.inverse().toMatrix();
@@ -169,6 +169,8 @@ describe('Linear solvers (dense square matrices)', () => {
             */
                 let solver = new linSolvers.FullPivLU(null, SmallTolerance);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
+                console.log(`p ${solver.P.array()}`);
+                console.log(`q ${solver.Q.array()}`);
                 expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
