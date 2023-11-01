@@ -62,11 +62,13 @@ const TestFunctions1D: Problem1D[] = [
 
 
 describe.skip('Optimization tests', () => {
-    test('1d', () => {
+    describe('1d', () => {
 
     });
-    test('Nd', () => {
+    describe('Nd', () => {
+        test('Newton', () => {
 
+        });
     });
 
 })

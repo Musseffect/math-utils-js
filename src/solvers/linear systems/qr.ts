@@ -2,6 +2,7 @@
 
 import Matrix from "../../denseMatrix";
 import { assert } from "../../utils";
+import Vector from "../../vector";
 
 const SolverName = "QR";
 
@@ -29,5 +30,8 @@ export default class QR {
     }
     get R(): Matrix {
         return this.r;
+    }
+    solve(x: Matrix | Vector): Matrix | Vector {
+        throw new Error("Not implemented");
     }
 }

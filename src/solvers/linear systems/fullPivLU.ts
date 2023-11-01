@@ -124,14 +124,14 @@ export default class FullPivLU {
                 for (let row = 0; row < size; ++row) {
                     let value = rhs.get(row, column);
                     for (let col = 0; col < row; ++col)
-                        value -= rhs.get(column, column) * this.LU.get(row, col);
-                    rhs.set(row, this.q.value(column), value);
+                        value -= rhs.get(col, column) * this.LU.get(row, col);
+                    rhs.set(row, column, value);
                 }
                 for (let row = size - 1; row >= 0; --row) {
                     let value = rhs.get(row, column);
                     for (let col = row + 1; col < size; ++col)
-                        value -= rhs.get(this.p.value(column), column) * this.LU.get(row, col);
-                    rhs.set(row, this.q.value(column), value / this.LU.get(row, row));
+                        value -= rhs.get(col, column) * this.LU.get(row, col);
+                    rhs.set(row, column, value / this.LU.get(row, row));
                 }
             }
         } else {
@@ -160,7 +160,8 @@ export default class FullPivLU {
     }
     inverse(): Matrix | null {
         if (this.lu == null) return null;
-        throw new Error("Not implemented");
+        let result = Matrix.identity(this.lu.width());
+        return this.solveInplace(result) as Matrix;
     }
     static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance) {
         assert(A.height() == B.height(), "Not determined system");

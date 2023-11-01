@@ -100,7 +100,8 @@ export default class LLT {
         else
             return this.solveInplace(rhs.clone());
     }
-    inverse(): Matrix {
+    inverse(): Matrix | null {
+        if (this.llt == null) return null;
         let result = Matrix.identity(this.llt.width());
         return this.solveInplace(result) as Matrix;
     }

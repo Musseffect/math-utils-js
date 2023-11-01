@@ -94,7 +94,7 @@ describe('Linear solvers (dense square matrices)', () => {
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
                 expect(solver.LDLT).not.toBeNull();
                 console.log(`m: ${testCase.m.toString()}`);
-                console.log(`LDLT: ${solver.LDLT.toMatrix().toString()}`);
+                console.log(`LDLT: ${solver.LDLT.toString()}`);
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
                 expect(Matrix.lInfDistance(testCase.inverse, solver.inverse() as Matrix)).toBeLessThan(SmallTolerance);
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);

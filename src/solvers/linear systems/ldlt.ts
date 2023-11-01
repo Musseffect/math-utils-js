@@ -41,15 +41,16 @@ class TriangularMatrix {
         let result = Matrix.empty(this.size, this.size);
         for (let i = 0; i < this.size; ++i) {
             for (let j = 0; j < this.size; ++j) {
-                result.set(i, j, this.get(i, j)) ;
+                result.set(i, j, this.get(i, j));
             }
         }
         return result;
     }
 }
-
+// todo: option to compute decomposition inplace
+// todo: pivoting
 export default class LDLT {
-    ldlt: TriangularMatrix = null;
+    ldlt: Matrix = null;
     A: Matrix = null;
     _tolerance: number = SmallestTolerance;
     constructor(A: Matrix | null = null, tolerance: number = SmallestTolerance) {
@@ -61,7 +62,7 @@ export default class LDLT {
         if (A == null) return;
         assert(A.isSquare(), "Non-square matrix");
         const size = A.width();
-        let ldlt = new TriangularMatrix(size, true);
+        let ldlt = A.clone();
         for (let row = 0; row < size; ++row) {
             for (let col = 0; col < row; ++col) {
                 let value = A.get(row, col);
@@ -123,12 +124,12 @@ export default class LDLT {
         else
             return this.solveInplace(rhs.clone());
     }
-    inverse(): Matrix {
-        assert(this.LDLT != null, "Factorization is not available");
+    inverse(): Matrix | null {
+        if (this.LDLT == null) return null;
         let result = Matrix.identity(this.ldlt.width());
         return this.solveInplace(result) as Matrix;
     }
-    get LDLT(): TriangularMatrix {
+    get LDLT(): Matrix {
         return this.ldlt;
     }
     get L(): TriMatrixView {
