@@ -11,6 +11,16 @@ export enum PermutationType {
 
 // row permutation - pre multiplied, col permutation - post multiplied
 export class PermutationMatrix {
+    static random(size: number, type: PermutationType): PermutationMatrix {
+        let indices = [];
+        for (let i = 0; i < size; ++i)
+            indices.push(i);
+        for (let j = 0; j < size; ++j) {
+            let r = Math.min(size - j - 1, Math.floor(Math.random() * (size - j)));
+            swap(indices, r, size - j - 1);
+        }
+        return new PermutationMatrix(indices, type);
+    }
     permuteInplace(obj: Matrix | Vector, type?: PermutationType) {
         let elementAtPosition = Array(this.permutations.length);
         let positionOfElement = Array(this.permutations.length);
@@ -83,11 +93,17 @@ export class PermutationMatrix {
         assert(index != -1, "Invalid permutation");
         return index;
     }
+    // todo: test
     determinant(): number {
-        let s = 0;
-        for (let i = 0; i < this.permutations.length; ++i)
-            s += Number(i == this.permutations[i]);
-        return s & 1 ? -1 : 1;
+        // calc number of pairs (i, j) where i < j and p(i) > p(j)
+        let d = 0;
+        for (let i = 0; i < this.permutations.length; ++i) {
+            for (let j = i; j < this.permutations.length; ++j) {
+                if (this.permutations[i] > this.permutations[j])
+                    d++;
+            }
+        }
+        return d & 1 ? -1 : 1;
     }
     isValid(): boolean {
         let values = new Array(this.permutations.length);

@@ -8,7 +8,12 @@ import { assert } from "../../utils";
 import Vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
-export function makeHessinberg(A: Matrix, Q?: Matrix) {
+export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
+    throw new Error("Not implemented");
+}
+
+export function makeHessenberg(A: Matrix, Q?: Matrix): Matrix {
+    return makeHessenbergInplace(A.clone(), Q);
     throw new Error("Not implemented");
     let u = Vector.empty(A.numCols());
     for (let i = 0; i < u.size() - 2; i++) {
@@ -52,9 +57,17 @@ export function makeHessinberg(A: Matrix, Q?: Matrix) {
 }
 
 // todo: Givens rotations, complex eigenvalues
+/**
+ * Compute eigenvalues with Francis double step QR algorithm for arbitary square matrix
+ * @param A Input matrix
+ * @param numIters number of QR iterations
+ * @param tolerance tolerance for zeroed elements
+ * @returns array of real eigenvalues
+ */
 export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number): number[] {
     assert(A.isSquare(), "Expected square matrix");
     let eigenvalues: number[] = new Array(A.numCols());
+    console.log(`Initial: ${A.toString()}`);
     if (A.numCols() == 1) {
         eigenvalues[0] = A.get(0, 0);
         return eigenvalues;
@@ -75,51 +88,55 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
     A = A.clone();
 
     let u = Vector.empty(A.numCols());
-    // turn into hessenberg matrix
-    for (let i = 0; i < u.size() - 2; i++) {
-        let xNorm = 0.0;
-        for (let k = 0, j = i + 1; j < u.size(); j++, k++) {
-            u.set(k, A.get(j, i));
-            xNorm += u.get(k) * u.get(k);
-        }
-        let ro = -Math.sign(A.get(i + 1, i));
-        let uNorm = xNorm - A.get(i + 1, i) * A.get(i + 1, i);
-        u.set(0, u.get(0) - ro * Math.sqrt(xNorm));
-        uNorm += u.get(0) * u.get(0);
-        uNorm = Math.sqrt(uNorm);
-        u.scaleSelf(1.0 / uNorm);
-        let u_a = Vector.empty(u.size() - i); //uk* Ak+1:n,k:n
+    if (!A.isHessenberg()) {
+        // turn into hessenberg matrix
+        for (let i = 0; i < u.size() - 2; i++) {
+            let xNorm = 0.0;
+            for (let k = 0, j = i + 1; j < u.size(); j++, k++) {
+                u.set(k, A.get(j, i));
+                xNorm += u.get(k) * u.get(k);
+            }
+            let ro = -Math.sign(A.get(i + 1, i));
+            let uNorm = xNorm - A.get(i + 1, i) * A.get(i + 1, i);
+            u.set(0, u.get(0) - ro * Math.sqrt(xNorm));
+            uNorm += u.get(0) * u.get(0);
+            uNorm = Math.sqrt(uNorm);
+            u.scaleSelf(1.0 / uNorm);
+            let u_a = Vector.empty(u.size() - i); //uk* Ak+1:n,k:n
 
-        for (let j = i; j < u.size(); j++) {
-            let value = 0.0;
-            for (let k = i + 1; k < u.size(); k++)
-                value += u.get(k - i - 1) * A.get(k, j);
-            u_a.set(j - i, value);
-        }
+            for (let j = i; j < u.size(); j++) {
+                let value = 0.0;
+                for (let k = i + 1; k < u.size(); k++)
+                    value += u.get(k - i - 1) * A.get(k, j);
+                u_a.set(j - i, value);
+            }
 
-        for (let j = i + 1; j < u.size(); j++) {
-            for (let k = i; k < u.size(); k++)
-                A.set(j, k, A.get(j, k) - u.get(j - i - 1) * 2.0 * u_a.get(k - i));
-        }
-        u_a = Vector.empty(u.size());
-        for (let j = 0; j < u.size(); j++) {
-            let value = 0.0;
-            for (let k = i + 1; k < u.size(); k++)
-                value += u.get(k - i - 1) * A.get(j, k);
-            u_a.set(j, value);
-        }
+            for (let j = i + 1; j < u.size(); j++) {
+                for (let k = i; k < u.size(); k++)
+                    A.set(j, k, A.get(j, k) - u.get(j - i - 1) * 2.0 * u_a.get(k - i));
+            }
+            u_a = Vector.empty(u.size());
+            for (let j = 0; j < u.size(); j++) {
+                let value = 0.0;
+                for (let k = i + 1; k < u.size(); k++)
+                    value += u.get(k - i - 1) * A.get(j, k);
+                u_a.set(j, value);
+            }
 
-        for (let j = 0; j < u.size(); j++) {
-            for (let k = i + 1; k < u.size(); k++)
-                A.set(j, k, A.get(j, k) - 2.0 * u_a.get(j) * u.get(k - i - 1));
+            for (let j = 0; j < u.size(); j++) {
+                for (let k = i + 1; k < u.size(); k++)
+                    A.set(j, k, A.get(j, k) - 2.0 * u_a.get(j) * u.get(k - i - 1));
+            }
         }
     }
+    console.log(`Hessenberg ${A.toString()}`);
     // A = makeHessinberg(A);
 
     for (let i = 0; i < u.size() - 2; i++) {
         for (let j = i + 2; j < u.size(); j++)
             A.set(j, i, 0.0);
     }
+    // Francis double step QR
     let iter = 0;
     for (let p = u.size() - 1; p > 1;) {
         let q = p - 1;
@@ -136,11 +153,11 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
             p_v.normalize();
 
             let p_t = new Array(u.size() - r);
-            for (let j = r; j < u.size(); j++) {
+            for (let j = r, m = 0; j < u.size(); j++, m++) {
                 let temp = 0.0;
                 for (let i = k, l = 0; l < 3; i++, l++)
                     temp += p_v.get(l) * A.get(i, j);
-                p_t[j - r] = temp;
+                p_t[m] = temp;
             }
             for (let j = k, l = 0; l < 3; j++, l++) {
                 for (let i = r; i < u.size(); i++)
@@ -171,29 +188,29 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
         p_v.normalize();
 
         let p_t = new Array(u.size() - p + 2);
-        for (let j = p - 2; j < u.size(); j++) {
+        for (let j = p - 2, m = 0; j < u.size(); j++, m++) {
             let temp = 0.0;
             for (let i = q; i <= p; i++)
                 temp += p_v.get(i - q) * A.get(i, j);
-            p_t[j - p + 2] = temp;
+            p_t[m] = temp;
         }
         for (let i = q; i <= p; i++) {
-            for (let j = p - 2; j < u.size(); j++)
-                A.set(i, j, A.get(i, j) - 2.0 * p_v.get(i - q) * p_t[j - p + 2]);
+            for (let j = p - 2, m = 0; j < u.size(); j++, m++)
+                A.set(i, j, A.get(i, j) - 2.0 * p_v.get(i - q) * p_t[m]);
         }
 
 
         p_t = new Array(p + 1);
         for (let j = 0; j <= p; j++) {
             let value = 0.0;
-            for (let i = p - 1; i <= p; i++)
-                value += p_v.get(i - p + 1) * A.get(j, i);
+            for (let i = p - 1, m = 0; i <= p; i++, m++)
+                value += p_v.get(m) * A.get(j, i);
             p_t[j] = value;
         }
 
         for (let i = 0; i <= p; i++) {
-            for (let j = p - 1; j <= p; j++)
-                A.set(i, j, A.get(i, j) - 2.0 * p_v.get(j - p + 1) * p_t[i]);
+            for (let j = p - 1, m = 0; j <= p; j++, m++)
+                A.set(i, j, A.get(i, j) - 2.0 * p_v.get(m) * p_t[i]);
         }
         if (Math.abs(A.get(p, q)) < tolerance * (Math.abs(A.get(q, q)) + Math.abs(A.get(p, p)))) {
             A.set(p, q, 0);
@@ -221,6 +238,10 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
                 x1 += D * 0.5;
                 x2 -= D * 0.5;
             }
+            eigenvalues[i - 1] = x1;
+            eigenvalues[i] = x2;
+        } else {
+            eigenvalues[i] = A.get(i, i);
         }
     }
     return eigenvalues;
@@ -230,8 +251,14 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
 /**
  * Q - orthogonal matrix, D - diagonal matrix of eigenvalues of A
  */
+// symmetric matrices have only real eigenvalues so single shift algorithm can be used
 export function calcSymmetricEigendecomposition(A: Matrix): { Q: Matrix, D: Vector } {
     assert(A.isSymmetric(), "A is not symmetric");
+    //let M: TridiagonalSymmetric;
+    //if (!A.isTridiagonal())
+    // M = calcTridiagonal(A);
+    // else
+    // M = TridiagonalSymmetric.fromMatrix(A);
     throw new Error("Not implemented");
 }
 

@@ -49,6 +49,7 @@ class TriangularMatrix {
 }
 // todo: option to compute decomposition inplace
 // todo: pivoting
+// todo: block LDLT for indefinite decomposition
 export default class LDLT {
     ldlt: Matrix = null;
     A: Matrix = null;

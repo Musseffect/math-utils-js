@@ -119,7 +119,8 @@ export class Polynomial {
         let matrix = Matrix.empty(this.degree(), this.degree());
         let lastCoeff = this.coeffs[this.coeffs.length - 1];
         for (let i = 0; i < this.degree(); ++i) {
-            matrix.set(i + 1, i, 1);
+            if (i + 1 != this.degree())
+                matrix.set(i + 1, i, 1);
             matrix.set(i, this.degree() - 1, -this.coeffs[i] / lastCoeff)
         }
         return matrix;
@@ -314,6 +315,7 @@ export class PolynomialSolver {
         criticalPoints.unshift(xStart);
         criticalPoints.push(xEnd);
         while (stack.length != 1) {
+            console.log(`roots of P[${stack[stack.length - 1].degree()}]: ${criticalPoints}`);
             let df = stack.pop();
             let f = stack[stack.length - 1];
             let newRoots: number[] = [];
@@ -326,6 +328,16 @@ export class PolynomialSolver {
                 if (Math.sign(fMin) != Math.sign(fMax)) {
                     let newRoot = this.findRoot(f, df, xMin, xMax, fMin, fMax);
                     newRoots.push(newRoot);
+                } else {
+                    // todo: case with multiple roots - one side of the interval will be close to the root and the comparison above may fail
+                    if (Math.abs(fMax) < this.tol) {
+                        newRoots.push(xMax);
+                        //newRoots.push(this.refineRoot());
+                    }
+                    if (Math.abs(fMin) < this.tol) {
+                        newRoots.push(xMin);
+                        //newRoots.push(this.refineRoot());
+                    }
                 }
             }
             newRoots.push(xEnd);

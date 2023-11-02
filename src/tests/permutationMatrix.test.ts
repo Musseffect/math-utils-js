@@ -1,19 +1,27 @@
 import Matrix from "../denseMatrix";
 import { PermutationType, PermutationMatrix } from "../permutationMatrix";
-import { assert } from "../utils";
+import { assert, near } from "../utils";
 import Vector from "../vector";
 
 test.skip('test', () => {
+    for (let i = 0; i < 10; ++i) {
+        let size = Math.round(Math.random() * 8 + 2);
+        let permutation = PermutationMatrix.random(size, PermutationType.Row);
+        expect(permutation.isValid()).toBeTruthy();
+    }
+    /*
     let rowPermutations = new PermutationMatrix([3, 2, 0, 1], PermutationType.Row);
     let v = new Vector([10, 20, 30, 40]);
     console.log(`p1: ${rowPermutations.permuteVector(v).toString()}`);
     rowPermutations.permuteInplace(v);
-    console.log(`p2: ${v.toString()}`);
+    console.log(`p2: ${v.toString()}`);*/
 });
 
 test.skip("Permutation matrix", () => {
     let rowPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], PermutationType.Row);
     let colPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], PermutationType.Col);
+    expect(rowPermutations.isValid()).toBeTruthy();
+    expect(colPermutations.isValid()).toBeTruthy();
     //expect(rowPermutations.determinant()).toBeCloseTo(rowPermutations.toMatrix().determinant());
     //expect(colPermutations.determinant()).toBeCloseTo(colPermutations.toMatrix().determinant());
     /*const mat = Matrix.empty(rowPermutations.size(), rowPermutations.size());

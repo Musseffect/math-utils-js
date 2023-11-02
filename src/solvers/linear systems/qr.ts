@@ -14,8 +14,8 @@ export default class QR {
     public factorize(A: Matrix | null) {
         this.q = null;
         this.r = null;
-        if (A == null) return;
-        assert(this.A.isSquare(), "Expected square matrix");
+        this.A = A;
+        if (this.A == null) return;
         throw new Error("Not implemented");
     }
     constructor(A: Matrix | null, makeCompact: boolean = false) {
@@ -32,6 +32,17 @@ export default class QR {
         return this.r;
     }
     solve(x: Matrix | Vector): Matrix | Vector {
+        if (this.A.numRows() > this.A.numCols()) {
+            // overdetermined system
+            // x = R_1^-1(Q_1^T * b), solve by back substitution
+        }
+        else if (this.A.numCols() > this.A.numRows()) {
+            // underdetermined system
+            // AT=QR
+            return null;
+        } else {
+
+        }
         throw new Error("Not implemented");
     }
 }
