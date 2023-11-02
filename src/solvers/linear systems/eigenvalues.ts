@@ -8,7 +8,11 @@ import { assert } from "../../utils";
 import Vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
-export function givens(x: number, y: number): { c: number, s: number, r: number } {
+export interface givensCoeffs {
+    c: number, s: number, r: number
+};
+
+export function givens(x: number, y: number): givensCoeffs {
     let c = 0.0;
     let s = 0.0;
     let r = 0.0;
@@ -32,6 +36,15 @@ export function givens(x: number, y: number): { c: number, s: number, r: number 
         r = y * u;
     }
     return { c, s, r };
+}
+// todo: apply to Sparse matrices
+export function applyGivens(A: Matrix, givens: givensCoeffs, row: number, col: number): void {
+    const nextRow = (row + 1) % A.numRows();
+    const nextCol = (col + 1) % A.numCols();
+    A.set(row, col, givens.r);
+    A.set(nextRow, col, 0.0);
+    A.set(row, nextCol, givens.c * A.get(row, nextCol) + -givens.s * A.get(nextRow, nextCol));
+    A.set(nextRow, nextCol, givens.s * A.get(row, nextCol) + givens.c * A.get(nextRow, nextCol));
 }
 
 export function makeTridiagonalInplace(A: Matrix, Q?: Matrix): Matrix {
