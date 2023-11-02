@@ -8,6 +8,42 @@ import { assert } from "../../utils";
 import Vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
+export function givens(x: number, y: number): { c: number, s: number, r: number } {
+    let c = 0.0;
+    let s = 0.0;
+    let r = 0.0;
+    if (y == 0) {
+        c = Math.sign(x);
+        r = Math.abs(x);
+    } else if (x == 0) {
+        s = -Math.sign(y);
+        r = Math.abs(y);
+    } else if (Math.abs(x) > Math.abs(y)) {
+        let t = y / x;
+        let u = Math.sign(x) * Math.sqrt(1 + t * t);
+        c = 1.0 / u;
+        s = -c / t;
+        r = x * u;
+    } else {
+        let t = x / y;
+        let u = Math.sign(y) * Math.sqrt(1 + t * t);
+        s = -1.0 / u;
+        c = t / u;
+        r = y * u;
+    }
+    return { c, s, r };
+}
+
+export function makeTridiagonalInplace(A: Matrix, Q?: Matrix): Matrix {
+    assert(A.isSymmetric(), "A must be symmetric");
+    throw new Error("Not implemented");
+}
+
+export function makeTridiagonal(A: Matrix, Q?: Matrix) {
+    return makeHessenbergInplace(A.clone(), Q);
+    throw new Error("Not implemented");
+}
+
 export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
     throw new Error("Not implemented");
 }
