@@ -7,6 +7,7 @@ import CG from "./cg";
 import sor from "./sor";
 import LLT from "./llt";
 import LDLT from "./ldlt";
+import { QR, ZeroingMethod } from "./qr";
 import { calcEigenvalues } from "./eigenvalues";
 
-export { gaussSeidel, PartialPivLU, FullPivLU, CG, jacobi, sor, LLT, LDLT, calcEigenvalues, Exceptions };
+export { gaussSeidel, PartialPivLU, FullPivLU, CG, jacobi, sor, LLT, LDLT, QR, ZeroingMethod, calcEigenvalues, Exceptions };

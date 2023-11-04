@@ -27,12 +27,12 @@ export default class LLT {
         let llt = A.clone();
         let size = A.width();
         for (let row = 0; row < size; ++row) {
+            if (llt.get(row, row) <= 0) continue;
             for (let column = 0; column <= row; ++column) {
                 let value = llt.get(row, column);
                 for (let k = 0; k < column; ++k)
                     value -= llt.get(row, k) * llt.get(column, k);
                 if (row == column) {
-                    if (value < this._tolerance) throw new NotPositiveDefiniteMatrixException(SolverName);
                     value = Math.sqrt(value);
                     llt.set(row, row, value);
                 }

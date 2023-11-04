@@ -47,9 +47,12 @@ class TriangularMatrix {
         return result;
     }
 }
+
+// todo: optimize for large matrices
+
 // todo: option to compute decomposition inplace
 // todo: pivoting
-// todo: block LDLT for indefinite decomposition
+// todo: block LDLT for indefinite decomposition and LTLT
 export default class LDLT {
     ldlt: Matrix = null;
     A: Matrix = null;

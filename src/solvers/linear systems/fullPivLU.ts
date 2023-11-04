@@ -18,14 +18,9 @@ export default class FullPivLU {
     protected p: PermutationMatrix;
     protected q: PermutationMatrix;
     protected A: Matrix;
-    protected _tolerance: number = SmallestTolerance;
     protected _rank: number;
-    constructor(A: Matrix | null = null, tolerance: number = SmallestTolerance) {
-        this.tolerance = tolerance;
+    constructor(A: Matrix | null = null) {
         this.factorize(A);
-    }
-    set tolerance(value: number) {
-        this._tolerance = value;
     }
     public rank(): number {
         return this._rank;
@@ -79,12 +74,8 @@ export default class FullPivLU {
                     }
                 }
             }
-            if (Math.abs(maxPivot) < this._tolerance) {
-                this._rank = step;
-                // todo: figure out what to do here
-                this.lu = lu;
-                return;
-            }
+            this._rank = step;
+            if (Math.abs(maxPivot) == 0) break;
 
             this.p.swap(step, maxPivotRow);
             this.q.swap(step, maxPivotColumn);

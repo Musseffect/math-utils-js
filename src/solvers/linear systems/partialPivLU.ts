@@ -15,9 +15,7 @@ export default class PartialPivLU {
     private lu: Matrix = null;
     private p: PermutationMatrix;
     private A: Matrix;
-    private _tolerance: number = SmallestTolerance;
-    constructor(A: Matrix | null = null, tolerance: number = SmallTolerance) {
-        this.tolerance = tolerance;
+    constructor(A: Matrix | null = null) {
         this.factorize(A);
     }
     get L(): TriMatrixView {
@@ -31,9 +29,6 @@ export default class PartialPivLU {
     }
     get P(): PermutationMatrix {
         return this.p;
-    }
-    set tolerance(value: number) {
-        this._tolerance = value;
     }
     public factorize(A: Matrix | null): void {
         this.A = A;
@@ -55,8 +50,7 @@ export default class PartialPivLU {
                     maxPivot = value;
                 }
             }
-            if (Math.abs(maxPivot) < this._tolerance)
-                return;
+            if (Math.abs(maxPivot) == 0) continue;
 
             this.p.swap(step, maxPivotRow);
 
@@ -117,7 +111,7 @@ export default class PartialPivLU {
         else
             return this.solveInplace(rhs.clone());
     }
-    static solveMatrix(A: Matrix, B: Matrix, tolerance: number = SmallTolerance): Matrix {
+    static solveMatrix(A: Matrix, B: Matrix): Matrix {
         assert(A.height() == B.height(), "Not determined system");
         assert(A.isSquare(), "Non-square matrix");
         let rank = B.height();
@@ -140,7 +134,7 @@ export default class PartialPivLU {
                 }
             }
 
-            if (maxPivotValue < tolerance) throw new InsufficientRankException(SolverName, step);
+            if (maxPivotValue == 0) continue;
 
             swap(permutations, step, maxPivotRow);
 

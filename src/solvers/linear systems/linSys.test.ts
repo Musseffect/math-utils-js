@@ -3,7 +3,7 @@
 // todo: eigenvalue solvers
 
 import Matrix from "../../denseMatrix";
-import { Tolerance, SmallTolerance, assert, SmallestTolerance } from "../../utils";
+import { Tolerance, SmallTolerance, assert, SmallestTolerance, near } from "../../utils";
 import Vector from "../../vector";
 import * as linSolvers from "./exports";
 
@@ -99,7 +99,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
             });
             test.skip('PPLU', () => {
-                let solver = new linSolvers.PartialPivLU(null, SmallTolerance);
+                let solver = new linSolvers.PartialPivLU(null);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
                 expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
@@ -107,7 +107,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
                 expect(solver.determinant()).toBeCloseTo(testCase.determinant, 4);
             });
             test('FPLU', () => {
-                let solver = new linSolvers.FullPivLU(null, SmallTolerance);
+                let solver = new linSolvers.FullPivLU(null);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
                 expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
@@ -147,7 +147,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
 
                 expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testCase.m.clone(), Matrix.identity(testCase.m.height())), testCase.m.inverseNaive()));
 */
-                let solver = new linSolvers.PartialPivLU(null, SmallTolerance);
+                let solver = new linSolvers.PartialPivLU(null);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
                 expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
@@ -166,7 +166,7 @@ describe.skip('Linear solvers (dense square matrices)', () => {
             
                 expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testCase.m.clone(), Matrix.identity(testCase.m.height())), testCase.m.inverseNaive()));
             */
-                let solver = new linSolvers.FullPivLU(null, SmallTolerance);
+                let solver = new linSolvers.FullPivLU(null);
                 expect(() => solver.factorize(testCase.m)).not.toThrow();
                 expect(solver.LU).not.toBeNull();
                 expect(Vector.sub(solver.solve(testCase.rhs) as Vector, testCase.exactSolution).lInfNorm()).toBeLessThanOrEqual(SmallTolerance);
@@ -232,7 +232,7 @@ test.skip('Linear solvers (dense)', () => {
 
         let identity = Matrix.identity(testExample.m.width());
         expect(Matrix.near(Matrix.mul(testExample.m, inverse), identity)).toBeTruthy();
-        expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testExample.m, identity, SmallTolerance), inverse, Tolerance)).toBeTruthy();
+        expect(Matrix.near(linSolvers.PartialPivLU.solveMatrix(testExample.m, identity), inverse, Tolerance)).toBeTruthy();
         console.log(`Inverse ${inverse.toString()}`);
         expect(Matrix.near(linSolvers.FullPivLU.solveMatrix(testExample.m, identity, SmallTolerance), inverse, Tolerance)).toBeTruthy();
 
@@ -272,7 +272,30 @@ test.skip('Linear solvers (dense)', () => {
     */
 });
 
-test.skip("QR tests", () => {
-
-
+test("QR tests", () => {
+    interface TestDataQR {
+        matrix: Matrix;
+        Q: Matrix;
+        R: Matrix;
+    };
+    let tests: TestDataQR[] = [];
+    {
+        const A = new Matrix([12, -51, 4, 6, 167, -68, -4, 24, -41], 3, 3);
+        const Q = new Matrix([6 / 7, -69 / 175, 58 / 175, 3 / 7, 158 / 175, -6 / 175, -2 / 7, 6 / 35, 33 / 35], 3, 3);
+        const R = new Matrix([14, 21, -14, 0, 175, -70, 0, 0, -35], 3, 3);
+        assert(Matrix.near(A, Matrix.mul(Q, R)), "Incorrect test data for QR decomposition");
+        assert(R.isTriangular(true), "R matrix is expected to be triangular");
+        assert(near(Math.abs(Q.determinant()), 1) && Matrix.mul(Q, Q.transpose()).isIdentity(), "Q matrix is expected to be orthogonal");
+        tests.push({ matrix: A, Q: Q, R: R });
+    }
+    // square decomposition
+    for (const testData of tests) {
+        for (const method of [linSolvers.ZeroingMethod.Givens, linSolvers.ZeroingMethod.Housholder]) {
+            let solver = new linSolvers.QR(testData.matrix, method, false);
+            expect(Matrix.lInfDistance(solver.Q, testData.Q)).toBeLessThan(SmallTolerance);
+            expect(Matrix.lInfDistance(solver.R, testData.R)).toBeLessThan(SmallTolerance);
+        }
+    }
+    // rectangular decomposition
+    //todo: solve least squares
 });

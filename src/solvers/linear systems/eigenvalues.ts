@@ -26,7 +26,7 @@ export function givens(x: number, y: number): givensCoeffs {
         let t = y / x;
         let u = Math.sign(x) * Math.sqrt(1 + t * t);
         c = 1.0 / u;
-        s = -c / t;
+        s = -c * t;
         r = x * u;
     } else {
         let t = x / y;
@@ -38,14 +38,63 @@ export function givens(x: number, y: number): givensCoeffs {
     return { c, s, r };
 }
 // todo: apply to Sparse matrices
-export function applyGivens(A: Matrix, givens: givensCoeffs, row: number, col: number): void {
-    const nextRow = (row + 1) % A.numRows();
-    const nextCol = (col + 1) % A.numCols();
-    A.set(row, col, givens.r);
-    A.set(nextRow, col, 0.0);
-    A.set(row, nextCol, givens.c * A.get(row, nextCol) + -givens.s * A.get(nextRow, nextCol));
-    A.set(nextRow, nextCol, givens.s * A.get(row, nextCol) + givens.c * A.get(nextRow, nextCol));
+export function applyGivensFromLeft(A: Matrix, givens: givensCoeffs, i: number, j: number): void {
+    assert(i > j, "Incorrect order of indices");
+    assert(A.numRows() > i, "Incorrect number of rows");
+    for (let col = 0; col < A.numCols(); ++col) {
+        let a = A.get(j, col);
+        let b = A.get(i, col);
+        A.set(j, col, givens.c * a - givens.s * b);
+        A.set(i, col, givens.s * a + givens.c * b);
+    }
 }
+export function applyTransposeGivensFromLeft(A: Matrix, givens: givensCoeffs, i: number, j: number): void {
+    assert(i > j, "Incorrect order of indices");
+    assert(A.numRows() > i, "Incorrect number of rows");
+    for (let col = 0; col < A.numCols(); ++col) {
+        let a = A.get(j, col);
+        let b = A.get(i, col);
+        A.set(j, col, givens.c * a + givens.s * b);
+        A.set(i, col, -givens.s * a + givens.c * b);
+    }
+}
+// apply transpose givens matrix
+export function applyTransposeGivensFromRight(A: Matrix, givens: givensCoeffs, i: number, j: number) {
+    assert(i > j, "Incorrect order of indices");
+    assert(A.numCols() > i, "Incorrect number of cols");
+    for (let row = 0; row < A.numRows(); ++row) {
+        let a = A.get(row, j);
+        let b = A.get(row, i);
+        A.set(row, j, givens.c * a - givens.s * b);
+        A.set(row, i, givens.s * a + givens.c * b);
+    }
+}
+export function applyGivensFromRight(A: Matrix, givens: givensCoeffs, i: number, j: number) {
+    assert(i > j, "Incorrect order of indices");
+    assert(A.numCols() > i, "Incorrect number of cols");
+    for (let row = 0; row < A.numRows(); ++row) {
+        let a = A.get(row, j);
+        let b = A.get(row, i);
+        A.set(row, j, givens.c * a + givens.s * b);
+        A.set(row, i, -givens.s * a + givens.c * b);
+    }
+}
+
+export function makeGivensMatrix(givens: givensCoeffs, matrixSize: number, i: number, j: number): Matrix {
+    assert(i > j, "Incorrect order of indices");
+    assert(matrixSize > i, "Incorrect matrix size");
+    let m = Matrix.empty(matrixSize, matrixSize);
+    m.set(j, j, givens.c);
+    m.set(j, i, -givens.s);
+    m.set(i, i, givens.c);
+    m.set(i, j, givens.s);
+    for (let row = 0; row < matrixSize; ++row) {
+        if (row != i && row != j)
+            m.set(row, row, 1);
+    }
+    return m;
+}
+
 
 export function makeTridiagonalInplace(A: Matrix, Q?: Matrix): Matrix {
     assert(A.isSymmetric(), "A must be symmetric");

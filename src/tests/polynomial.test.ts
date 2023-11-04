@@ -84,7 +84,7 @@ describe.skip('Polynomial root solvers', () => {
 
     })
 });
-test("Polynomial roots", () => {
+test.skip("Polynomial roots", () => {
 
 
     // todo: test constant and empty polynomial

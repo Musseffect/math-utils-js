@@ -6,6 +6,25 @@ import { assert, near, SmallTolerance, SmallestTolerance, swap } from "./utils";
 import vector from "./vector";
 
 export default class Matrix extends mat {
+    // todo: write tests
+    shrinkCols(numCols: number) {
+        assert(numCols <= this._numCols, "Incorrect number of columns");
+        if (numCols == this.numCols()) return;
+        // copy values for cols which will be kept
+        for (let row = 1; row < this.numRows(); ++row) {
+            for (let col = 0; col < numCols; ++col)
+                this.data[row * numCols + col] = this.data[row * this.numCols() + col];
+        }
+        this._numCols = numCols;
+        this.data.splice(this._numRows * this._numCols);
+    }
+    // todo: write tests
+    shrinkRows(numRows: number) {
+        assert(numRows <= this._numRows, "Incorrect number of rows");
+        if (numRows == this._numRows) return;
+        this.data.splice(numRows * this._numCols);
+        this._numRows = numRows;
+    }
     private toIndex(row: number, column: number): number {
         return row * this._numCols + column;
     }
@@ -69,6 +88,14 @@ export default class Matrix extends mat {
             for (let j = 0; j < i; ++j) {
                 let value = upper ? this.get(i, j) : this.get(j, i);
                 if (Math.abs(value) > tolerance) return false;
+            }
+        }
+        return true;
+    }
+    isIdentity() {
+        for (let row = 0; row < this._numRows; ++row) {
+            for (let col = 0; col < this._numCols; ++col) {
+                if (!near(this.get(row, col), row == col ? 1 : 0)) return false;
             }
         }
         return true;
@@ -165,7 +192,7 @@ export default class Matrix extends mat {
         this.data[this.toIndex(row, column)] = value;
     }
     transposeInPlace(): Matrix {
-        assert(this.isSquare(), "Non-square matrix");
+        assert(this.isSquare(), "Won't work for non-square matrix");
         for (let row = 0; row < this._numRows; row++) {
             for (let col = row + 1; col < this._numCols; col++) {
                 swap(this.data, col + row * this._numCols, col * this._numRows + row);
@@ -256,7 +283,7 @@ export default class Matrix extends mat {
     }
     inverse(tolerance: number = SmallTolerance): Matrix {
         // return new PartialPivLU(this).inverse();
-        return PartialPivLU.solveMatrix(this, Matrix.identity(this.width()), tolerance);
+        return PartialPivLU.solveMatrix(this, Matrix.identity(this.width()));
     }
     // analytic solution
     inverseNaive(): Matrix {
