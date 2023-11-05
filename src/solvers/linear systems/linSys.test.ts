@@ -285,7 +285,7 @@ test("QR tests", () => {
         const R = new Matrix([14, 21, -14, 0, 175, -70, 0, 0, -35], 3, 3);
         assert(Matrix.near(A, Matrix.mul(Q, R)), "Incorrect test data for QR decomposition");
         assert(R.isTriangular(true), "R matrix is expected to be triangular");
-        assert(near(Math.abs(Q.determinant()), 1) && Matrix.mul(Q, Q.transpose()).isIdentity(), "Q matrix is expected to be orthogonal");
+        assert(Q.isOrthogonal(), "Q matrix is expected to be orthogonal");
         tests.push({ matrix: A, Q: Q, R: R });
     }
     // square decomposition

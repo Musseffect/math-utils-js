@@ -59,3 +59,7 @@ export function swap<T>(array: Array<T>, firstIdx: number, secondIdx: number): v
     array[firstIdx] = array[secondIdx];
     array[secondIdx] = temp;
 }
+
+export function sign(x: number) {
+    return x > 0 ? 1 : -1;
+}

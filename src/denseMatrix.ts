@@ -3,9 +3,43 @@ import FullPivLU from "./solvers/linear systems/fullPivLU";
 import PartialPivLU from "./solvers/linear systems/partialPivLU";
 import Triplet from "./triplet";
 import { assert, near, SmallTolerance, SmallestTolerance, swap } from "./utils";
-import vector from "./vector";
+import Vector from "./vector";
 
 export default class Matrix extends mat {
+    isOrthogonal(): any {
+        let S = Matrix.mul(this, this.transpose());
+        return S.isIdentity();
+    }
+    setFromMatrix(m: Matrix) {
+        this.data = m.data.slice();
+        this._numCols = m._numCols;
+        this._numRows = m._numRows;
+    }
+    // todo: add tests
+    setSubColumn(values: Vector, row: number, col: number): void {
+        assert(col + values.size() <= this.numCols(), "Incorrect arguments");
+        for (let i = 0; i < values.size(); ++i)
+            this.set(row, col + i, values.get(i));
+    }
+    setSubRow(values: Vector, row: number, col: number): void {
+        assert(row + values.size() <= this.numRows(), "Incorrect arguments");
+        for (let i = 0; i < values.size(); ++i)
+            this.set(row + i, col, values.get(i));
+    }
+    subRow(row: number, col: number, numCols: number) {
+        assert(col + numCols <= this.numCols(), "Incorrect arguments");
+        let v = Vector.empty(numCols);
+        for (let i = 0; i < numCols; ++i)
+            v.set(i, this.get(row, col + i));
+        return v;
+    }
+    subColumn(row: number, col: number, numRows: number) {
+        assert(row + numRows <= this.numRows(), "Incorrect arguments");
+        let v = Vector.empty(numRows);
+        for (let i = 0; i < numRows; ++i)
+            v.set(i, this.get(row + i, col));
+        return v;
+    }
     // todo: write tests
     shrinkCols(numCols: number) {
         assert(numCols <= this._numCols, "Incorrect number of columns");
@@ -157,9 +191,9 @@ export default class Matrix extends mat {
         }
         return result;
     }
-    static postMulVec(a: Matrix, b: vector): vector {
+    static postMulVec(a: Matrix, b: Vector): Vector {
         assert(a._numCols == b.data.length, "Width of matrix isn't compatible with vector's length");
-        let result = vector.empty(a._numRows);
+        let result = Vector.empty(a._numRows);
         for (let j = 0; j < a._numRows; j++) {
             let v = 0;
             for (let i = 0; i < a._numCols; i++) {
@@ -169,9 +203,9 @@ export default class Matrix extends mat {
         }
         return result;
     }
-    static preMulVec(a: vector, b: Matrix): vector {
+    static preMulVec(a: Vector, b: Matrix): Vector {
         assert(b._numRows == a.data.length, "Width of matrix isn't compatible with vector's length");
-        let result = vector.empty(b._numCols);
+        let result = Vector.empty(b._numCols);
         for (let i = 0; i < b._numCols; i++) {
             let v = 0;
             for (let j = 0; j < b._numRows; j++) {
@@ -210,11 +244,11 @@ export default class Matrix extends mat {
         return new Matrix(result, this._numCols, this._numRows);
     }
     // partial pivot gauss elimination
-    static solve(A: Matrix, b: vector): vector {
+    static solve(A: Matrix, b: Vector): Vector {
         assert(A._numCols == b.data.length, "Width of matrix isn't compatible with vector's length");
         assert(A._numCols == A._numRows, "Non-square matrix");
         var rang = b.size();
-        var x = vector.empty(rang);
+        var x = Vector.empty(rang);
         let epsilon = 0.001
         var indexes = new Array(rang);
         for (var i = 0; i < rang; i++) {
@@ -444,24 +478,24 @@ export default class Matrix extends mat {
         }
         return result
     }
-    getColumn(col: number): vector {
-        let values = vector.empty(this.numRows());
+    getColumn(col: number): Vector {
+        let values = Vector.empty(this.numRows());
         for (let i = 0; i < this.numRows(); ++i)
             values.set(i, this.get(i, col));
         return values;
     }
-    getRow(row: number): vector {
-        let values = vector.empty(this.numCols());
+    getRow(row: number): Vector {
+        let values = Vector.empty(this.numCols());
         for (let i = 0; i < this.numRows(); ++i)
             values.set(i, this.get(row, i));
         return values;
     }
-    setColumn(col: number, values: vector): void {
+    setColumn(col: number, values: Vector): void {
         assert(values.size() == this.numRows(), "Invalid size");
         for (let i = 0; i < values.size(); ++i)
             this.set(i, col, values.get(i));
     }
-    setRow(row: number, values: vector): void {
+    setRow(row: number, values: Vector): void {
         assert(values.size() == this.numCols(), "Invalid size");
         for (let i = 0; i < values.size(); ++i)
             this.set(row, i, values.get(i));

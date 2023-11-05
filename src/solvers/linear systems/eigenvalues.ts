@@ -4,7 +4,7 @@
 // computes real port of eigenvalues using schur decomposition
 
 import Matrix from "../../denseMatrix";
-import { assert } from "../../utils";
+import { assert, sign } from "../../utils";
 import Vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 
@@ -95,6 +95,27 @@ export function makeGivensMatrix(givens: givensCoeffs, matrixSize: number, i: nu
     return m;
 }
 
+function processHouseholderVectorInplace(v: Vector): Vector {
+    let ro = -sign(v.get(0));
+    let xNormSqr = v.squaredLength();
+    let xNorm = Math.sqrt(xNormSqr);
+    let firstElement = v.get(0);
+    v.set(0, v.get(0) - ro * xNorm);
+    v.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + v.get(0) * v.get(0)));
+    return v;
+}
+
+export function calcHouseholderVectorCol(A: Matrix, row: number, col: number): Vector {
+    assert(row < A.numRows(), "Incorrect row");
+    let v = A.subColumn(row, col, A.numRows() - row);
+    return processHouseholderVectorInplace(v);
+}
+
+export function calcHouseholderVectorRow(A: Matrix, row: number, col: number): Vector {
+    assert(col < A.numCols(), "Incorrect row");
+    let v = A.subRow(row, col, A.numCols() - col);
+    return processHouseholderVectorInplace(v);
+}
 
 export function makeTridiagonalInplace(A: Matrix, Q?: Matrix): Matrix {
     assert(A.isSymmetric(), "A must be symmetric");
@@ -102,12 +123,71 @@ export function makeTridiagonalInplace(A: Matrix, Q?: Matrix): Matrix {
 }
 
 export function makeTridiagonal(A: Matrix, Q?: Matrix) {
-    return makeHessenbergInplace(A.clone(), Q);
-    throw new Error("Not implemented");
+    return makeTridiagonalInplace(A.clone(), Q);
 }
 
+export function applyHessenbergFromLeft(v: Vector, A: Matrix, idx: number) {
+    for (let col = 0; col < A.numCols(); ++col) {
+        let newCol = Vector.empty(A.numRows() - idx);
+        for (let row = idx; row < A.numRows(); ++row)
+            newCol.set(row - idx, -2 * v.get(row - idx) * v.get(col - idx) * A.get(row, col));
+        newCol.set(0, newCol.get(0) + A.get(col, col));
+        A.setSubColumn(newCol, idx, col);
+    }
+}
+
+export function applyHessenbergFromRight(v: Vector, A: Matrix, idx: number) {
+    for (let row = 0; row < A.numRows(); ++row) {
+        let newRow = Vector.empty(A.numCols() - idx);
+        for (let col = idx; col < A.numRows(); ++col)
+            newRow.set(col - idx, -2 * v.get(row - idx) * v.get(col - idx) * A.get(row, col));
+        newRow.set(0, newRow.get(0) + A.get(row, row));
+        A.setSubRow(newRow, row, idx);
+    }
+}
+
+// todo: test
 export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
-    throw new Error("Not implemented");
+    assert(A.isSquare(), "Non-square matrix");
+    // todo: store n-1 elements of v in H and reconstruct Q afterwards: |v| = 1 by applying householder from the right
+    // Q = P1*P2...PN-2
+    if (Q)
+        Q.setFromMatrix(Matrix.identity(A.numRows()));
+    for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
+        let shift = outerCol + 1;
+        let v = A.subColumn(outerCol + 1, outerCol, A.numRows() - shift);
+        let xNormSqr = v.squaredLength();
+        let xNorm = Math.sqrt(xNormSqr);
+        let ro = sign(v.get(0));
+        // first element of the column is alpha, elements below are zero 
+        let alpha = ro * xNorm;
+        // premultiply all rows
+        // first (col + 1) rows won't change
+        // set first column
+        A.set(shift, shift, alpha);
+        for (let row = shift + 1; row < A.numRows(); ++row)
+            A.set(row, outerCol, 0);
+        // set other columns
+        for (let col = shift; col < A.numCols(); ++col) {
+            let newCol = Vector.empty(A.numRows() - shift);
+            for (let row = shift; row < A.numRows(); ++row)
+                newCol.set(row - shift, -2 * v.get(row - shift) * v.get(col - shift) * A.get(row, col));
+            newCol.set(0, newCol.get(0) + A.get(col, col));
+            A.setSubColumn(newCol, shift, col);
+        }
+        // postmultiply all rows
+        // first (col + 1) cols won't change
+        for (let row = shift; row < A.numRows(); ++row) {
+            let newRow = Vector.empty(A.numCols() - shift);
+            for (let col = shift; col < A.numRows(); ++col)
+                newRow.set(col - shift, -2 * v.get(row - shift) * v.get(col - shift) * A.get(row, col));
+            newRow.set(0, newRow.get(0) + A.get(row, row));
+            A.setSubRow(newRow, row, shift);
+        }
+        if (Q)
+            applyHessenbergFromLeft(v, Q, shift);
+    }
+    return A;
 }
 
 export function makeHessenberg(A: Matrix, Q?: Matrix): Matrix {
@@ -363,3 +443,5 @@ export function calcSymmetricEigendecomposition(A: Matrix): { Q: Matrix, D: Vect
 export function calcEigendecomposition(A: Matrix): { Q: Matrix, D: Matrix } {
     throw new Error("Not implemented");
 }
+
+// todo: Jacobi method for eigenvalues of symmetric matrix, also for singular values too
