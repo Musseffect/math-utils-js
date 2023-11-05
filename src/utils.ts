@@ -63,3 +63,14 @@ export function swap<T>(array: Array<T>, firstIdx: number, secondIdx: number): v
 export function sign(x: number) {
     return x > 0 ? 1 : -1;
 }
+
+export function binomial(n: number, k: number) {
+    assert(Number.isInteger(n) && Number.isInteger(k), "Non-integer arguments");
+    assert(n >= k && k >= 0, "Incorrect arguments");
+    if (k > n - k)
+        k = n - k;
+    let result = 1;
+    for (let i = 1; i <= k; ++i, --n)
+        result = result / i * n + (result % i) * n / i;
+    return result;
+}
