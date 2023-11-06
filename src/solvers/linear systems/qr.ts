@@ -3,7 +3,7 @@
 import Matrix from "../../denseMatrix";
 import { assert, assertFail } from "../../utils";
 import Vector from "../../vector";
-import { applyGivensFromLeft, applyGivensFromRight, givens } from "./eigenvalues";
+import { applyGivensFromLeft, applyGivensFromRight, applyHouseholderFromLeft, applyHouseholderFromRight, calcHouseholderVectorCol, givens } from "./eigenvalues";
 
 const SolverName = "QR";
 
@@ -11,20 +11,6 @@ export enum ZeroingMethod {
     Givens = 0,
     Housholder = 1
 };
-
-function calcHousholderVector(A: Matrix, col: number, row: number): Vector {
-    assert(row + 1 < A.numRows(), "Incorrect row idx");
-    let v = Vector.empty(A.numRows() - row);
-    throw new Error("Not implemented");
-}
-
-function applyHouseholderFromLeft(A: Matrix, v: Vector, col: number, row: number) {
-    throw new Error("Not implemented");
-}
-
-function applyHouseholderFromRight(A: Matrix, v: Vector, col: number, row: number) {
-    throw new Error("Not implemented");
-}
 
 export class QR {
     A: Matrix = null;
@@ -57,17 +43,18 @@ export class QR {
         for (let col = 0; col < this.A.numCols(); ++col) {
             if (this.A.numRows() == col + 1) continue;
             // calc housholder
-            let v = calcHousholderVector(this.r, col, col);
-            applyHouseholderFromLeft(this.r, v, col, col);
+            let v = calcHouseholderVectorCol(this.r, col, col);
+            applyHouseholderFromLeft(v, this.r, col);
+
+            this.r.set(col, col, v.get(0));
             for (let row = col + 1; row < this.A.numRows(); ++row)
-                this.A.set(row, col, 0.0);
+                this.r.set(row, col, 0.0);
             // R = (Q3Q2Q1)^A = QT*A
             // QT = Q3(Q2(Q1*I))
             // Q = ((I*Q1)Q2)Q3)
             // QNT = QN because householder matrix is symmetric
-            applyHouseholderFromRight(this.q, v, col, col);
+            applyHouseholderFromRight(v, this.q, col);
         }
-        throw new Error("Not implemented");
     }
     public factorize(A: Matrix | null) {
         this.q = null;
@@ -121,3 +108,5 @@ export class QR {
         throw new Error("Not implemented");
     }
 }
+
+// todo: column pivoting, full pivoting

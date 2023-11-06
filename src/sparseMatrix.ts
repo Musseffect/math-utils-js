@@ -174,7 +174,7 @@ export default class SparseMatrix {
         throw new Error("Method not implemented.");
     }
     coeffRef(row: number, column: number): CellRef {
-        //find value if exist
+        // find value if exist
         // create value if not
         // return ref
         throw new Error("Method not implemented.");

@@ -211,12 +211,20 @@ describe('Classification tests', () => {
         3, 2, 4, 0,
         4, 1, 0, -2
     ], 4, 4);
+    const tridiagonal = new Matrix([
+        1, 2, 0, 0,
+        4, 3, 5, 0,
+        0, -2, 4, 10,
+        0, 0, 2, 3
+    ], 4, 4);
     const identity = Matrix.identity(4);
     expect(upperHessenberg.isHessenberg(true)).toBeTruthy();
     expect(lowerHessenberg.isHessenberg(true)).toBeFalsy();
+    expect(tridiagonal.isHessenberg(true)).toBeTruthy();
 
     expect(lowerHessenberg.isHessenberg(false)).toBeTruthy();
     expect(upperHessenberg.isHessenberg(false)).toBeFalsy();
+    expect(tridiagonal.isHessenberg(false)).toBeTruthy();
 
     expect(upperTriangular.isTriangular(true)).toBeTruthy();
     expect(lowerTriangular.isTriangular(true)).toBeFalsy();
@@ -232,4 +240,7 @@ describe('Classification tests', () => {
 
     expect(symmetric.isSymmetric()).toBeTruthy()
     expect(lowerTriangular.isSymmetric()).toBeFalsy();
+
+    expect(tridiagonal.isTridiagonal()).toBeTruthy();
+    expect(lowerTriangular.isTridiagonal()).toBeFalsy();
 });

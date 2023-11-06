@@ -1,6 +1,6 @@
 import Matrix from '../../denseMatrix'
 import { SmallTolerance } from '../../utils';
-import { applyGivensFromLeft, applyGivensFromRight, applyTransposeGivensFromRight, calcHouseholderVectorCol, calcHouseholderVectorRow, givens, makeGivensMatrix, makeHessenberg } from './eigenvalues';
+import { applyGivensFromLeft, applyGivensFromRight, applyHouseholderFromLeft, applyHouseholderFromRight, applyTransposeGivensFromRight, calcHouseholderVectorCol, calcHouseholderVectorRow, givens, makeGivensMatrix, makeHessenberg } from './eigenvalues';
 
 import { hilbertMatrix, inverseHilbertMatrix } from './utils';
 
@@ -84,33 +84,72 @@ describe('Zeroing methods', () => {
             }
         }
         throw new Error("Not implemented");
+
+        // test symmetric householder by generating hessenberg matrix QAQT = H
+        /*let A = new Matrix([
+            4, 1, -2, 2,
+            1, 2, 0, 1,
+            -2, 0, 3, -2,
+            2, 1, -2, -1], 4, 4);
+        let Q = Matrix.identity(A.numRows());
+        let H = A.clone();
+        for (let iter = 0; iter + 2 < A.numCols(); ++iter) {
+            let v = calcHouseholderVectorRow(m, iter + 2, iter);
+            applyHessenbergFromLeft(v, Q, iter + 2);
+            applyHessenbergFromLeft(v, H, iter + 2);
+            applyHessenbergFromRight(v, H, iter + 2);
+            // check matrices
+        }
+        expect(H.isHessenberg()).toBeTruthy();
+        expect(Q.isOrthogonal()).toBeTruthy();
+        expect(Matrix.lInfDistance(Matrix.mul(Q, Matrix.mul(A, Q.transpose())), H)).toBeLessThan(SmallTolerance);
+    */
     });
 });
 
-test('Hessenberg', () => {
-    /*let A: Matrix = new Matrix([
-        1, 2, 3, 4,
-        5, 6, 7, 8,
-        3, 4, 2, -2,
-        3, 5, 1, 2], 4, 4);
-    let Q: Matrix = Matrix.empty(4, 4);
-    let H = makeHessenberg(A, Q);
-    expect(H.isHessenberg(true)).toBeTruthy();
-    expect(Q.isOrthogonal()).toBeTruthy();
-    expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, H), Q.transpose()), A)).toBeLessThan(SmallTolerance);
-    */let A: Matrix = new Matrix([
-    1, 2, 3, 4,
-    5, 6, 7, 8,
-    3, 4, 2, -2,
-    3, 5, 1, 2], 4, 4);
-    let Q: Matrix = Matrix.empty(4, 4);
-    let H = makeHessenberg(A, Q);
-    expect(H.isHessenberg(true)).toBeTruthy();
-    expect(Q.isOrthogonal()).toBeTruthy();
-    console.log(Matrix.mul(Matrix.mul(Q, A), Q.transpose()).toString());
-    expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
+describe('Hessenberg', () => {
+    test('Tridiagonal', () => {
+        let A: Matrix = new Matrix([
+            4, 1, -2, 2,
+            1, 2, 0, 1,
+            -2, 0, 3, -2,
+            2, 1, -2, -1], 4, 4);
+        let expectedQ = new Matrix([
+            1, 0, 0, 0,
+            0, -1 / 3, 2 / 3, -2 / 3,
+            0, 2 / 15, -2 / 3, -11 / 15,
+            0, -14 / 15, -1 / 3, 2 / 15
+        ], 4, 4);
+        let expectedH = new Matrix([
+            4, -3, 0, 0,
+            -3, 10 / 3, -5 / 3, 0,
+            0, -5 / 3, -33 / 25, 68 / 75,
+            0, 0, 68 / 75, 149 / 75], 4, 4);
+        let Q: Matrix = Matrix.empty(4, 4);
+        let H = makeHessenberg(A, Q);
+        expect(H.isHessenberg(true)).toBeTruthy();
+        expect(H.isTridiagonal()).toBeTruthy();
+        expect(Q.isOrthogonal()).toBeTruthy();
+        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, H), Q.transpose()), A)).toBeLessThan(SmallTolerance);
+        expect(Matrix.lInfDistance(H, expectedH)).toBeLessThan(SmallTolerance);
+        expect(Matrix.lInfDistance(Q, expectedQ)).toBeLessThan(SmallTolerance);
+    });
+    test('Hessenberg', () => {
 
-})
+        let A: Matrix = new Matrix([
+            1, 2, 3, 4,
+            5, 6, 7, 8,
+            3, 4, 2, -2,
+            3, 5, 1, 2], 4, 4);
+        let Q: Matrix = Matrix.empty(4, 4);
+        let H = makeHessenberg(A, Q);
+        expect(H.isHessenberg(true)).toBeTruthy();
+        expect(Q.isOrthogonal()).toBeTruthy();
+        console.log(Matrix.mul(Matrix.mul(Q, A), Q.transpose()).toString());
+        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
+
+    });
+});
 
 describe('Generators', () => {
     test('Hilberth matrix', () => {

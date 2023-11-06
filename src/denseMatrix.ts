@@ -153,8 +153,17 @@ export default class Matrix extends mat {
         }
         return true;
     }
-    isTridiagonal(): boolean {
-        throw new Error("Not implemented");
+    isTridiagonal(tolerance: number = SmallTolerance): boolean {
+        if (!this.isSquare()) return false;
+        for (let row = 0; row + 2 < this.numRows(); ++row) {
+            for (let col = row + 2; col < this.numCols(); ++col) {
+                let value = this.get(row, col);
+                if (Math.abs(value) > tolerance) return false;
+                value = this.get(col, row);
+                if (Math.abs(value) > tolerance) return false;
+            }
+        }
+        return true;
     }
     static random(numRows: number, numCols: number): Matrix {
         let data = [];

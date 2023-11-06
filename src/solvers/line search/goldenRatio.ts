@@ -1,3 +1,4 @@
+import Matrix from "../../denseMatrix";
 import { SmallTolerance } from "../../utils";
 import Vector from "../../vector";
 import { LineSearch, LineSearchProblem } from "./lineSearch";
@@ -29,21 +30,28 @@ class SearchAlongDirectionProblem extends Problem1D {
     direction: Vector;
     problem: LineSearchProblem;
     maxStep: number;
-    constructor(problem:LineSearchProblem, x0:Vector, direction:Vector, maxStep: number) {
+    constructor(problem: LineSearchProblem, x0: Vector, direction: Vector, maxStep: number) {
         super();
         this.problem = problem;
         this.x0 = x0;
         this.direction = direction;
         this.maxStep = maxStep;
     }
-    override f(x:number): number {
-        return this.problem.f(Vector.add(this.x0, Vector.scale(this.direction, x)));
+    private arg(x: number): Vector {
+        return Vector.scale(this.direction, x).addSelf(this.x0);
+    }
+    override f(x: number): number {
+        return this.problem.f(this.arg(x));
     }
     dfdx(x: number): number {
-        throw new Error("Method not implemented.");
+        // f(x0 + x * dir)
+        // df/dx = df/darg * dir
+        return Vector.dot(this.problem.grad(this.arg(x)), this.direction);
     }
     dfdxdx(x: number): number {
-        throw new Error("Method not implemented.");
+        let arg = Vector.scale(this.direction, x).addSelf(this.x0);
+        // todo: check the formula
+        return Vector.dot(Matrix.postMulVec(this.problem.hessian(this.arg(x)), this.direction), this.direction);
     }
 }
 
@@ -90,8 +98,8 @@ export class GoldenSearch1D implements Solver1D {
 }
 
 export class GoldenLineSearch extends LineSearch {
-    numIters :number = 100;
-    tolerance:number = SmallTolerance;
+    numIters: number = 100;
+    tolerance: number = SmallTolerance;
     stMaxIters(numIters: number) {
         this.numIters = numIters;
     }

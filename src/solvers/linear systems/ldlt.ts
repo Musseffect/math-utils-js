@@ -1,5 +1,5 @@
 import Matrix from "../../denseMatrix";
-import { DiagonalMatrixView, TriMatrixView } from "../../triMatrixView";
+import { DiagonalMatrixView, DiagonalType, TriMatrixType, TriMatrixView } from "../../triMatrixView";
 import { SmallestTolerance, assert } from "../../utils";
 import Vector from "../../vector";
 
@@ -137,13 +137,13 @@ export default class LDLT {
         return this.ldlt;
     }
     get L(): TriMatrixView {
-        throw new Error("Not implemented");
+        return new TriMatrixView(this.ldlt, TriMatrixType.lower, DiagonalType.Unit);
     }
     get LT(): TriMatrixView {
-        throw new Error("Not implemented");
+        return new TriMatrixView(this.ldlt, TriMatrixType.upper, DiagonalType.Unit);
     }
     get D(): DiagonalMatrixView {
-        throw new Error("Not implemented");
+        return new DiagonalMatrixView(this.ldlt);
     }
     static solve(A: Matrix, rhs: Vector) {
         const rank = A.width();

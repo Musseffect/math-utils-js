@@ -1,8 +1,10 @@
+import Matrix from "../../denseMatrix";
 import Vector from "../../vector";
 
 export abstract class LineSearchProblem {
     public abstract f(x: Vector): number;
     public abstract grad(x: Vector): Vector;
+    public abstract hessian(x: Vector): Matrix;
 }
 
 export abstract class LineSearch {
