@@ -185,3 +185,51 @@ describe.skip('Dense tests', () => {
     });
 
 });
+
+describe('Classification tests', () => {
+    const upperHessenberg = new Matrix([
+        1, 4, 2, 3,
+        3, 4, 1, 7,
+        0, 2, 3, 4,
+        0, 0, 1, 3], 4, 4);
+    const lowerHessenberg = upperHessenberg.transpose();
+    const upperTriangular = new Matrix([
+        1, -1, 2, -2,
+        0, 2, -4, 3,
+        0, 0, 2, -5,
+        0, 0, 0, 5], 4, 4);
+    const lowerTriangular = upperTriangular.transpose();
+    const diagonal = new Matrix([
+        1, 0, 0, 0,
+        0, 2, 0, 0,
+        0, 0, -1, 0,
+        0, 0, 0, -13
+    ], 4, 4);
+    const symmetric = new Matrix([
+        1, 2, 3, 4,
+        2, 0, 2, 1,
+        3, 2, 4, 0,
+        4, 1, 0, -2
+    ], 4, 4);
+    const identity = Matrix.identity(4);
+    expect(upperHessenberg.isHessenberg(true)).toBeTruthy();
+    expect(lowerHessenberg.isHessenberg(true)).toBeFalsy();
+
+    expect(lowerHessenberg.isHessenberg(false)).toBeTruthy();
+    expect(upperHessenberg.isHessenberg(false)).toBeFalsy();
+
+    expect(upperTriangular.isTriangular(true)).toBeTruthy();
+    expect(lowerTriangular.isTriangular(true)).toBeFalsy();
+
+    expect(lowerTriangular.isTriangular(false)).toBeTruthy();
+    expect(upperTriangular.isTriangular(false)).toBeFalsy();
+
+    expect(diagonal.isDiagonal()).toBeTruthy();
+    expect(lowerTriangular.isDiagonal()).toBeFalsy();
+
+    expect(identity.isIdentity()).toBeTruthy();
+    expect(diagonal.isIdentity()).toBeFalsy();
+
+    expect(symmetric.isSymmetric()).toBeTruthy()
+    expect(lowerTriangular.isSymmetric()).toBeFalsy();
+});

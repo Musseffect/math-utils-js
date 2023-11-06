@@ -126,24 +126,40 @@ export function makeTridiagonal(A: Matrix, Q?: Matrix) {
     return makeTridiagonalInplace(A.clone(), Q);
 }
 
+// todo: test
 export function applyHessenbergFromLeft(v: Vector, A: Matrix, idx: number) {
     for (let col = 0; col < A.numCols(); ++col) {
         let newCol = Vector.empty(A.numRows() - idx);
-        for (let row = idx; row < A.numRows(); ++row)
-            newCol.set(row - idx, -2 * v.get(row - idx) * v.get(col - idx) * A.get(row, col));
-        newCol.set(0, newCol.get(0) + A.get(col, col));
+        for (let row = idx; row < A.numRows(); ++row) {
+            newCol.set(row - idx, newCol.get(row - idx) + A.get(row, col));
+            for (let iter = idx; iter < A.numRows(); ++iter)
+                newCol.set(row - idx, newCol.get(row - idx) - 2 * v.get(row - idx) * v.get(iter - idx) * A.get(iter, col));
+        }
         A.setSubColumn(newCol, idx, col);
     }
 }
 
+// todo: test
 export function applyHessenbergFromRight(v: Vector, A: Matrix, idx: number) {
     for (let row = 0; row < A.numRows(); ++row) {
         let newRow = Vector.empty(A.numCols() - idx);
-        for (let col = idx; col < A.numRows(); ++col)
-            newRow.set(col - idx, -2 * v.get(row - idx) * v.get(col - idx) * A.get(row, col));
-        newRow.set(0, newRow.get(0) + A.get(row, row));
+        for (let col = idx; col < A.numCols(); ++col) {
+            newRow.set(col - idx, newRow.get(col - idx) + A.get(row, col));
+            for (let iter = idx; iter < A.numCols(); ++iter)
+                newRow.set(col - idx, newRow.get(col - idx) - 2 * v.get(iter - idx) * v.get(col - idx) * A.get(row, iter));
+        }
         A.setSubRow(newRow, row, idx);
     }
+}
+
+function makeHouseholder(v: Vector, size: number): Matrix {
+    let result = Matrix.identity(size);
+    let idx = size - v.size();
+    for (let row = 0; row < v.size(); ++row) {
+        for (let col = 0; col < v.size(); ++col)
+            result.set(row + idx, col + idx, result.get(row + idx, col + idx) - 2 * v.get(row) * v.get(col));
+    }
+    return result;
 }
 
 // todo: test
@@ -151,41 +167,67 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
     assert(A.isSquare(), "Non-square matrix");
     // todo: store n-1 elements of v in H and reconstruct Q afterwards: |v| = 1 by applying householder from the right
     // Q = P1*P2...PN-2
-    if (Q)
+    if (Q) {
         Q.setFromMatrix(Matrix.identity(A.numRows()));
+        console.log(`Initial Q: ${Q.toString()}`);
+    }
+    console.log(`Initial ${A.toString()}`);
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
+        console.log(`Iter ${outerCol}`);
         let shift = outerCol + 1;
-        let v = A.subColumn(outerCol + 1, outerCol, A.numRows() - shift);
+        let v = A.subColumn(shift, outerCol, A.numRows() - shift);
+        console.log(`vInitial ${v.toString()}`);
         let xNormSqr = v.squaredLength();
         let xNorm = Math.sqrt(xNormSqr);
-        let ro = sign(v.get(0));
+        let firstElement = v.get(0);
+        let ro = sign(firstElement);
         // first element of the column is alpha, elements below are zero 
         let alpha = ro * xNorm;
+        v.set(0, firstElement - alpha);
+        v.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + v.get(0) * v.get(0)));
+        console.log(`v ${v.toString()}`);
+        console.log(`alpha ${alpha}`);
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
-        A.set(shift, shift, alpha);
+        let testValue = A.get(shift, outerCol);
+        for (let row = shift; row < A.numRows(); ++row) {
+            testValue -= 2 * v.get(row - shift) * v.get(0) * A.get(row, outerCol);
+        }
+        console.log(`TestValue ${testValue}`);
+        A.set(shift, outerCol, alpha);
         for (let row = shift + 1; row < A.numRows(); ++row)
             A.set(row, outerCol, 0);
         // set other columns
         for (let col = shift; col < A.numCols(); ++col) {
             let newCol = Vector.empty(A.numRows() - shift);
-            for (let row = shift; row < A.numRows(); ++row)
-                newCol.set(row - shift, -2 * v.get(row - shift) * v.get(col - shift) * A.get(row, col));
-            newCol.set(0, newCol.get(0) + A.get(col, col));
+            // compute new values for column col
+            for (let row = shift; row < A.numRows(); ++row) {
+                newCol.set(row - shift, newCol.get(row - shift) + A.get(row, col));
+                for (let iter = shift; iter < A.numRows(); ++iter)
+                    newCol.set(row - shift, newCol.get(row - shift) - 2 * v.get(row - shift) * v.get(iter - shift) * A.get(iter, col));
+            }
             A.setSubColumn(newCol, shift, col);
         }
         // postmultiply all rows
         // first (col + 1) cols won't change
-        for (let row = shift; row < A.numRows(); ++row) {
-            let newRow = Vector.empty(A.numCols() - shift);
-            for (let col = shift; col < A.numRows(); ++col)
-                newRow.set(col - shift, -2 * v.get(row - shift) * v.get(col - shift) * A.get(row, col));
-            newRow.set(0, newRow.get(0) + A.get(row, row));
+        for (let row = 0; row < A.numRows(); ++row) {
+            let newRow = Vector.empty(A.numRows() - shift);
+            for (let col = shift; col < A.numCols(); ++col) {
+                newRow.set(col - shift, newRow.get(col - shift) + A.get(row, col));
+                for (let iter = shift; iter < A.numCols(); ++iter)
+                    newRow.set(col - shift, newRow.get(col - shift) - 2 * v.get(iter - shift) * v.get(col - shift) * A.get(row, iter));
+            }
             A.setSubRow(newRow, row, shift);
         }
-        if (Q)
+        if (Q) {
+            let m = makeHouseholder(v, A.numRows());
+            console.log(`Householder ${m.toString()}`);
+            console.log(`Expected Q ${outerCol}: ${Matrix.mul(m, Q).toString()}`);
             applyHessenbergFromLeft(v, Q, shift);
+            console.log(`Q ${outerCol}: ${Q.toString()}`);
+        }
+        console.log(`Hessenberg ${outerCol}: ${A.toString()}`);
     }
     return A;
 }

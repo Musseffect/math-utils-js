@@ -35,7 +35,7 @@ describe('Zeroing methods', () => {
         }
         m = A.clone();
         m2 = A.clone();
-        console.log("cols");
+        // console.log("cols");
         for (let row = 0; row < m.numRows(); ++row) {
             for (let col = m.numCols() - 1; col > row; --col) {
                 let i = col;
@@ -88,17 +88,27 @@ describe('Zeroing methods', () => {
 });
 
 test('Hessenberg', () => {
-    let A: Matrix = new Matrix([
+    /*let A: Matrix = new Matrix([
         1, 2, 3, 4,
         5, 6, 7, 8,
         3, 4, 2, -2,
         3, 5, 1, 2], 4, 4);
     let Q: Matrix = Matrix.empty(4, 4);
     let H = makeHessenberg(A, Q);
-    expect(H.isHessenberg()).toBeTruthy();
+    expect(H.isHessenberg(true)).toBeTruthy();
     expect(Q.isOrthogonal()).toBeTruthy();
-    expect(Q.isSymmetric()).toBeTruthy();
-    expect(Matrix.mul(Q, H));
+    expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, H), Q.transpose()), A)).toBeLessThan(SmallTolerance);
+    */let A: Matrix = new Matrix([
+    1, 2, 3, 4,
+    5, 6, 7, 8,
+    3, 4, 2, -2,
+    3, 5, 1, 2], 4, 4);
+    let Q: Matrix = Matrix.empty(4, 4);
+    let H = makeHessenberg(A, Q);
+    expect(H.isHessenberg(true)).toBeTruthy();
+    expect(Q.isOrthogonal()).toBeTruthy();
+    console.log(Matrix.mul(Matrix.mul(Q, A), Q.transpose()).toString());
+    expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
 
 })
 

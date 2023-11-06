@@ -71,6 +71,6 @@ export function binomial(n: number, k: number) {
         k = n - k;
     let result = 1;
     for (let i = 1; i <= k; ++i, --n)
-        result = result / i * n + (result % i) * n / i;
+        result = Math.floor(result / i) * n + (result % i) * Math.floor(n / i);
     return result;
 }

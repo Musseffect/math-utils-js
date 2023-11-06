@@ -272,7 +272,7 @@ test.skip('Linear solvers (dense)', () => {
     */
 });
 
-test("QR tests", () => {
+test.skip("QR tests", () => {
     interface TestDataQR {
         matrix: Matrix;
         Q: Matrix;

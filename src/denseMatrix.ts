@@ -17,24 +17,24 @@ export default class Matrix extends mat {
     }
     // todo: add tests
     setSubColumn(values: Vector, row: number, col: number): void {
-        assert(col + values.size() <= this.numCols(), "Incorrect arguments");
-        for (let i = 0; i < values.size(); ++i)
-            this.set(row, col + i, values.get(i));
-    }
-    setSubRow(values: Vector, row: number, col: number): void {
-        assert(row + values.size() <= this.numRows(), "Incorrect arguments");
+        assert(row + values.size() <= this.numRows(), `Incorrect arguments: ${row} + ${values.size()} <= ${this.numRows()}`);
         for (let i = 0; i < values.size(); ++i)
             this.set(row + i, col, values.get(i));
     }
+    setSubRow(values: Vector, row: number, col: number): void {
+        assert(col + values.size() <= this.numCols(), `Incorrect arguments: ${col} + ${values.size()} <= ${this.numCols()}`);
+        for (let i = 0; i < values.size(); ++i)
+            this.set(row, col + i, values.get(i));
+    }
     subRow(row: number, col: number, numCols: number) {
-        assert(col + numCols <= this.numCols(), "Incorrect arguments");
+        assert(col + numCols <= this.numRows(), `Incorrect arguments: ${col} + ${numCols} <= ${this.numCols()}`);
         let v = Vector.empty(numCols);
         for (let i = 0; i < numCols; ++i)
             v.set(i, this.get(row, col + i));
         return v;
     }
     subColumn(row: number, col: number, numRows: number) {
-        assert(row + numRows <= this.numRows(), "Incorrect arguments");
+        assert(row + numRows <= this.numRows(), `Incorrect arguments: ${col} + ${numRows} <= ${this.numRows()}`);
         let v = Vector.empty(numRows);
         for (let i = 0; i < numRows; ++i)
             v.set(i, this.get(row + i, col));
@@ -134,14 +134,27 @@ export default class Matrix extends mat {
         }
         return true;
     }
-    isHessenberg(upper: boolean = false, tolerance: number = SmallTolerance) {
-        for (let i = 2; i < this._numCols; ++i) {
-            for (let j = 0; j + 1 < i; ++j) {
-                let value = upper ? this.get(i, j) : this.get(j, i);
-                if (Math.abs(value) > tolerance) return false;
+    isHessenberg(upper: boolean = true, tolerance: number = SmallTolerance) {
+        if (!this.isSquare()) return false;
+        if (upper) {
+            for (let row = 2; row < this.numRows(); ++row) {
+                for (let col = 0; col + 1 < row; ++col) {
+                    let value = this.get(row, col);
+                    if (Math.abs(value) > tolerance) return false;
+                }
+            }
+        } else {
+            for (let row = 0; row + 2 < this.numRows(); ++row) {
+                for (let col = row + 2; col < this.numCols(); ++col) {
+                    let value = this.get(row, col);
+                    if (Math.abs(value) > tolerance) return false;
+                }
             }
         }
         return true;
+    }
+    isTridiagonal(): boolean {
+        throw new Error("Not implemented");
     }
     static random(numRows: number, numCols: number): Matrix {
         let data = [];
@@ -216,13 +229,13 @@ export default class Matrix extends mat {
         return result;
     }
     get(row: number, column: number): number {
-        assert(row < this._numRows && row >= 0, "Invalid row");
-        assert(column < this._numCols && column >= 0, "Invalid column");
+        assert(row < this.numRows() && row >= 0, `Invalid row ${row} < ${this.numRows()}`);
+        assert(column < this.numCols() && column >= 0, `Invalid column ${column} < ${this.numCols()}`);
         return this.data[this.toIndex(row, column)];
     }
     set(row: number, column: number, value: number): void {
-        assert(row < this._numRows && row >= 0, "Invalid row");
-        assert(column < this._numCols && column >= 0, "Invalid column");
+        assert(row < this.numRows() && row >= 0, `Invalid row ${row} < ${this.numRows()}`);
+        assert(column < this.numCols() && column >= 0, `Invalid column ${column} < ${this.numCols()}`);
         this.data[this.toIndex(row, column)] = value;
     }
     transposeInPlace(): Matrix {
