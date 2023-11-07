@@ -152,7 +152,7 @@ export function applyHouseholderFromRight(v: Vector, A: Matrix, idx: number) {
     }
 }
 
-function makeHouseholder(v: Vector, size: number): Matrix {
+export function makeHouseholder(v: Vector, size: number): Matrix {
     let result = Matrix.identity(size);
     let idx = size - v.size();
     for (let row = 0; row < v.size(); ++row) {
@@ -164,19 +164,20 @@ function makeHouseholder(v: Vector, size: number): Matrix {
 
 // todo: test
 export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
+    //if (A.isSymmetric()) return makeTridiagonalInplace(A, Q);
     assert(A.isSquare(), "Non-square matrix");
     // todo: store n-1 elements of v in H and reconstruct Q afterwards: |v| = 1 by applying householder from the right
     // Q = P1*P2...PN-2
     if (Q) {
         Q.setFromMatrix(Matrix.identity(A.numRows()));
-        console.log(`Initial Q: ${Q.toString()}`);
+        //console.log(`Initial Q: ${Q.toString()}`);
     }
-    console.log(`Initial ${A.toString()}`);
+    //console.log(`Initial ${A.toString()}`);
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
-        console.log(`Iter ${outerCol}`);
+        //console.log(`Iter ${outerCol}`);
         let shift = outerCol + 1;
         let v = A.subColumn(shift, outerCol, A.numRows() - shift);
-        console.log(`vInitial ${v.toString()}`);
+        //console.log(`vInitial ${v.toString()}`);
         let xNormSqr = v.squaredLength();
         let xNorm = Math.sqrt(xNormSqr);
         let firstElement = v.get(0);
@@ -185,8 +186,8 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
         let alpha = ro * xNorm;
         v.set(0, firstElement - alpha);
         v.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + v.get(0) * v.get(0)));
-        console.log(`v ${v.toString()}`);
-        console.log(`alpha ${alpha}`);
+        //console.log(`v ${v.toString()}`);
+        //console.log(`alpha ${alpha}`);
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
@@ -194,7 +195,7 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
         for (let row = shift; row < A.numRows(); ++row) {
             testValue -= 2 * v.get(row - shift) * v.get(0) * A.get(row, outerCol);
         }
-        console.log(`TestValue ${testValue}`);
+        //console.log(`TestValue ${testValue}`);
         A.set(shift, outerCol, alpha);
         for (let row = shift + 1; row < A.numRows(); ++row)
             A.set(row, outerCol, 0);
@@ -222,12 +223,12 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
         }
         if (Q) {
             let m = makeHouseholder(v, A.numRows());
-            console.log(`Householder ${m.toString()}`);
-            console.log(`Expected Q ${outerCol}: ${Matrix.mul(m, Q).toString()}`);
+            //console.log(`Householder ${m.toString()}`);
+            //console.log(`Expected Q ${outerCol}: ${Matrix.mul(m, Q).toString()}`);
             applyHouseholderFromLeft(v, Q, shift);
-            console.log(`Q ${outerCol}: ${Q.toString()}`);
+            //console.log(`Q ${outerCol}: ${Q.toString()}`);
         }
-        console.log(`Hessenberg ${outerCol}: ${A.toString()}`);
+        //console.log(`Hessenberg ${outerCol}: ${A.toString()}`);
     }
     return A;
 }
@@ -247,7 +248,7 @@ export function makeHessenberg(A: Matrix, Q?: Matrix): Matrix {
 export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number): number[] {
     assert(A.isSquare(), "Expected square matrix");
     let eigenvalues: number[] = new Array(A.numCols());
-    console.log(`Initial: ${A.toString()}`);
+    //console.log(`Initial: ${A.toString()}`);
     if (A.numCols() == 1) {
         eigenvalues[0] = A.get(0, 0);
         return eigenvalues;
@@ -310,7 +311,7 @@ export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number):
             }
         }
     }
-    console.log(`Hessenberg ${A.toString()}`);
+    //console.log(`Hessenberg ${A.toString()}`);
     // A = makeHessenberg(A);
 
     for (let i = 0; i < u.size() - 2; i++) {
