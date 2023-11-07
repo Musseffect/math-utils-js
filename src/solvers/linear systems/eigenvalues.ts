@@ -37,7 +37,12 @@ export function givens(x: number, y: number): givensCoeffs {
     }
     return { c, s, r };
 }
-// todo: apply to Sparse matrices
+/** Multiply A by rotation matrix
+ *        j ... i
+ *  j |   c    -s
+ *  . |
+ *  i |   s     c
+*/
 export function applyGivensFromLeft(A: Matrix, givens: givensCoeffs, i: number, j: number): void {
     assert(i > j, "Incorrect order of indices");
     assert(A.numRows() > i, "Incorrect number of rows");
@@ -48,6 +53,12 @@ export function applyGivensFromLeft(A: Matrix, givens: givensCoeffs, i: number, 
         A.set(i, col, givens.s * a + givens.c * b);
     }
 }
+/** Multiply A by transposed rotation matrix
+ *        j ... i
+*  j |    c     s
+*  . |
+*  i |   -s     c
+*/
 export function applyTransposeGivensFromLeft(A: Matrix, givens: givensCoeffs, i: number, j: number): void {
     assert(i > j, "Incorrect order of indices");
     assert(A.numRows() > i, "Incorrect number of rows");
@@ -58,7 +69,12 @@ export function applyTransposeGivensFromLeft(A: Matrix, givens: givensCoeffs, i:
         A.set(i, col, -givens.s * a + givens.c * b);
     }
 }
-// apply transpose givens matrix
+/** Multiply A by transposed rotation matrix
+ *        j ... i
+*  j |    c     s
+*  . |
+*  i |   -s     c
+*/
 export function applyTransposeGivensFromRight(A: Matrix, givens: givensCoeffs, i: number, j: number) {
     assert(i > j, "Incorrect order of indices");
     assert(A.numCols() > i, "Incorrect number of cols");
@@ -69,6 +85,12 @@ export function applyTransposeGivensFromRight(A: Matrix, givens: givensCoeffs, i
         A.set(row, i, givens.s * a + givens.c * b);
     }
 }
+/** Multiply A by rotation matrix
+ *        j ... i
+ *  j |   c    -s
+ *  . |
+ *  i |   s     c
+*/
 export function applyGivensFromRight(A: Matrix, givens: givensCoeffs, i: number, j: number) {
     assert(i > j, "Incorrect order of indices");
     assert(A.numCols() > i, "Incorrect number of cols");
@@ -79,6 +101,12 @@ export function applyGivensFromRight(A: Matrix, givens: givensCoeffs, i: number,
         A.set(row, i, -givens.s * a + givens.c * b);
     }
 }
+/**
+ *  Make matrix
+ * 
+ * [c, -s]\
+ * [s, c]
+ *  */
 
 export function makeGivensMatrix(givens: givensCoeffs, matrixSize: number, i: number, j: number): Matrix {
     assert(i > j, "Incorrect order of indices");
