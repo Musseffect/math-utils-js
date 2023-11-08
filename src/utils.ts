@@ -74,3 +74,18 @@ export function binomial(n: number, k: number) {
         result = Math.floor(result / i) * n + (result % i) * Math.floor(n / i);
     return result;
 }
+
+export class StopWatch {
+    private timestamp: number = 0;
+    constructor() {
+        this.timestamp = performance.now();
+    }
+    public elapsed(): number {
+        return performance.now() - this.timestamp;
+    }
+    public reset(): number {
+        let oldTimestamp = this.timestamp;
+        this.timestamp = performance.now();
+        return this.timestamp - oldTimestamp;
+    }
+}
