@@ -17,13 +17,7 @@ export default class mat4 extends AbstractDenseMatrix {
             m21, m22, m23, m24,
             m31, m32, m33, m34,
             m41, m42, m43, m44
-        ]);
-    }
-    numRows(): number {
-        return 4;
-    }
-    numCols(): number {
-        return 4;
+        ], 4, 4);
     }
     isIdentity(tolerance: number = SmallTolerance): boolean {
         let diff = 0;

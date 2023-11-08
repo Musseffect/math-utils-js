@@ -1,18 +1,47 @@
 import { assert, Tolerance } from "./utils";
 
+abstract class IConstMatrix {
+    abstract get(row: number, col: number): number;
+    abstract numRows(): number;
+    abstract numCols(): number;
+    isSquare(): boolean {
+        return this.numCols() == this.numRows();
+    }
+    height(): number {
+        return this.numRows();
+    }
+    width(): number {
+        return this.numCols();
+    }
+}
 
 export default abstract class AbstractDenseMatrix {
     data: number[];
-    constructor(data: number[]) {
-        this.data = data;
+    _rowMajor: boolean;
+    _numRows: number;
+    _numCols: number;
+    index(row: number, col: number) {
+        return this._rowMajor ? row * this.numCols() + col : col * this.numRows() + row;
     }
-    abstract numCols(): number;
-    abstract numRows(): number;
+    isRowMajor(): boolean {
+        return this._rowMajor;
+    }
+    numRows(): number {
+        return this._numRows;
+    }
+    numCols(): number {
+        return this._numCols;
+    }
+    constructor(data: number[], numRows: number, numCols: number) {
+        this.data = data;
+        this._numRows = numRows;
+        this._numCols = numCols;
+    }
     get(row: number, col: number): number {
-        return this.data[row * this.numCols() + col];
+        return this.data[this.index(row, col)];
     }
     set(row: number, col: number, value: number): void {
-        this.data[row * this.numCols() + col] = value;
+        this.data[this.index(row, col)] = value;
     }
     values(): number[] {
         return this.data;

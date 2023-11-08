@@ -1,11 +1,11 @@
-import mat from "./abstractDenseMatrix";
+import AbstractMatrix from "./abstractDenseMatrix";
 import FullPivLU from "./solvers/linear systems/fullPivLU";
 import PartialPivLU from "./solvers/linear systems/partialPivLU";
 import Triplet from "./triplet";
 import { assert, near, SmallTolerance, SmallestTolerance, swap } from "./utils";
 import Vector from "./vector";
 
-export default class Matrix extends mat {
+export default class Matrix extends AbstractMatrix {
     isOrthogonal(): any {
         let S = Matrix.mul(this, this.transpose());
         return S.isIdentity();
@@ -74,14 +74,8 @@ export default class Matrix extends mat {
         for (let i = 0; i < this._numCols; ++i)
             swap(this.data, this.toIndex(row1, i), this.toIndex(row2, i));
     }
-    _numCols: number;
-    _numRows: number;
-    data: number[];
     constructor(data: number[], numRows: number, numCols: number) {
-        super(data);
-        this.data = data;
-        this._numCols = numCols;
-        this._numRows = numRows;
+        super(data, numRows, numCols);
         assert(this.data.length == numRows * numCols, "Wrong size of data array");
     }
     static generate(numRows: number, numCols: number, f: (r: number, c: number) => number): Matrix {
@@ -341,6 +335,21 @@ export default class Matrix extends mat {
         // return new PartialPivLU(this).inverse();
         return PartialPivLU.solveMatrix(this, Matrix.identity(this.width()));
     }
+    minor(row: number, col: number): Matrix {
+        let matrix = Matrix.empty(this._numRows, this._numCols);
+        let i = 0;
+        for (let rowIdx = 0; rowIdx < this._numRows; ++rowIdx) {
+            if (rowIdx == row) continue;
+            i++;
+            for (let column = 0; column < this._numCols; ++column) {
+                if (column == col) continue;
+                let j = 0;
+                matrix.set(i, j, this.get(rowIdx, column));
+                j++;
+            }
+        }
+        return matrix;
+    }
     // analytic solution
     inverseNaive(): Matrix {
         assert(this.isSquare(), "Non-square matrix");
@@ -350,7 +359,7 @@ export default class Matrix extends mat {
         let minors = this.clone();
         for (let column = 0; column < this._numCols; ++column) {
             for (let row = 0; row < this._numRows; ++row) {
-                let minorValue = this.minor(column, row);
+                let minorValue = this.cofactor(column, row);
                 minors.set(row, column, ((row + column) & 1) ? -minorValue : minorValue);
                 minorValue = minorValue / d;
                 result.set(row, column, (row + column) & 1 ? -minorValue : minorValue);
@@ -429,7 +438,7 @@ export default class Matrix extends mat {
             result += step(0, i, rowList, colList, 1);
         return result;
     }
-    minor(r: number, c: number): number {
+    cofactor(r: number, c: number): number {
         assert(this.isSquare(), "Non-square matrix");
         if (this._numCols == 1) return 1.0;
         let subMatrix = Matrix.empty(this._numCols - 1, this._numRows - 1);
@@ -472,7 +481,7 @@ export default class Matrix extends mat {
         }
         return result + "\n]";
     }
-    static near(a: mat, b: mat, threshold: number = SmallTolerance): boolean {
+    static near(a: AbstractMatrix, b: AbstractMatrix, threshold: number = SmallTolerance): boolean {
         assert(a.numRows() == b.numRows() && a.numCols() == b.numCols(), "Sizes don't match");
         for (let i = 0; i < a.data.length; i++) {
             if (Math.abs(a.data[i] - b.data[i]) > threshold)
@@ -481,7 +490,7 @@ export default class Matrix extends mat {
         return true;
     }
     // Frobenius norm
-    static l2Distance(a: mat, b: mat): number {
+    static l2Distance(a: AbstractMatrix, b: AbstractMatrix): number {
         assert(a.numRows() == b.numRows() && a.numCols() == b.numCols(), "Sizes don't match");
         let result = 0.0;
         for (let i = 0; i < a.data.length; ++i) {
@@ -491,7 +500,7 @@ export default class Matrix extends mat {
         return result
     }
     // max norm
-    static lInfDistance(a: mat, b: mat): number {
+    static lInfDistance(a: AbstractMatrix, b: AbstractMatrix): number {
         assert(a.numRows() == b.numRows() && a.numCols() == b.numCols(), "Sizes don't match");
         let result = 0.0;
         for (let i = 0; i < a.data.length; ++i) {

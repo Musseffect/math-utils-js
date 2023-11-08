@@ -146,8 +146,74 @@ export function calcHouseholderVectorRow(A: Matrix, row: number, col: number): V
 }
 
 export function makeTridiagonalInplace(A: Matrix, Q?: Matrix): Matrix {
-    assert(A.isSymmetric(), "A must be symmetric");
     throw new Error("Not implemented");
+    assert(A.isSymmetric(), "A must be symmetric");
+    if (Q) {
+        Q.setFromMatrix(Matrix.identity(A.numRows()));
+    }
+    for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
+        let shift = outerCol + 1;
+        let v = A.subColumn(shift, outerCol, A.numRows() - shift);
+        let xNormSqr = v.squaredLength();
+        let xNorm = Math.sqrt(xNormSqr);
+        let firstElement = v.get(0);
+        let ro = -sign(firstElement);
+        // first element of the column is alpha, elements below are zero 
+        let alpha = ro * xNorm;
+        v.set(0, firstElement - alpha);
+        v.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + v.get(0) * v.get(0)));
+        // premultiply all rows
+        // first (col + 1) rows won't change
+        // set first column
+        let testValue = A.get(shift, outerCol);
+        for (let row = shift; row < A.numRows(); ++row) {
+            testValue -= 2 * v.get(row - shift) * v.get(0) * A.get(row, outerCol);
+        }
+        A.set(shift, outerCol, alpha);
+        A.set(outerCol, shift, alpha);
+        for (let row = shift + 1; row < A.numRows(); ++row) {
+            A.set(row, outerCol, 0);
+            A.set(outerCol, row, 0);
+        }
+        // set other columns
+        let subMatrix = Matrix.empty(A.numRows() - shift, A.numRows() - shift);
+        for (let col = shift; col < A.numCols(); ++col) {
+            for (let row = shift; row <= col; ++row) {
+                let value = 0.0;
+                for (let )
+                    subMatrix.set(row - shift, col - shift,);
+                    subMatrix.set(col - shift, row - shift,);
+            }
+        }
+        A.setSubMatrix(subMatrix, shift, shift);
+        /*        
+        for (let col = shift; col < A.numCols(); ++col) {
+            let newCol = Vector.empty(A.numRows() - shift);
+            // compute new values for column col
+            for (let row = shift; row < A.numRows(); ++row) {
+                newCol.set(row - shift, newCol.get(row - shift) + A.get(row, col));
+                for (let iter = shift; iter < A.numRows(); ++iter)
+                    newCol.set(row - shift, newCol.get(row - shift) - 2 * v.get(row - shift) * v.get(iter - shift) * A.get(iter, col));
+            }
+            A.setSubColumn(newCol, shift, col);
+        }*/
+        // postmultiply all rows
+        // first (col + 1) cols won't change
+        /*for (let row = 0; row < A.numRows(); ++row) {
+            let firstIdx = Math.max(shift, row);
+            let newRow = Vector.empty(A.numRows() - firstIdx);
+            for (let col = firstIdx; col < A.numCols(); ++col) {
+                newRow.set(col - firstIdx, newRow.get(col - firstIdx) + A.get(row, col));
+                for (let iter = shift; iter < A.numCols(); ++iter)
+                    newRow.set(col - shift, newRow.get(col - shift) - 2 * v.get(iter - shift) * v.get(col - shift) * A.get(row, iter));
+            }
+            A.setSubRow(newRow, row, shift);
+        }*/
+        if (Q) {
+            applyHouseholderFromLeft(v, Q, shift);
+        }
+    }
+    return A;
 }
 
 export function makeTridiagonal(A: Matrix, Q?: Matrix) {
@@ -198,24 +264,18 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
     // Q = P1*P2...PN-2
     if (Q) {
         Q.setFromMatrix(Matrix.identity(A.numRows()));
-        //console.log(`Initial Q: ${Q.toString()}`);
     }
-    //console.log(`Initial ${A.toString()}`);
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
-        //console.log(`Iter ${outerCol}`);
         let shift = outerCol + 1;
         let v = A.subColumn(shift, outerCol, A.numRows() - shift);
-        //console.log(`vInitial ${v.toString()}`);
         let xNormSqr = v.squaredLength();
         let xNorm = Math.sqrt(xNormSqr);
         let firstElement = v.get(0);
-        let ro = sign(firstElement);
+        let ro = -sign(firstElement);
         // first element of the column is alpha, elements below are zero 
         let alpha = ro * xNorm;
         v.set(0, firstElement - alpha);
         v.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + v.get(0) * v.get(0)));
-        //console.log(`v ${v.toString()}`);
-        //console.log(`alpha ${alpha}`);
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
@@ -223,7 +283,6 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
         for (let row = shift; row < A.numRows(); ++row) {
             testValue -= 2 * v.get(row - shift) * v.get(0) * A.get(row, outerCol);
         }
-        //console.log(`TestValue ${testValue}`);
         A.set(shift, outerCol, alpha);
         for (let row = shift + 1; row < A.numRows(); ++row)
             A.set(row, outerCol, 0);
@@ -250,17 +309,15 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
             A.setSubRow(newRow, row, shift);
         }
         if (Q) {
-            let m = makeHouseholder(v, A.numRows());
-            //console.log(`Householder ${m.toString()}`);
-            //console.log(`Expected Q ${outerCol}: ${Matrix.mul(m, Q).toString()}`);
             applyHouseholderFromLeft(v, Q, shift);
-            //console.log(`Q ${outerCol}: ${Q.toString()}`);
         }
-        //console.log(`Hessenberg ${outerCol}: ${A.toString()}`);
     }
     return A;
 }
 
+/**
+ * Compute QHQT = A
+ */
 export function makeHessenberg(A: Matrix, Q?: Matrix): Matrix {
     return makeHessenbergInplace(A.clone(), Q);
 }

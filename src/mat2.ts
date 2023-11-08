@@ -9,13 +9,7 @@ export default class mat2 extends AbstractDenseMatrix {
         super([
             m11, m12,
             m21, m22
-        ]);
-    }
-    numRows(): number {
-        return 2;
-    }
-    numCols(): number {
-        return 2;
+        ], 2, 2);
     }
     isIdentity(tolerance: number = SmallTolerance): boolean {
         let diff = 0;

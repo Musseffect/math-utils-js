@@ -17,13 +17,7 @@ export default class mat3 extends mat {
             m11, m12, m13,
             m21, m22, m23,
             m31, m32, m33
-        ]);
-    }
-    numCols(): number {
-        return 3;
-    }
-    numRows(): number {
-        return 3;
+        ], 3, 3);
     }
     isIdentity(tolerance: number = SmallTolerance): boolean {
         let diff = 0;

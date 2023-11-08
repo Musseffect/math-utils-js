@@ -385,7 +385,7 @@ describe('Hessenberg', () => {
         expect(H.isHessenberg(true)).toBeTruthy();
         expect(H.isTridiagonal()).toBeTruthy();
         expect(Q.isOrthogonal()).toBeTruthy();
-        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q.transpose(), H), Q), A)).toBeLessThan(SmallTolerance);
+        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
         expect(Matrix.lInfDistance(H, expectedH)).toBeLessThan(SmallTolerance);
         expect(Matrix.lInfDistance(Q, expectedQ)).toBeLessThan(SmallTolerance);
         let T = makeTridiagonal(A, Q);
@@ -393,7 +393,7 @@ describe('Hessenberg', () => {
         expect(Q.isOrthogonal()).toBeTruthy();
         expect(Matrix.lInfDistance(T, expectedH)).toBeLessThan(SmallTolerance);
         expect(Matrix.lInfDistance(Q, expectedQ)).toBeLessThan(SmallTolerance);
-        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, H), Q.transpose()), A)).toBeLessThan(SmallTolerance);
+        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
 
 
     });
