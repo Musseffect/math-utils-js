@@ -1,3 +1,5 @@
+import { performance } from "perf_hooks";
+
 export const Tolerance = 1e-4;
 export const SmallTolerance = 1e-6;
 export const SmallestTolerance = 1e-8;
@@ -88,4 +90,11 @@ export class StopWatch {
         this.timestamp = performance.now();
         return this.timestamp - oldTimestamp;
     }
+}
+
+export function randomArray(size: number, min: number, max: number): number[] {
+    let values = [];
+    for (let i = 0; i < size; ++i)
+        values.push(Math.random());
+    return values;
 }

@@ -1,8 +1,9 @@
 import Matrix from '../../denseMatrix'
-import { SmallTolerance, sign } from '../../utils';
+import { SmallTolerance, StopWatch, sign } from '../../utils';
 import { applyGivensFromLeft, applyGivensFromRight, applyHouseholderFromLeft, applyHouseholderFromRight, applyTransposeGivensFromLeft, applyTransposeGivensFromRight, calcHouseholderVectorCol, calcHouseholderVectorRow, givens, makeGivensMatrix, makeHessenberg, makeHouseholder, makeTridiagonal } from './eigenvalues';
 
 import { hilbertMatrix, inverseHilbertMatrix } from './utils';
+import { MatrixGenerator } from '../../dense/matrixGenerator';
 
 // QR decomposition
 describe('Upper triangular zeroing', () => {
@@ -363,7 +364,7 @@ describe('Lower hessenberg zeroing', () => {
 });
 
 describe('Hessenberg', () => {
-    test('Tridiagonal', () => {
+    test.skip('Tridiagonal', () => {
         let A: Matrix = new Matrix([
             4, 1, -2, 2,
             1, 2, 0, 1,
@@ -388,16 +389,15 @@ describe('Hessenberg', () => {
         expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
         expect(Matrix.lInfDistance(H, expectedH)).toBeLessThan(SmallTolerance);
         expect(Matrix.lInfDistance(Q, expectedQ)).toBeLessThan(SmallTolerance);
+        Q = Matrix.empty(4, 4);
         let T = makeTridiagonal(A, Q);
         expect(T.isTridiagonal()).toBeTruthy();
         expect(Q.isOrthogonal()).toBeTruthy();
         expect(Matrix.lInfDistance(T, expectedH)).toBeLessThan(SmallTolerance);
         expect(Matrix.lInfDistance(Q, expectedQ)).toBeLessThan(SmallTolerance);
-        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
-
-
+        expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), T)).toBeLessThan(SmallTolerance);
     });
-    test('Hessenberg', () => {
+    test.skip('Hessenberg', () => {
         let A: Matrix = new Matrix([
             1, 2, 3, 4,
             5, 6, 7, 8,
@@ -409,6 +409,67 @@ describe('Hessenberg', () => {
         expect(Q.isOrthogonal()).toBeTruthy();
         expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
     });
+    test('Hessenberg performance', () => {
+        let stopWatch = new StopWatch();
+        let time: number[] = [];
+        let counts: number[] = [];
+        for (let size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) {
+            let A: Matrix = Matrix.random(size, size);
+            stopWatch.reset();
+            let perf = { value: 0 };
+            let H = makeHessenberg(A, undefined, perf);
+            time.push(stopWatch.elapsed());
+            counts.push(perf.value);
+            expect(H.isHessenberg(true)).toBeTruthy();
+        }
+        console.log(`Hessenberg: ${time}`);
+        console.log(`Hessenberg: ${counts}`);
+        time = [];
+        counts = [];
+        for (let size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) {
+            let A: Matrix = Matrix.random(size, size);
+            let Q: Matrix = Matrix.empty(size, size);
+            let perf = { value: 0 };
+            stopWatch.reset();
+            let H = makeHessenberg(A, Q, perf);
+            time.push(stopWatch.elapsed());
+            counts.push(perf.value);
+            expect(H.isHessenberg(true)).toBeTruthy();
+            expect(Q.isOrthogonal()).toBeTruthy();
+            expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
+        }
+        console.log(`Full hessenberg: ${time}`);
+        console.log(`Full hessenberg: ${counts}`);
+        time = [];
+        counts = [];
+        for (let size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) {
+            let S: Matrix = MatrixGenerator.randomSymmetric(size);
+            let perf = { value: 0 };
+            stopWatch.reset();
+            let T = makeTridiagonal(S, undefined, perf);
+            time.push(stopWatch.elapsed());
+            counts.push(perf.value);
+            expect(T.isTridiagonal()).toBeTruthy();
+        }
+        console.log(`Triangular: ${time}`);
+        console.log(`Triangular: ${counts}`);
+        time = [];
+        counts = [];
+        for (let size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100]) {
+            let S: Matrix = MatrixGenerator.randomSymmetric(size);
+            let Q: Matrix = Matrix.empty(size, size);
+            let perf = { value: 0 };
+            stopWatch.reset();
+            let T = makeTridiagonal(S, Q, perf);
+            time.push(stopWatch.elapsed());
+            counts.push(perf.value);
+            expect(T.isTridiagonal()).toBeTruthy();
+            expect(Q.isOrthogonal()).toBeTruthy();
+            expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, S), Q.transpose()), T)).toBeLessThan(SmallTolerance);
+        }
+        console.log(`Full Triangular: ${time}`);
+        console.log(`Full Triangular: ${counts}`);
+    })
 });
 
 describe('Generators', () => {

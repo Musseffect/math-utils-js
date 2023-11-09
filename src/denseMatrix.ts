@@ -165,6 +165,12 @@ export default class Matrix extends AbstractMatrix {
             data.push(Math.random());
         return new Matrix(data, numRows, numCols);
     }
+    static diag(data: number[]): Matrix {
+        let m = Matrix.empty(data.length, data.length);
+        for (let i = 0; i < data.length; ++i)
+            m.set(i, i, data[i]);
+        return m;
+    }
     static empty(numRows: number, numCols: number): Matrix {
         let data: number[];
         (data = []).length = numRows * numCols;
