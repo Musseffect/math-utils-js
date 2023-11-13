@@ -222,37 +222,34 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
         perf.value = 0;
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
-        let u = A.subColumn(shift, outerCol, A.numRows() - shift);
-        let xNormSqr = u.squaredLength();
+        let xNormSqr = 0;
+        for (let col = shift; col < A.numCols(); ++col)
+            xNormSqr += Math.pow(A.get(outerCol, col), 2);
         let xNorm = Math.sqrt(xNormSqr);
-        let firstElement = u.get(0);
+        let firstElement = A.get(outerCol, shift);
         let ro = -sign(firstElement);
         // first element of the column is alpha, elements below are zero 
         let alpha = ro * xNorm;
-        u.set(0, firstElement - alpha);
-        u.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + u.get(0) * u.get(0)));
+        let newFirstElement = firstElement - alpha;
+        A.set(outerCol, shift, firstElement - alpha);
+        let newLength = Math.sqrt(xNormSqr - firstElement * firstElement + newFirstElement * newFirstElement);
+        for (let col = shift; col < A.numCols(); ++col)
+            A.set(outerCol, col, A.get(outerCol, col) / newLength);
         if (perf)
             perf.value += 3;
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
-        if (Q) {
-            throw new Error("Not implemented");
-        } else {
-            A.set(shift, outerCol, alpha);
-            A.set(outerCol, shift, alpha);
-            for (let row = shift + 1; row < A.numRows(); ++row) {
-                A.set(row, outerCol, 0);
-                A.set(outerCol, row, 0);
-            }
-        }
+        A.set(shift, outerCol, alpha);
+        for (let row = shift + 1; row < A.numRows(); ++row)
+            A.set(row, outerCol, 0);
         // calc pre and post multiplicaiton simultaniously
         let v = Vector.empty(A.numRows() - shift);
         // calc 2 * A * u and store in v
         for (let row = shift; row < A.numRows(); ++row) {
             let value = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
-                value += A.get(row, col) * u.get(col - shift);
+                value += A.get(row, col) * /*u*/A.get(outerCol, col - shift);
                 if (perf)
                     perf.value += 1;
             }
@@ -260,10 +257,12 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
             if (perf)
                 perf.value += 1;
         }
-        let utAu = Vector.dot(u, v);
+        let utAu = 0;
+        for (let col = shift; col < A.numCols() - 1; ++col)
+            utAu += /*u*/A.get(outerCol, col) * v.get(col - shift);
         // calc v = 2 * A * u - 2u * (ut * A * u)
         for (let idx = 0; idx < v.size(); ++idx) {
-            v.set(idx, v.get(idx) - u.get(idx) * utAu);
+            v.set(idx, v.get(idx) - /*u*/A.get(outerCol, idx + shift) * utAu);
             if (perf)
                 perf.value += 1;
         }
@@ -271,7 +270,7 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
         // calc A - uvT - vutv
         for (let row = shift; row < A.numRows(); ++row) {
             for (let col = row; col < A.numCols(); ++col) {
-                A.set(row, col, A.get(row, col) - v.get(row - shift) * u.get(col - shift) - v.get(col - shift) * u.get(row - shift));
+                A.set(row, col, A.get(row, col) - v.get(row - shift) * /*u*/A.get(outerCol, col) - v.get(col - shift) * /*u*/A.get(outerCol, row));
                 if (perf) perf.value += 2;
             }
         }
@@ -280,10 +279,54 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
             for (let col = row + 1; col < A.numCols(); ++col)
                 A.set(col, row, A.get(row, col));
         }
-        if (Q) {
+    }
+    if (Q) {
+        // Set initial Q with vlaues for 2x2 Q_k
+        let v1 = A.get(A.numRows() - 3, A.numCols() - 2);
+        let v2 = A.get(A.numRows() - 3, A.numCols() - 1);
+        let v22 = v2 * v2;
+        let v11 = v1 * v1;
+        let v12 = v1 * v2;
+        Q.set(A.numRows() - 2, A.numCols() - 2, 1 - 2 * v11);
+        Q.set(A.numRows() - 1, A.numCols() - 2, - 2 * v12);
+        Q.set(A.numRows() - 2, A.numCols() - 1, - 2 * v12);
+        Q.set(A.numRows() - 1, A.numCols() - 1, 1 - 2 * v22);
 
-
+        Q.set(A.numRows() - 3, A.numCols() - 3, 1);
+        // accumulate v in A and construct Q at the end by multiplying from last to first
+        for (let aRow = A.numCols() - 4; aRow >= 0; --aRow) {
+            let qCol = aRow + 1;
+            Q.set(aRow, aRow, 1);
+            let v1_2 = 2 * A.get(aRow, qCol);
+            if (perf)
+                perf.value++;
+            // set the first row of non-identity part of Q
+            for (let col = qCol; col < A.numCols(); ++col) {
+                Q.set(qCol, col, Q.get(qCol, col) - v1_2 * A.get(aRow, col));
+                if (perf)
+                    perf.value++;
+            }
+            for (let row = qCol + 1; row < A.numRows(); ++row) {
+                let vDotX = 0.0;
+                for (let col = qCol + 1; col < A.numCols(); ++col) {
+                    vDotX += A.get(aRow, col) * Q.get(row, col);
+                    if (perf)
+                        perf.value += 1;
+                }
+                vDotX *= 2;
+                if (perf)
+                    perf.value += 1;
+                for (let col = qCol; col < A.numCols(); ++col) {
+                    Q.set(row, col, Q.get(row, col) - A.get(aRow, col) * vDotX);
+                    if (perf)
+                        perf.value += 1;
+                }
+            }
         }
+        // set correct values for upper triangle of A
+        for (let row = 0; row + 2 < A.numRows(); ++row)
+            for (let col = row + 1; col < A.numCols(); ++col)
+                A.set(row, col, A.get(col, row));
     }
     return A;
 }
@@ -546,47 +589,6 @@ export function makeHessenbergInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value: 
                     Q.set(row, col, Q.get(row, col) - A.get(col, aCol) * vDotX);
                     if (perf)
                         perf.value += 1;
-                }
-            }/*
-                for (let row = 0; row < A.numRows(); ++row) {
-                    let vDotX = 0.0;
-                    for (let col = shift; col < A.numCols(); ++col) {
-                        vDotX += v.get(col - shift) * A.get(row, col);
-                        if (perf)
-                            perf.value += 1;
-                    }
-                    vDotX *= 2;
-                    if (perf)
-                        perf.value += 1;
-                    for (let col = shift; col < A.numCols(); ++col) {
-                        A.set(row, col, A.get(row, col) - v.get(col - shift) * vDotX);
-                        if (perf)
-                            perf.value += 1;
-                    }
-                }
-            */
-            if (false) {
-                // set the first column of Q
-                for (let row = qCol; row < A.numRows(); ++row) {
-                    Q.set(row, qCol, Q.get(row, qCol) - v1_2 * A.get(row, aCol));
-                    if (perf)
-                        perf.value++;
-                }
-                for (let col = qCol + 1; col < A.numCols(); ++col) {
-                    let vDotX = 0.0;
-                    for (let row = qCol + 1; row < A.numRows(); ++row) {
-                        vDotX += A.get(row, aCol) * Q.get(row, col);
-                        if (perf)
-                            perf.value += 1;
-                    }
-                    vDotX *= 2;
-                    if (perf)
-                        perf.value += 1;
-                    for (let row = qCol; row < A.numRows(); ++row) {
-                        Q.set(row, col, Q.get(row, col) - A.get(row, aCol) * vDotX);
-                        if (perf)
-                            perf.value += 1;
-                    }
                 }
             }
             A.set(qCol, aCol, alpha);
