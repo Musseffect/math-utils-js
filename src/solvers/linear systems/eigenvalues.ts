@@ -155,7 +155,7 @@ export function makeTridiagonalInplace(A: Matrix, Q?: Matrix, perf?: { value: nu
         perf.value = 0;
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
-        let u = A.subColumn(shift, outerCol, A.numRows() - shift);
+        let u = A.subRow(outerCol, shift, A.numRows() - shift);
         let xNormSqr = u.squaredLength();
         let xNorm = Math.sqrt(xNormSqr);
         let firstElement = u.get(0);
@@ -235,6 +235,7 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
         let newLength = Math.sqrt(xNormSqr - firstElement * firstElement + newFirstElement * newFirstElement);
         for (let col = shift; col < A.numCols(); ++col)
             A.set(outerCol, col, A.get(outerCol, col) / newLength);
+        let u = A.subRow(outerCol, shift, A.numRows() - shift);
         if (perf)
             perf.value += 3;
         // premultiply all rows
@@ -249,7 +250,7 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
         for (let row = shift; row < A.numRows(); ++row) {
             let value = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
-                value += A.get(row, col) * /*u*/A.get(outerCol, col - shift);
+                value += A.get(row, col) * /*u*/A.get(outerCol, col);
                 if (perf)
                     perf.value += 1;
             }
@@ -258,7 +259,7 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
                 perf.value += 1;
         }
         let utAu = 0;
-        for (let col = shift; col < A.numCols() - 1; ++col)
+        for (let col = shift; col < A.numCols(); ++col)
             utAu += /*u*/A.get(outerCol, col) * v.get(col - shift);
         // calc v = 2 * A * u - 2u * (ut * A * u)
         for (let idx = 0; idx < v.size(); ++idx) {
@@ -323,11 +324,11 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
                 }
             }
         }
-        // set correct values for upper triangle of A
-        for (let row = 0; row + 2 < A.numRows(); ++row)
-            for (let col = row + 1; col < A.numCols(); ++col)
-                A.set(row, col, A.get(col, row));
     }
+    // set correct values for upper triangle of A
+    for (let row = 0; row + 2 < A.numRows(); ++row)
+        for (let col = row + 1; col < A.numCols(); ++col)
+            A.set(row, col, A.get(col, row));
     return A;
 }
 
@@ -336,7 +337,7 @@ export function makeTridiagonal(A: Matrix, Q?: Matrix, perf?: { value: number })
 }
 
 export function makeTridiagonalAlt(A: Matrix, Q?: Matrix, perf?: { value: number }) {
-    return makeTridiagonalInplaceAlt(A, Q, perf);
+    return makeTridiagonalInplaceAlt(A.clone(), Q, perf);
 }
 
 // todo: test
@@ -613,7 +614,6 @@ export function makeHessenbergAlt(A: Matrix, Q?: Matrix, perf?: { value: number 
 export function calcEigenvalues(A: Matrix, numIters: number, tolerance: number): number[] {
     assert(A.isSquare(), "Expected square matrix");
     let eigenvalues: number[] = new Array(A.numCols());
-    //console.log(`Initial: ${A.toString()}`);
     if (A.numCols() == 1) {
         eigenvalues[0] = A.get(0, 0);
         return eigenvalues;

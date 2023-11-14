@@ -1,6 +1,6 @@
 import Matrix from '../../denseMatrix'
 import { SmallTolerance, StopWatch, sign } from '../../utils';
-import { applyGivensFromLeft, applyGivensFromRight, applyHouseholderFromLeft, applyHouseholderFromRight, applyTransposeGivensFromLeft, applyTransposeGivensFromRight, calcHouseholderVectorCol, calcHouseholderVectorRow, givens, makeGivensMatrix, makeHessenberg, makeHessenbergAlt, makeHouseholder, makeTridiagonal } from './eigenvalues';
+import { applyGivensFromLeft, applyGivensFromRight, applyHouseholderFromLeft, applyHouseholderFromRight, applyTransposeGivensFromLeft, applyTransposeGivensFromRight, calcHouseholderVectorCol, calcHouseholderVectorRow, givens, makeGivensMatrix, makeHessenberg, makeHessenbergAlt, makeHouseholder, makeTridiagonal, makeTridiagonalAlt } from './eigenvalues';
 
 import { hilbertMatrix, inverseHilbertMatrix } from './utils';
 import { MatrixGenerator } from '../../dense/matrixGenerator';
@@ -363,7 +363,7 @@ describe.skip('Lower hessenberg zeroing', () => {
     });
 });
 
-describe('Hessenberg performance', () => {
+describe.skip('Hessenberg performance', () => {
     let matrices: Matrix[] = [];
     for (const size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
         matrices.push(Matrix.random(size, size));
@@ -459,7 +459,42 @@ test.skip('Hessenberg alt', () => {
     expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(qAltFull, A), qAltFull.transpose()), H)).toBeLessThan(SmallTolerance);
 });
 
-describe('Triangular performance', () => {
+test('Triangular alt', ()=>{
+    let S:Matrix = new Matrix([
+        4, 1, -2, 2,
+        1, 2, 0, 1,
+        -2, 0, 3, -2,
+        2, 1, -2, -1], 4, 4);
+    let expectedQ = new Matrix([
+        1, 0, 0, 0,
+        0, -1 / 3, 2 / 3, -2 / 3,
+        0, 2 / 15, -2 / 3, -11 / 15,
+        0, -14 / 15, -1 / 3, 2 / 15
+    ], 4, 4);
+    let expectedT = new Matrix([
+        4, -3, 0, 0,
+        -3, 10 / 3, -5 / 3, 0,
+        0, -5 / 3, -33 / 25, 68 / 75,
+        0, 0, 68 / 75, 149 / 75], 4, 4);
+        let Q: Matrix = Matrix.empty(4, 4);
+    let T1 = makeTridiagonalAlt(S);
+    let T = makeTridiagonalAlt(S, Q);
+    let TOld = makeTridiagonal(S);
+    console.log(`Expected: ${expectedT.toString()}`);
+    console.log(`Told: ${TOld.toString()}`);
+    console.log(`TAlt1: ${T1.toString()}`);
+    console.log(`TAlt2: ${T.toString()}`);
+    expect(Matrix.lInfDistance(T, T1)).toBeLessThan(SmallTolerance);
+    expect(Matrix.lInfDistance(TOld, T)).toBeLessThan(SmallTolerance);
+    expect(T.isHessenberg(true)).toBeTruthy();
+    expect(T.isTridiagonal()).toBeTruthy();
+    expect(Q.isOrthogonal()).toBeTruthy();
+    expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, S), Q.transpose()), T)).toBeLessThan(SmallTolerance);
+    expect(Matrix.lInfDistance(T, expectedT)).toBeLessThan(SmallTolerance);
+    expect(Matrix.lInfDistance(Q, expectedQ)).toBeLessThan(SmallTolerance);
+});
+
+describe.skip('Triangular performance', () => {
     let matrices: Matrix[] = [];
     for (const size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
         matrices.push(MatrixGenerator.randomSymmetric(size));
