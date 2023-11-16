@@ -121,11 +121,11 @@ export default class Vector {
         return this;
     }
     get(i: number): number {
-        assert(i >= 0 && i < this.data.length, `Incorrect index ${i} < ${this.data.length}`);
+        //assert(i >= 0 && i < this.data.length, `Incorrect index ${i} < ${this.data.length}`);
         return this.data[i];
     }
     set(i: number, value: number): void {
-        assert(i >= 0 && i < this.data.length, `Incorrect index ${i} < ${this.data.length}`);
+        //assert(i >= 0 && i < this.data.length, `Incorrect index ${i} < ${this.data.length}`);
         this.data[i] = value;
     }
     size(): number {

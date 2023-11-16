@@ -411,27 +411,21 @@ function makeHessenbergInplaceAltWithQ(A: Matrix, Q: Matrix): Matrix {
     if (A.numCols() < 3) return A;
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
-        const getHouseholder: (x: number) => number = function (x: number) {
-            return Q.get(shift, x + shift);
-        };
-        const setHouseholder: (x: number, value: number) => void = function (x: number, value: number) {
-            Q.set(shift, x + shift, value);
-        };
         for (let row = shift; row < A.numRows(); ++row)
-            setHouseholder(row - shift, A.get(row, outerCol));
+            Q.set(shift, row, A.get(row, outerCol));
         let xNormSqr = 0.0;
         for (let row = shift; row < A.numRows(); ++row)
             xNormSqr += Math.pow(A.get(row, outerCol), 2);
         let xNorm = Math.sqrt(xNormSqr);
-        let firstElement = getHouseholder(0);
+        let firstElement = Q.get(shift, shift);
         let ro = -sign(firstElement);
         // first element of the column is alpha, elements below are zero 
         let alpha = ro * xNorm;
         let newFirstElement = firstElement - alpha;
-        setHouseholder(0, newFirstElement);
+        Q.set(shift, shift, newFirstElement);
         const factor = 1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + newFirstElement * newFirstElement);
         for (let row = shift; row < A.numRows(); ++row)
-            setHouseholder(row - shift, getHouseholder(row - shift) * factor);
+            Q.set(shift, row, /*u*/Q.get(shift, row) * factor);
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
@@ -442,21 +436,21 @@ function makeHessenbergInplaceAltWithQ(A: Matrix, Q: Matrix): Matrix {
         for (let col = shift; col < A.numCols(); ++col) {
             let vDotX = 0.0;
             for (let row = shift; row < A.numRows(); ++row) {
-                vDotX += getHouseholder(row - shift) * A.get(row, col);
+                vDotX += /*u*/Q.get(shift, row) * A.get(row, col);
             }
             vDotX *= 2;
             for (let row = shift; row < A.numRows(); ++row) {
-                A.set(row, col, A.get(row, col) - getHouseholder(row - shift) * vDotX);
+                A.set(row, col, A.get(row, col) - /*u*/Q.get(shift, row) * vDotX);
             }
         }
         for (let row = 0; row < A.numRows(); ++row) {
             let vDotX = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
-                vDotX += getHouseholder(col - shift) * A.get(row, col);
+                vDotX += /*u*/Q.get(shift, col) * A.get(row, col);
             }
             vDotX *= 2;
             for (let col = shift; col < A.numCols(); ++col) {
-                A.set(row, col, A.get(row, col) - getHouseholder(col - shift) * vDotX);
+                A.set(row, col, A.get(row, col) - /*u*/Q.get(shift, col) * vDotX);
             }
         }
     }

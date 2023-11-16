@@ -36,5 +36,7 @@
 	},
 	"author": "Sergey Zhmishansky",
 	"license": "",
-	"dependencies": {}
+	"dependencies": {
+		"v8-profiler-next": "^1.9.0"
+	}
 }

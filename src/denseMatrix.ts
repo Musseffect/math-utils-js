@@ -238,13 +238,13 @@ export default class Matrix extends AbstractMatrix {
         return result;
     }
     get(row: number, column: number): number {
-        assert(row < this.numRows() && row >= 0, `Invalid row ${row} < ${this.numRows()}`);
-        assert(column < this.numCols() && column >= 0, `Invalid column ${column} < ${this.numCols()}`);
+        // assert(row < this.numRows() && row >= 0, `Invalid row ${row} < ${this.numRows()}`);
+        // assert(column < this.numCols() && column >= 0, `Invalid column ${column} < ${this.numCols()}`);
         return this.data[this.toIndex(row, column)];
     }
     set(row: number, column: number, value: number): void {
-        assert(row < this.numRows() && row >= 0, `Invalid row ${row} < ${this.numRows()}`);
-        assert(column < this.numCols() && column >= 0, `Invalid column ${column} < ${this.numCols()}`);
+        // assert(row < this.numRows() && row >= 0, `Invalid row ${row} < ${this.numRows()}`);
+        // assert(column < this.numCols() && column >= 0, `Invalid column ${column} < ${this.numCols()}`);
         this.data[this.toIndex(row, column)] = value;
     }
     transposeInPlace(): Matrix {
