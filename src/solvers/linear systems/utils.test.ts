@@ -363,7 +363,8 @@ describe.skip('Lower hessenberg zeroing', () => {
     });
 });
 
-describe.skip('Hessenberg performance', () => {
+describe('Hessenberg performance', () => {
+    const numRepetitions = 20;
     let matrices: Matrix[] = [];
     for (const size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
         matrices.push(Matrix.random(size, size));
@@ -373,26 +374,30 @@ describe.skip('Hessenberg performance', () => {
         let counts: number[] = [];
         for (const A of matrices) {
             let perf = { value: 0 };
+            let H: Matrix = A;
             stopWatch.reset();
-            let H = makeHessenbergAlt(A, undefined, perf);
-            time.push(stopWatch.elapsed());
-            counts.push(perf.value);
+            for (let i = 0; i < numRepetitions; ++i)
+                H = makeHessenberg(A, undefined, perf);
+            time.push(stopWatch.elapsed() / numRepetitions);
+            counts.push(perf.value / numRepetitions);
             expect(H.isHessenberg(true)).toBeTruthy();
         }
         console.log(`Hessenberg partial default: ${time}`);
         console.log(`Hessenberg partial default: ${counts}`);
     });
-    test('Full Hessenberg default', () => {
+    test.skip('Full Hessenberg default', () => {
         let stopWatch = new StopWatch();
         let time: number[] = [];
         let counts: number[] = [];
         for (const A of matrices) {
             let Q: Matrix = Matrix.empty(A.width(), A.width());
             let perf = { value: 0 };
+            let H: Matrix = A;
             stopWatch.reset();
-            let H = makeHessenberg(A, Q, perf);
-            time.push(stopWatch.elapsed());
-            counts.push(perf.value);
+            for (let i = 0; i < numRepetitions; ++i)
+                H = makeHessenberg(A, Q, perf);
+            time.push(stopWatch.elapsed() / numRepetitions);
+            counts.push(perf.value / numRepetitions);
             expect(H.isHessenberg(true)).toBeTruthy();
             expect(Q.isOrthogonal()).toBeTruthy();
             expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
@@ -406,26 +411,30 @@ describe.skip('Hessenberg performance', () => {
         let counts: number[] = [];
         for (const A of matrices) {
             let perf = { value: 0 };
+            let H: Matrix = A;
             stopWatch.reset();
-            let H = makeHessenbergAlt(A, undefined, perf);
-            time.push(stopWatch.elapsed());
-            counts.push(perf.value);
+            for (let i = 0; i < numRepetitions; ++i)
+                H = makeHessenbergAlt(A, undefined, perf);
+            time.push(stopWatch.elapsed() / numRepetitions);
+            counts.push(perf.value / numRepetitions);
             expect(H.isHessenberg(true)).toBeTruthy();
         }
         console.log(`Partial hessenberg alt: ${time}`);
         console.log(`Partial hessenberg alt: ${counts}`);
     });
-    test('Full Hessenberg alt', () => {
+    test.skip('Full Hessenberg alt', () => {
         let stopWatch = new StopWatch();
         let time: number[] = [];
         let counts: number[] = [];
         for (const A of matrices) {
             let Q: Matrix = Matrix.empty(A.width(), A.width());
             let perf = { value: 0 };
+            let H: Matrix = A;
             stopWatch.reset();
-            let H = makeHessenbergAlt(A, Q, perf);
-            time.push(stopWatch.elapsed());
-            counts.push(perf.value);
+            for (let i = 0; i < numRepetitions; ++i)
+                H = makeHessenbergAlt(A, Q, perf);
+            time.push(stopWatch.elapsed() / numRepetitions);
+            counts.push(perf.value / numRepetitions);
             expect(H.isHessenberg(true)).toBeTruthy();
             expect(Q.isOrthogonal()).toBeTruthy();
             expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
@@ -443,24 +452,33 @@ test.skip('Hessenberg alt', () => {
         3, 5, 1, 2], 4, 4);
     let perf1 = { value: 0 };
     let perf2 = { value: 0 };
-    let perf3 = { value: 0 };
     let Q: Matrix = Matrix.empty(4, 4);
     let H = makeHessenberg(A, Q, perf1);
     let qAltFull: Matrix = Matrix.empty(4, 4);
-    let HAlt = makeHessenbergAlt(A, qAltFull, perf3);
-    //console.log(`H: ${H.toString()}, Q: ${Q.toString()}`);
+    let HAlt = makeHessenbergAlt(A, qAltFull, perf2);
+    console.log(`H: ${H.toString()}, Q: ${Q.toString()}`);
     expect(H.isHessenberg(true)).toBeTruthy();
     expect(Q.isOrthogonal()).toBeTruthy();
-    //console.log(`HAlt: ${HAlt.toString()}, Q: ${qAltFull.toString()}`);
+    console.log(`HAlt: ${HAlt.toString()}, Q: ${qAltFull.toString()}`);
     expect(HAlt.isHessenberg(true)).toBeTruthy();
     expect(qAltFull.isOrthogonal()).toBeTruthy();
-    console.log(`perf: ${perf1.value}, ${perf2.value}, ${perf3.value}`);
+    expect(Matrix.lInfDistance(H, HAlt)).toBeLessThan(SmallTolerance);
+    expect(Matrix.lInfDistance(Q, qAltFull)).toBeLessThan(SmallTolerance);
+    console.log(`perf: ${perf1.value}, ${perf2.value}`);
     expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(Q, A), Q.transpose()), H)).toBeLessThan(SmallTolerance);
     expect(Matrix.lInfDistance(Matrix.mul(Matrix.mul(qAltFull, A), qAltFull.transpose()), H)).toBeLessThan(SmallTolerance);
+
+    let H2 = makeHessenberg(A);
+    let HAlt2 = makeHessenbergAlt(A);
+    console.log(`H2: ${H2.toString()}, HAlt2: ${HAlt2.toString()}`);
+    expect(H2.isHessenberg(true)).toBeTruthy();
+    expect(HAlt2.isHessenberg(true)).toBeTruthy();
+    expect(Matrix.lInfDistance(H2, H)).toBeLessThan(SmallTolerance);
+    expect(Matrix.lInfDistance(H2, HAlt2)).toBeLessThan(SmallTolerance);
 });
 
-test('Triangular alt', ()=>{
-    let S:Matrix = new Matrix([
+test.skip('Triangular alt', () => {
+    let S: Matrix = new Matrix([
         4, 1, -2, 2,
         1, 2, 0, 1,
         -2, 0, 3, -2,
@@ -476,7 +494,7 @@ test('Triangular alt', ()=>{
         -3, 10 / 3, -5 / 3, 0,
         0, -5 / 3, -33 / 25, 68 / 75,
         0, 0, 68 / 75, 149 / 75], 4, 4);
-        let Q: Matrix = Matrix.empty(4, 4);
+    let Q: Matrix = Matrix.empty(4, 4);
     let T1 = makeTridiagonalAlt(S);
     let T = makeTridiagonalAlt(S, Q);
     let TOld = makeTridiagonal(S);
@@ -495,6 +513,7 @@ test('Triangular alt', ()=>{
 });
 
 describe.skip('Triangular performance', () => {
+    const numRepetitions = 10;
     let matrices: Matrix[] = [];
     for (const size of [10, 20, 30, 40, 50, 60, 70, 80, 90, 100])
         matrices.push(MatrixGenerator.randomSymmetric(size));

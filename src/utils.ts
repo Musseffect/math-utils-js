@@ -85,7 +85,10 @@ export class StopWatch {
     public elapsed(): number {
         return performance.now() - this.timestamp;
     }
-    public reset(): number {
+    public reset(): void {
+        this.timestamp = performance.now();
+    }
+    public resetElapsed(): number {
         let oldTimestamp = this.timestamp;
         this.timestamp = performance.now();
         return this.timestamp - oldTimestamp;
