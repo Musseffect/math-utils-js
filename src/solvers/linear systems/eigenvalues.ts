@@ -146,13 +146,11 @@ export function calcHouseholderVectorRow(A: Matrix, row: number, col: number): V
 }
 
 // should be 4/3N^3 + O(N^2)
-export function makeTridiagonalInplace(A: Matrix, Q?: Matrix, perf?: { value: number }): Matrix {
+export function makeTridiagonalInplace(A: Matrix, Q?: Matrix): Matrix {
     assert(A.isSymmetric(), "A must be symmetric");
     if (Q) {
         Q.setFromMatrix(Matrix.identity(A.numRows()));
     }
-    if (perf)
-        perf.value = 0;
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
         let u = A.subRow(outerCol, shift, A.numRows() - shift);
@@ -164,8 +162,6 @@ export function makeTridiagonalInplace(A: Matrix, Q?: Matrix, perf?: { value: nu
         let alpha = ro * xNorm;
         u.set(0, firstElement - alpha);
         u.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + u.get(0) * u.get(0)));
-        if (perf)
-            perf.value += 3;
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
@@ -182,26 +178,19 @@ export function makeTridiagonalInplace(A: Matrix, Q?: Matrix, perf?: { value: nu
             let value = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
                 value += A.get(row, col) * u.get(col - shift);
-                if (perf)
-                    perf.value += 1;
             }
             v.set(row - shift, 2 * value);
-            if (perf)
-                perf.value += 1;
         }
         let utAu = Vector.dot(u, v);
         // calc v = 2 * A * u - 2u * (ut * A * u)
         for (let idx = 0; idx < v.size(); ++idx) {
             v.set(idx, v.get(idx) - u.get(idx) * utAu);
-            if (perf)
-                perf.value += 1;
         }
 
         // calc A - uvT - vutv
         for (let row = shift; row < A.numRows(); ++row) {
             for (let col = row; col < A.numCols(); ++col) {
                 A.set(row, col, A.get(row, col) - v.get(row - shift) * u.get(col - shift) - v.get(col - shift) * u.get(row - shift));
-                if (perf) perf.value += 2;
             }
         }
         // preserve symmetry
@@ -210,16 +199,14 @@ export function makeTridiagonalInplace(A: Matrix, Q?: Matrix, perf?: { value: nu
                 A.set(col, row, A.get(row, col));
         }
         if (Q) {
-            applyHouseholderFromLeft(u, Q, shift, perf);
+            applyHouseholderFromLeft(u, Q, shift);
         }
     }
     return A;
 }
 
-export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value: number }): Matrix {
+export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix): Matrix {
     assert(A.isSymmetric(), "A must be symmetric");
-    if (perf)
-        perf.value = 0;
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
         let xNormSqr = 0;
@@ -236,8 +223,6 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
         for (let col = shift; col < A.numCols(); ++col)
             A.set(outerCol, col, A.get(outerCol, col) / newLength);
         //let u = A.subRow(outerCol, shift, A.numRows() - shift);
-        if (perf)
-            perf.value += 3;
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
@@ -251,12 +236,8 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
             let value = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
                 value += A.get(row, col) * /*u*/A.get(outerCol, col);
-                if (perf)
-                    perf.value += 1;
             }
             v.set(row - shift, 2 * value);
-            if (perf)
-                perf.value += 1;
         }
         let utAu = 0;
         for (let col = shift; col < A.numCols(); ++col)
@@ -264,15 +245,12 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
         // calc v = 2 * A * u - 2u * (ut * A * u)
         for (let idx = 0; idx < v.size(); ++idx) {
             v.set(idx, v.get(idx) - /*u*/A.get(outerCol, idx + shift) * utAu);
-            if (perf)
-                perf.value += 1;
         }
 
         // calc A - uvT - vutv
         for (let row = shift; row < A.numRows(); ++row) {
             for (let col = row; col < A.numCols(); ++col) {
                 A.set(row, col, A.get(row, col) - v.get(row - shift) * /*u*/A.get(outerCol, col) - v.get(col - shift) * /*u*/A.get(outerCol, row));
-                if (perf) perf.value += 2;
             }
         }
         // preserve symmetry
@@ -299,28 +277,18 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
             let qCol = aRow + 1;
             Q.set(aRow, aRow, 1);
             let v1_2 = 2 * A.get(aRow, qCol);
-            if (perf)
-                perf.value++;
             // set the first row of non-identity part of Q
             for (let col = qCol; col < A.numCols(); ++col) {
                 Q.set(qCol, col, Q.get(qCol, col) - v1_2 * A.get(aRow, col));
-                if (perf)
-                    perf.value++;
             }
             for (let row = qCol + 1; row < A.numRows(); ++row) {
                 let vDotX = 0.0;
                 for (let col = qCol + 1; col < A.numCols(); ++col) {
                     vDotX += A.get(aRow, col) * Q.get(row, col);
-                    if (perf)
-                        perf.value += 1;
                 }
                 vDotX *= 2;
-                if (perf)
-                    perf.value += 1;
                 for (let col = qCol; col < A.numCols(); ++col) {
                     Q.set(row, col, Q.get(row, col) - A.get(aRow, col) * vDotX);
-                    if (perf)
-                        perf.value += 1;
                 }
             }
         }
@@ -332,30 +300,24 @@ export function makeTridiagonalInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value:
     return A;
 }
 
-export function makeTridiagonal(A: Matrix, Q?: Matrix, perf?: { value: number }) {
-    return makeTridiagonalInplace(A.clone(), Q, perf);
+export function makeTridiagonal(A: Matrix, Q?: Matrix) {
+    return makeTridiagonalInplace(A.clone(), Q,);
 }
 
-export function makeTridiagonalAlt(A: Matrix, Q?: Matrix, perf?: { value: number }) {
-    return makeTridiagonalInplaceAlt(A.clone(), Q, perf);
+export function makeTridiagonalAlt(A: Matrix, Q?: Matrix) {
+    return makeTridiagonalInplaceAlt(A.clone(), Q,);
 }
 
 // todo: test
-export function applyHouseholderFromLeft(v: Vector, A: Matrix, idx: number, perf?: { value: number }) {
+export function applyHouseholderFromLeft(v: Vector, A: Matrix, idx: number) {
     for (let col = 0; col < A.numCols(); ++col) {
         let vDotX = 0.0;
         for (let row = idx; row < A.numRows(); ++row) {
             vDotX += v.get(row - idx) * A.get(row, col);
-            if (perf)
-                perf.value += 1;
         }
         vDotX *= 2;
-        if (perf)
-            perf.value += 1;
         for (let row = idx; row < A.numRows(); ++row) {
             A.set(row, col, A.get(row, col) - v.get(row - idx) * vDotX);
-            if (perf)
-                perf.value += 1;
         }
     }
 }
@@ -383,7 +345,7 @@ export function makeHouseholder(v: Vector, size: number): Matrix {
 }
 
 // todo: test, should be 6n^3 + O(n^2)
-export function makeHessenbergInplace(A: Matrix, Q?: Matrix, perf?: { value: number }): Matrix {
+export function makeHessenbergInplace(A: Matrix, Q?: Matrix): Matrix {
     //if (A.isSymmetric()) return makeTridiagonalInplace(A, Q);
     assert(A.isSquare(), "Non-square matrix");
     // todo: store n-1 elements of v in H and reconstruct Q afterwards: |v| = 1 by applying householder from the right
@@ -391,7 +353,6 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix, perf?: { value: num
     if (Q) {
         Q.setFromMatrix(Matrix.identity(A.numRows()));
     }
-    if (perf) perf.value = 0;
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
         let v = A.subColumn(shift, outerCol, A.numRows() - shift);
@@ -403,8 +364,6 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix, perf?: { value: num
         let alpha = ro * xNorm;
         v.set(0, firstElement - alpha);
         v.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + v.get(0) * v.get(0)));
-        if (perf)
-            perf.value += 3;
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
@@ -416,37 +375,25 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix, perf?: { value: num
             let vDotX = 0.0;
             for (let row = shift; row < A.numRows(); ++row) {
                 vDotX += v.get(row - shift) * A.get(row, col);
-                if (perf)
-                    perf.value += 1;
             }
             vDotX *= 2;
-            if (perf)
-                perf.value += 1;
             for (let row = shift; row < A.numRows(); ++row) {
                 A.set(row, col, A.get(row, col) - v.get(row - shift) * vDotX);
-                if (perf)
-                    perf.value += 1;
             }
         }
         for (let row = 0; row < A.numRows(); ++row) {
             let vDotX = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
                 vDotX += v.get(col - shift) * A.get(row, col);
-                if (perf)
-                    perf.value += 1;
             }
             vDotX *= 2;
-            if (perf)
-                perf.value += 1;
             for (let col = shift; col < A.numCols(); ++col) {
                 A.set(row, col, A.get(row, col) - v.get(col - shift) * vDotX);
-                if (perf)
-                    perf.value += 1;
             }
         }
         // todo: accumulate v in A and construct Q at the end by multiplying from last to first;
         if (Q) {
-            applyHouseholderFromLeft(v, Q, shift, perf);
+            applyHouseholderFromLeft(v, Q, shift);
         }
     }
     return A;
@@ -455,14 +402,13 @@ export function makeHessenbergInplace(A: Matrix, Q?: Matrix, perf?: { value: num
 /**
  * Compute QHQT = A
  */
-export function makeHessenberg(A: Matrix, Q?: Matrix, perf?: { value: number }): Matrix {
-    return makeHessenbergInplace(A.clone(), Q, perf);
+export function makeHessenberg(A: Matrix, Q?: Matrix): Matrix {
+    return makeHessenbergInplace(A.clone(), Q);
 }
 
-function makeHessenbergInplaceAltWithQ(A: Matrix, Q: Matrix, perf?: { value: number }): Matrix {
+function makeHessenbergInplaceAltWithQ(A: Matrix, Q: Matrix): Matrix {
     Q.setFromMatrix(Matrix.identity(A.numRows()));
     if (A.numCols() < 3) return A;
-    if (perf) perf.value = 0;
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
         const getHouseholder: (x: number) => number = function (x: number) {
@@ -486,9 +432,6 @@ function makeHessenbergInplaceAltWithQ(A: Matrix, Q: Matrix, perf?: { value: num
         const factor = 1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + newFirstElement * newFirstElement);
         for (let row = shift; row < A.numRows(); ++row)
             setHouseholder(row - shift, getHouseholder(row - shift) * factor);
-        if (perf) perf.value += 2 * (A.numRows() - shift);
-        if (perf)
-            perf.value += 3;
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
@@ -500,32 +443,20 @@ function makeHessenbergInplaceAltWithQ(A: Matrix, Q: Matrix, perf?: { value: num
             let vDotX = 0.0;
             for (let row = shift; row < A.numRows(); ++row) {
                 vDotX += getHouseholder(row - shift) * A.get(row, col);
-                if (perf)
-                    perf.value += 1;
             }
             vDotX *= 2;
-            if (perf)
-                perf.value += 1;
             for (let row = shift; row < A.numRows(); ++row) {
                 A.set(row, col, A.get(row, col) - getHouseholder(row - shift) * vDotX);
-                if (perf)
-                    perf.value += 1;
             }
         }
         for (let row = 0; row < A.numRows(); ++row) {
             let vDotX = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
                 vDotX += getHouseholder(col - shift) * A.get(row, col);
-                if (perf)
-                    perf.value += 1;
             }
             vDotX *= 2;
-            if (perf)
-                perf.value += 1;
             for (let col = shift; col < A.numCols(); ++col) {
                 A.set(row, col, A.get(row, col) - getHouseholder(col - shift) * vDotX);
-                if (perf)
-                    perf.value += 1;
             }
         }
     }
@@ -539,52 +470,37 @@ function makeHessenbergInplaceAltWithQ(A: Matrix, Q: Matrix, perf?: { value: num
     Q.set(Q.numRows() - 1, Q.numCols() - 2, - 2 * v12);
     Q.set(Q.numRows() - 2, Q.numCols() - 1, - 2 * v12);
     Q.set(Q.numRows() - 1, Q.numCols() - 1, 1 - 2 * v22);
-    if (perf)
-        perf.value += 7;
     // accumulate v in A and construct Q at the end by multiplying from last to first
     for (let aCol = Q.numCols() - 4; aCol >= 0; --aCol) {
         let qCol = aCol + 1;
         let v1 = Q.get(qCol, qCol);
         let v1_2 = 2 * v1;
-        if (perf)
-            perf.value++;
         for (let row = qCol + 1; row < Q.numRows(); ++row) {
             let vDotX = 0.0;
             for (let col = qCol + 1; col < Q.numCols(); ++col) {
                 vDotX += /*u*/Q.get(qCol, col) * Q.get(row, col);
-                if (perf)
-                    perf.value += 1;
             }
             vDotX *= 2;
-            if (perf)
-                perf.value += 1;
             for (let col = qCol; col < Q.numCols(); ++col) {
                 Q.set(row, col, Q.get(row, col) - /*u*/Q.get(qCol, col) * vDotX);
-                if (perf)
-                    perf.value += 1;
             }
         }
         Q.set(qCol, qCol, 1 - v1 * v1_2);
-        if (perf)
-            perf.value++;
         // set the first row of non-identity part of Q
         for (let col = qCol + 1; col < Q.numCols(); ++col) {
             Q.set(qCol, col, - v1_2 * /*u*/Q.get(qCol, col));
-            if (perf)
-                perf.value++;
         }
     }
     return A;
 }
 
 // todo: test
-export function makeHessenbergInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value: number }): Matrix {
+export function makeHessenbergInplaceAlt(A: Matrix, Q?: Matrix): Matrix {
     //if (A.isSymmetric()) return makeTridiagonalInplace(A, Q);
     assert(A.isSquare(), "Non-square matrix");
     // todo: store n-1 elements of v in H and reconstruct Q afterwards: |v| = 1 by applying householder from the right
     // Q = P1*P2...PN-2
-    if (Q) return makeHessenbergInplaceAltWithQ(A, Q, perf);
-    if (perf) perf.value = 0;
+    if (Q) return makeHessenbergInplaceAltWithQ(A, Q);
     for (let outerCol = 0; outerCol + 2 < A.numCols(); ++outerCol) {
         let shift = outerCol + 1;
         let v = A.subColumn(shift, outerCol, A.numRows() - shift);
@@ -596,56 +512,39 @@ export function makeHessenbergInplaceAlt(A: Matrix, Q?: Matrix, perf?: { value: 
         let alpha = ro * xNorm;
         v.set(0, firstElement - alpha);
         v.scaleSelf(1.0 / Math.sqrt(xNormSqr - firstElement * firstElement + v.get(0) * v.get(0)));
-        if (perf)
-            perf.value += 3;
         // premultiply all rows
         // first (col + 1) rows won't change
         // set first column
         A.set(shift, outerCol, alpha);
         for (let row = shift + 1; row < A.numRows(); ++row)
             A.set(row, outerCol, 0);
-        if (perf)
-            perf.value += 3;
-        // premultiply all rows
         // set other columns ~O(2N^2)
         for (let col = shift; col < A.numCols(); ++col) {
             let vDotX = 0.0;
             for (let row = shift; row < A.numRows(); ++row) {
                 vDotX += v.get(row - shift) * A.get(row, col);
-                if (perf)
-                    perf.value += 1;
             }
             vDotX *= 2;
-            if (perf)
-                perf.value += 1;
             for (let row = shift; row < A.numRows(); ++row) {
                 A.set(row, col, A.get(row, col) - v.get(row - shift) * vDotX);
-                if (perf)
-                    perf.value += 1;
             }
         }
         for (let row = 0; row < A.numRows(); ++row) {
             let vDotX = 0.0;
             for (let col = shift; col < A.numCols(); ++col) {
                 vDotX += v.get(col - shift) * A.get(row, col);
-                if (perf)
-                    perf.value += 1;
             }
             vDotX *= 2;
-            if (perf)
-                perf.value += 1;
             for (let col = shift; col < A.numCols(); ++col) {
                 A.set(row, col, A.get(row, col) - v.get(col - shift) * vDotX);
-                if (perf)
-                    perf.value += 1;
             }
         }
     }
     return A;
 }
 
-export function makeHessenbergAlt(A: Matrix, Q?: Matrix, perf?: { value: number }): Matrix {
-    return makeHessenbergInplaceAlt(A.clone(), Q, perf);
+export function makeHessenbergAlt(A: Matrix, Q?: Matrix): Matrix {
+    return makeHessenbergInplaceAlt(A.clone(), Q);
 }
 // todo: Givens rotations, complex eigenvalues
 /**
