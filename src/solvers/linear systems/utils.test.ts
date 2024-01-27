@@ -5,8 +5,6 @@ import { applyGivensFromLeft, applyGivensFromRight, applyHouseholderFromLeft, ap
 import { hilbertMatrix, inverseHilbertMatrix } from './utils';
 import { MatrixGenerator } from '../../dense/matrixGenerator';
 
-import * as v8Profiler from 'v8-profiler-next';
-
 import fs from 'fs';
 
 // QR decomposition
