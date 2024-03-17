@@ -2,10 +2,10 @@ import RandomNumberGenerator from "./generator";
 
 // 2^113 period
 export default class LFSR113 extends RandomNumberGenerator {
-    private x1:number; // should be larger than 1
-    private x2:number; // larger than 7
-    private x3:number; // larger than 15
-    private x4:number; // larger than 127
+    private x1: number; // should be larger than 1
+    private x2: number; // larger than 7
+    private x3: number; // larger than 15
+    private x4: number; // larger than 127
     constructor(seed: number = 0) {
         super();
         this.reset(seed);
@@ -38,12 +38,6 @@ export default class LFSR113 extends RandomNumberGenerator {
         this.x3 = (((this.x3 & m3) << 7) - t) & 0xFFFFFFFF;
         t = (((this.x4 << ls4) ^ this.x4) >> rs4) & 0xFFFFFFFF;
         this.x4 = (((this.x4 & m4) << 13) - t) & 0xFFFFFFFF;
-        return ((this.x1 ^ this.x2 ^ this.x3 ^ this.x4) & 0xFFFFFFFF) * 2.3283064365387e-10;
-    }
-    randomInt(): number {
-        throw new Error("Method not implemented.");
-    }
-    random(min: number, max: number): number {
-        throw new Error("Method not implemented.");
+        return ((this.x1 ^ this.x2 ^ this.x3 ^ this.x4) & 0xFFFFFFFF) * 2.32830643653869628906e-10;
     }
 }

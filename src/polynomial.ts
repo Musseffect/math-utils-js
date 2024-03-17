@@ -315,7 +315,7 @@ export class PolynomialSolver {
         criticalPoints.unshift(xStart);
         criticalPoints.push(xEnd);
         while (stack.length != 1) {
-            console.log(`roots of P[${stack[stack.length - 1].degree()}]: ${criticalPoints}`);
+            //console.log(`roots of P[${stack[stack.length - 1].degree()}]: ${criticalPoints}`);
             let df = stack.pop();
             let f = stack[stack.length - 1];
             let newRoots: number[] = [];

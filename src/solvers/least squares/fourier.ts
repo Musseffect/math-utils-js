@@ -9,6 +9,10 @@ interface FourierCoeffs {
 }
 
 class Fourier {
+    static transform(x: number[]) {
+        throw new Error("Not implemented");
+    }
+
     static calcSeries(coeffs: FourierCoeffs, period: number, param: number) {
         assert(coeffs.a.length == coeffs.b.length, "Incorrect format");
         let value = coeffs.a0;

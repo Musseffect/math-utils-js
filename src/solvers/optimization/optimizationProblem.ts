@@ -3,8 +3,6 @@ import { forwardDifference, secondOrderDifference } from "../../numericalDiffere
 import { SmallTolerance } from "../../utils";
 import Vector from "../../vector";
 
-
-
 export abstract class OptimizationProblem {
     initialPoint: Vector;
     derivativeDelta: number = SmallTolerance;
@@ -29,3 +27,12 @@ export abstract class OptimizationProblem {
         return secondOrderDifference((x: Vector) => { return this.f(x); }, p, this.derivativeDelta);
     }
 }
+
+export abstract class Bounds {
+    /**
+     * Return distance to first intersection
+     * @param ro ray origin
+     * @param rd ray direction
+     */
+    abstract intersect(ro: Vector, rd: Vector): number;
+};

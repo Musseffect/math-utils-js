@@ -56,16 +56,16 @@ export default class FullPivLU {
         if (A == null)
             return;
         assert(A.isSquare(), "Non-square matrix");
-        this.p = PermutationMatrix.identity(this.A._numRows, PermutationType.Row);
-        this.q = PermutationMatrix.identity(this.A._numCols, PermutationType.Col);
+        this.p = PermutationMatrix.identity(this.A.numRows(), PermutationType.Row);
+        this.q = PermutationMatrix.identity(this.A.numCols(), PermutationType.Col);
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
-        for (let step = 0; step + 1 < lu._numRows; step++) {
+        for (let step = 0; step + 1 < lu.numRows(); step++) {
             let maxPivotRow = step;
             let maxPivotColumn = step;
             let maxPivot = lu.get(step, step);
-            for (let row = step; row < lu._numRows; ++row) {
-                for (let column = step; column < lu._numCols; ++column) {
+            for (let row = step; row < lu.numRows(); ++row) {
+                for (let column = step; column < lu.numCols(); ++column) {
                     let value = lu.get(row, column);
                     if (Math.abs(value) > Math.abs(maxPivot)) {
                         maxPivotRow = row;
@@ -82,26 +82,12 @@ export default class FullPivLU {
 
             lu.swapRows(step, maxPivotRow);
             lu.swapColumns(step, maxPivotColumn);
-            // console.log(`Step ${step}`);
-            // console.log(`rowPermutations ${this.p.toString()}, maxPivotRow ${maxPivotRow}`);
-            // console.log(`columnPermutations ${this.q.toString()}, maxPivotColumn ${maxPivotColumn}`);
-            // console.log(`Initial LU ${lu.toString()}`)
-            /*const rowMat = this.p.toMatrix();
-            const colMat = this.q.toMatrix();
-            console.log(`Initial permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
-            console.log(`Initial Rhs ${Rhs.toString()}`)
-            console.log(`Initial permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
-            */
-            for (let row = step + 1; row < lu._numRows; row++) {
+            for (let row = step + 1; row < lu.numRows(); row++) {
                 let ratio = lu.get(row, step) / maxPivot;
-                for (let column = step + 1; column < lu._numCols; column++)
+                for (let column = step + 1; column < lu.numCols(); column++)
                     lu.set(row, column, lu.get(row, column) - ratio * lu.get(step, column));
                 lu.set(row, step, ratio);
             }
-            // console.log(`Result LU ${LU.toString()}`)
-            // console.log(`Result permuted LU ${Matrix.mul(Matrix.mul(rowMat, LU), colMat).toString()}`)
-            // console.log(`Result Rhs ${Rhs.toString()}`)
-            // console.log(`Result permuted Rhs ${Matrix.mul(Matrix.mul(rowMat, Rhs), colMat).toString()}`);
         }
         this.lu = lu;
     }

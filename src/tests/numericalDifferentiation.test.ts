@@ -3,7 +3,7 @@ import { backwardDifference, centralDifference, forwardDifference, secondOrderDi
 import { Tolerance, SmallTolerance, SmallestTolerance } from "../utils";
 import Vector from "../vector";
 
-test.skip("Differentiation", () => {
+test("Differentiation", () => {
     let testFunc =
     {
         f: (x: Vector) => {

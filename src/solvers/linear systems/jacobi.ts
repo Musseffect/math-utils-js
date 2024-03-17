@@ -1,5 +1,6 @@
 import Matrix from "../../denseMatrix";
 import { assert, SmallTolerance } from "../../utils";
+import Vector from "../../vector";
 import vector from "../../vector";
 import { ConvergenseFailureException } from "./exceptions";
 

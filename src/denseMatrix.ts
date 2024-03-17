@@ -112,7 +112,7 @@ export default class Matrix extends AbstractMatrix {
         return true;
     }
     isTriangular(upper: boolean = false, tolerance: number = SmallTolerance) {
-        for (let i = 1; i < this._numCols; ++i) {
+        for (let i = 1; i < Math.min(this._numCols, this._numRows); ++i) {
             for (let j = 0; j < i; ++j) {
                 let value = upper ? this.get(i, j) : this.get(j, i);
                 if (Math.abs(value) > tolerance) return false;
@@ -198,17 +198,32 @@ export default class Matrix extends AbstractMatrix {
         }
         return new Matrix(data, size, size);
     }
+    static kroneckerProduct(a: Matrix, b: Matrix): Matrix {
+        let result = Matrix.empty(a.numRows() * b.numRows(), a.numCols() * b.numCols());
+        for (let aRow = 0, resRow = 0; aRow < a.numRows(); ++aRow) {
+            for (let bRow = 0; bRow < b.numRows(); ++bRow, ++resRow) {
+                for (let aCol = 0, resCol = 0; aCol < a.numCols(); ++aCol) {
+                    let aVal = a.get(aRow, aCol);
+                    if (aVal == 0.0) continue;
+                    for (let bCol = 0; bCol < b.numCols(); ++bCol, resCol) {
+                        result.set(resRow, resCol, aVal * b.get(bRow, bCol));
+                    }
+                }
+            }
+        }
+        return result;
+    }
     static mul(a: Matrix, b: Matrix): Matrix {
         assert(a._numCols == b._numRows, "Matrix dimensions aren't compatible");
-        let result = Matrix.empty(b._numCols, a._numRows);
+        let result = Matrix.empty(a.numRows(), b.numCols());
         //for each cell in the result
-        for (let j = 0; j < a._numRows; j++) {
-            for (let i = 0; i < b._numCols; i++) {
+        for (let row = 0; row < a.numRows(); row++) {
+            for (let col = 0; col < b.numCols(); col++) {
                 let value = 0;
-                for (let k = 0; k < a._numCols; k++) {
-                    value += a.get(j, k) * b.get(k, i);
+                for (let i = 0; i < a.numCols(); i++) {
+                    value += a.get(row, i) * b.get(i, col);
                 }
-                result.set(j, i, value);
+                result.set(row, col, value);
             }
         }
         return result;
@@ -228,12 +243,10 @@ export default class Matrix extends AbstractMatrix {
     static preMulVec(a: Vector, b: Matrix): Vector {
         assert(b._numRows == a.data.length, "Width of matrix isn't compatible with vector's length");
         let result = Vector.empty(b._numCols);
-        for (let i = 0; i < b._numCols; i++) {
-            let v = 0;
-            for (let j = 0; j < b._numRows; j++) {
-                v += b.get(j, i) * a.get(j);
-            }
-            result.set(i, v);
+        for (let row = 0; row < b._numRows; ++row) {
+            let multiplier = a.get(row);
+            for (let col = 0; col < b._numCols; ++col)
+                result.set(col, result.get(col) + multiplier * b.get(row, col));
         }
         return result;
     }
@@ -248,10 +261,49 @@ export default class Matrix extends AbstractMatrix {
         this.data[this.toIndex(row, column)] = value;
     }
     transposeInPlace(): Matrix {
-        assert(this.isSquare(), "Won't work for non-square matrix");
-        for (let row = 0; row < this._numRows; row++) {
-            for (let col = row + 1; col < this._numCols; col++) {
-                swap(this.data, col + row * this._numCols, col * this._numRows + row);
+        if (!this.isSquare()) {
+            let copy = this.data.slice();
+            let temp = this._numRows;
+            this._numRows = this._numCols;
+            this._numCols = temp;
+            for (let row = 0, oldIdx = 0; row < this._numCols; ++row) {
+                for (let col = 0; col < this._numRows; ++col, ++oldIdx)
+                    this.data[this.toIndex(col, row)] = copy[oldIdx];
+            }
+            /*
+            let isInRightPlace = new Array().fill(false);
+            isInRightPlace[0] = true;
+            isInRightPlace[-1] = true;
+            for (let row = 0; row < this._numRows; ++row)
+            {
+                for (let col = 0; col < this._numCols; ++col)
+                {
+                    let initialIdx = this.toIndex(row, col);
+                    if (isInRightPlace(initialIdx)) continue;
+                    let curRow = row;
+                    let curCol = col;
+                    let curIdx = initialIdx;
+                    let targetIndex = 0;
+                    let curValue = this.data[idx];
+                    {
+                        targetIndex = curRow + curCol * this._numRows;
+                        isInRightPlace[targetIndex] = true;
+                        const temp = this.data[targetIndex];
+                        this.data[targetIndex] = curValue;
+                        curValue = temp;
+                        curCol = targetIndex % this._numCols;
+                        curRow = Math.floor(targetIndex / this._numRows);
+                    }
+                    while(targetIndex != initialIdx)
+                }
+            }
+            */
+        }
+        else {
+            for (let row = 0; row < this._numRows; ++row) {
+                for (let col = row + 1; col < this._numCols; ++col) {
+                    swap(this.data, col + row * this._numCols, col * this._numRows + row);
+                }
             }
         }
         return this;
@@ -331,9 +383,6 @@ export default class Matrix extends AbstractMatrix {
         }
         return result;
     }
-    pseudoInverse(): Matrix {
-        throw new Error("Not implemented");
-    }
     determinant(): number {
         return new PartialPivLU(this).determinant();
     }
@@ -371,27 +420,12 @@ export default class Matrix extends AbstractMatrix {
                 result.set(row, column, (row + column) & 1 ? -minorValue : minorValue);
             }
         }
-        console.log(`Minor ${minors.toString()} / ${d}`);
         return result;
-        /*assert(this._numCols == this._numRows, "Non-square matrix");
-        let result = this.copy();
-        for (let i = 0; i < this._numCols; i++) {
-            let v = vector.empty(this._numCols);
-            v.set(i, 1);
-            let column = Matrix.solve(this.copy(), v);
-            for (let j = 0; j < this._numRows; j++) {
-                result.set(j, i, column.get(j));
-            }
-        }
-        return result;*/
     }
     determinantNaive() {
         assert(this.isSquare(), "Non-square matrix");
         assert(this.width() < 7, "Factorial complexity");
         if (this._numCols != this._numRows) return 0.0;
-
-        //console.log("Determinant computation");
-        //console.log(`Matrix: ${this.toString()}`);
 
         const self = this;
         const step = (r: number, c: number, rowList: number[], colList: number[], depth: number): number => {
@@ -413,25 +447,7 @@ export default class Matrix extends AbstractMatrix {
             if (Math.max(curNumCols - r - 1, 0) + Math.max(curNumCols - c - 1, 0) & 1)
                 result = -result;
 
-            /*if (depth == 1) {
-                console.log(`Step (${depth}) [row:  ${rowList[r]}, col: ${colList[c]}]`);
-                swap(rowList, r, self._numCols - depth);
-                swap(colList, c, self._numCols - depth);
-                let subMatrix = Matrix.empty(self._numCols - depth, self._numRows - depth);
-                for (let i = 0; i < self._numCols - depth; ++i) {
-                    for (let j = 0; j < self._numRows - depth; ++j) {
-                        const curValue = self.get(rowList[j], colList[i]);
-                        subMatrix.set(j, i, curValue);
-                    }
-                }
-                swap(rowList, r, self._numCols - depth);
-                swap(colList, c, self._numCols - depth);
-                console.log(`SubMatrix ${subMatrix.toString()}`);
-                console.log(`PreResult ${result}`);
-            }*/
             result *= curValue * (((r + c) & 1) == 1 ? -1 : 1);
-            /*if (depth == 1)
-                console.log(`Result ${result}`);*/
 
             return result;
         };

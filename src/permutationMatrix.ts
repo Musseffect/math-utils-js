@@ -1,5 +1,7 @@
 import Matrix from "./denseMatrix";
-import SparseMatrix from "./sparseMatrix";
+import RandomNumberGenerator from "./random/generator";
+import JSGenerator from "./random/js";
+import { SparseMatrixCSR } from "./sparseMatrix";
 import Triplet from "./triplet";
 import { assert, swap } from "./utils";
 import Vector from "./vector";
@@ -11,12 +13,12 @@ export enum PermutationType {
 
 // row permutation - pre multiplied, col permutation - post multiplied
 export class PermutationMatrix {
-    static random(size: number, type: PermutationType): PermutationMatrix {
+    static random(size: number, type: PermutationType, generator: RandomNumberGenerator = new JSGenerator()): PermutationMatrix {
         let indices = [];
         for (let i = 0; i < size; ++i)
             indices.push(i);
         for (let j = 0; j < size; ++j) {
-            let r = Math.min(size - j - 1, Math.floor(Math.random() * (size - j)));
+            let r = Math.min(size - j - 1, Math.floor(generator.randomUnit() * (size - j)));
             swap(indices, r, size - j - 1);
         }
         return new PermutationMatrix(indices, type);
@@ -191,7 +193,7 @@ export class PermutationMatrix {
         }
         return triplets;
     }
-    toSparseMatrix(): SparseMatrix {
-        return SparseMatrix.fromTriplets(this.toTriplets(), this.permutations.length, this.permutations.length);
+    toSparseMatrix(): SparseMatrixCSR {
+        return SparseMatrixCSR.fromTriplets(this.toTriplets(), this.permutations.length, this.permutations.length);
     }
 }

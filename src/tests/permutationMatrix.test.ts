@@ -3,37 +3,23 @@ import { PermutationType, PermutationMatrix } from "../permutationMatrix";
 import { assert, near } from "../utils";
 import Vector from "../vector";
 
-test.skip('test', () => {
+test('test', () => {
     for (let i = 0; i < 10; ++i) {
         let size = Math.round(Math.random() * 8 + 2);
         let permutation = PermutationMatrix.random(size, PermutationType.Row);
         expect(permutation.isValid()).toBeTruthy();
     }
-    /*
-    let rowPermutations = new PermutationMatrix([3, 2, 0, 1], PermutationType.Row);
-    let v = new Vector([10, 20, 30, 40]);
-    console.log(`p1: ${rowPermutations.permuteVector(v).toString()}`);
-    rowPermutations.permuteInplace(v);
-    console.log(`p2: ${v.toString()}`);*/
 });
 
-test.skip("Permutation matrix", () => {
+test("Permutation matrix", () => {
     let rowPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], PermutationType.Row);
     let colPermutations = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], PermutationType.Col);
     expect(rowPermutations.isValid()).toBeTruthy();
     expect(colPermutations.isValid()).toBeTruthy();
-    //expect(rowPermutations.determinant()).toBeCloseTo(rowPermutations.toMatrix().determinant());
-    //expect(colPermutations.determinant()).toBeCloseTo(colPermutations.toMatrix().determinant());
-    /*const mat = Matrix.empty(rowPermutations.size(), rowPermutations.size());
-    for (let i = 0; i < mat.width(); ++i)
-    {
-        for (let j = 0; j < mat.height(); ++j)
-            mat.set(j, i, j * mat.width() + i);
-    }*/
-    //console.log(`identity: ${Matrix.identity(10).toString()}`);
-    //console.log(`rowPermutations: ${rowPermutations.toMatrix().toString()}`);
+    expect(rowPermutations.determinant()).toBeCloseTo(rowPermutations.toMatrix().determinant());
+    expect(colPermutations.determinant()).toBeCloseTo(colPermutations.toMatrix().determinant());
+
     const rowPermuted = Matrix.mul(rowPermutations.toMatrix(), Matrix.identity(10));
-    //console.log(`rowPermuted: ${rowPermuted.toString()}`);
     const colPermuted = Matrix.mul(Matrix.identity(10), colPermutations.toMatrix());
     const fullPermuted = Matrix.mul(rowPermuted, colPermutations.toMatrix());
     for (let i = 0; i < 10; ++i) {
@@ -59,8 +45,10 @@ test.skip("Permutation matrix", () => {
     expect(Matrix.near(Matrix.mul(colPermutations.inverse().toMatrix(), colPermutations.toMatrix()), Matrix.identity(10))).toBeTruthy();
     expect(Matrix.near(Matrix.mul(rowPermutations.inverse().toMatrix(), rowPermutations.toMatrix()), Matrix.identity(10))).toBeTruthy();
 
-    //expect(Matrix.near(permutationMatrix.toMatrix().inverse(), permutationMatrix.inverse().toMatrix()));
-    //expect(Math.abs(permutationMatrix.toMatrix().determinant())).toBeCloseTo(1.0);
+    expect(Matrix.near(rowPermutations.toMatrix().inverse(), rowPermutations.inverse().toMatrix()));
+    expect(Math.abs(rowPermutations.toMatrix().determinant())).toBeCloseTo(1.0);
+    expect(Matrix.near(colPermutations.toMatrix().inverse(), colPermutations.inverse().toMatrix()));
+    expect(Math.abs(colPermutations.toMatrix().determinant())).toBeCloseTo(1.0);
 
     const generatedMat = Matrix.generate(10, 10, (r: number, c: number) => r * 10 + c);
     const generatedVec = Vector.generate(10, (i: number) => i);
@@ -70,11 +58,6 @@ test.skip("Permutation matrix", () => {
     const rowPermutedVec = rowPermutations.permuteVector(generatedVec);
     const colPermutedVec = colPermutations.permuteVector(generatedVec);
     const fullPermutedVec = colPermutations.permuteVector(rowPermutedVec);
-    // console.log(`Row permutation: ${rowPermutations.array()}`);
-    // console.log(`rowPermutedMat : ${rowPermutedMat.toString()}`);
-    // console.log(`rowPermutationsMatrix : ${rowPermutations.toMatrix().toString()}`);
-    // console.log(`generatedMatMatrix : ${generatedMat.toString()}`);
-    // console.log(`generatedMatMatrix : ${Matrix.mul(rowPermutations.toMatrix(), generatedMat).toString()}`);
     expect(Matrix.lInfDistance(rowPermutedMat, Matrix.mul(rowPermutations.toMatrix(), generatedMat))).toBeCloseTo(0);
     expect(Matrix.lInfDistance(colPermutedMat, Matrix.mul(generatedMat, colPermutations.toMatrix()))).toBeCloseTo(0);
     expect(Matrix.lInfDistance(fullPermutedMat, Matrix.mul(Matrix.mul(rowPermutations.toMatrix(), generatedMat), colPermutations.toMatrix()))).toBeCloseTo(0);

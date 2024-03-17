@@ -8,6 +8,7 @@ interface CubicSpline {
     c: number;
     d: number;
 }
+
 // Regular splines
 class CubicSplines {
     splines: CubicSpline[];

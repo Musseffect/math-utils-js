@@ -1,7 +1,7 @@
-import Matrix from "../../denseMatrix";
-import { assert, SmallTolerance } from "../../utils";
-import Vector from "../../vector";
-import { ConvergenseFailureException } from "./exceptions";
+import { SparseMatrixCSR, SparseMatrixRowIterator } from "../../../sparseMatrix";
+import { assert, SmallTolerance } from "../../../utils";
+import Vector from "../../../vector";
+import { ConvergenseFailureException } from "../exceptions";
 
 const SolverName = "'Cholesky'";
 
@@ -21,23 +21,34 @@ class IdentityPreconditioner implements Preconditioner {
         return r;
     }
 }
+
 class DiagonalPreconditioner implements Preconditioner {
-    A: Matrix;
-    constructor(A: Matrix) {
-        this.A = A;
+    diagonal: Vector;
+    constructor(A: SparseMatrixCSR) {
+        this.diagonal = Vector.empty(A.height());
+        for (let row = 0; row < A.height(); ++row) {
+            let it = new SparseMatrixRowIterator(A, row);
+            while (!it.isDone()) {
+                let { value, colIdx } = it.advance();
+                if (colIdx > row) break;
+                if (colIdx == row)
+                    this.diagonal.set(row, value);
+            }
+        }
     };
     calc(r: Vector): Vector {
         let result = r.clone();
         for (let i = 0; i < r.size(); ++i)
-            result.set(i, result.get(i) / this.A.get(i, i));
+            result.set(i, result.get(i) / this.diagonal.get(i));
         return result;
     }
 }
 
-export class CG {
-    A: Matrix;
+// TODO: tests
+export class ConjugateGradients {
+    A: SparseMatrixCSR;
     preconditioner: Preconditioner
-    constructor(A: Matrix, preconditioner: CGPreconditioner) {
+    constructor(A: SparseMatrixCSR, preconditioner: CGPreconditioner) {
         assert(A.isSquare(), "Non-square matrix");
         switch (preconditioner) {
             case CGPreconditioner.None:
@@ -54,13 +65,13 @@ export class CG {
     compute(b: Vector, maxIterations: number = 20, tolerance: number = SmallTolerance): Vector {
         assert(this.A.width() == b.data.length, "Width of matrix isn't compatible with vector's length");
         let x = Vector.empty(b.size());
-        let r = Vector.sub(b, Matrix.postMulVec(this.A, x))
+        let r = Vector.sub(b, SparseMatrixCSR.postMul(this.A, x))
         if (r.lInfNorm() < tolerance) return x;
         let z = this.preconditioner.calc(r);
         let p = z.clone();
         let iter = 0;
         while (iter < maxIterations) {
-            let ap = Matrix.postMulVec(this.A, p);
+            let ap = SparseMatrixCSR.postMul(this.A, p);
             let rDotZ = Vector.dot(r, z);
             let alpha = rDotZ / Vector.dot(p, ap);
             x.addSelf(Vector.scale(p, alpha));
@@ -75,8 +86,8 @@ export class CG {
         }
         throw new ConvergenseFailureException(SolverName);
     }
-    static solve(A: Matrix, b: Vector, maxIterations: number = 20, tolerance: number = SmallTolerance): Vector {
-        let solver = new CG(A, CGPreconditioner.Diagonal);
+    static solve(A: SparseMatrixCSR, b: Vector, maxIterations: number = 20, tolerance: number = SmallTolerance): Vector {
+        let solver = new ConjugateGradients(A, CGPreconditioner.Diagonal);
         return solver.compute(b, maxIterations, tolerance);
     }
 }

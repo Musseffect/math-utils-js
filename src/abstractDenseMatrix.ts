@@ -1,3 +1,4 @@
+import AbstractMatrix from "./abstractMatrix";
 import { assert, Tolerance } from "./utils";
 
 abstract class IConstMatrix {
@@ -15,27 +16,18 @@ abstract class IConstMatrix {
     }
 }
 
-export default abstract class AbstractDenseMatrix {
+export default abstract class AbstractDenseMatrix extends AbstractMatrix {
     data: number[];
-    _rowMajor: boolean;
-    _numRows: number;
-    _numCols: number;
+    _rowMajor: boolean = true;
     index(row: number, col: number) {
-        return this._rowMajor ? row * this.numCols() + col : col * this.numRows() + row;
+        return (this._rowMajor ? row * this.numCols() + col : col * this.numRows() + row);
     }
     isRowMajor(): boolean {
         return this._rowMajor;
     }
-    numRows(): number {
-        return this._numRows;
-    }
-    numCols(): number {
-        return this._numCols;
-    }
     constructor(data: number[], numRows: number, numCols: number) {
+        super(numRows, numCols);
         this.data = data;
-        this._numRows = numRows;
-        this._numCols = numCols;
     }
     get(row: number, col: number): number {
         return this.data[this.index(row, col)];
@@ -59,9 +51,6 @@ export default abstract class AbstractDenseMatrix {
         assert(a.numRows() == rows && a.numCols() == cols, "Sizes don't match");
         for (let i = 0; i < this.data.length; ++i)
             this.data[i] -= a.data[i];
-    }
-    isSquare(): boolean {
-        return this.numCols() == this.numRows();
     }
     mulSelfPointwise(a: AbstractDenseMatrix): void {
         const rows = this.numRows();

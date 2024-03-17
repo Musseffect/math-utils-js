@@ -3,7 +3,7 @@ import Vector from "../../vector";
 import * as ode from "./odeExports";
 
 
-test.skip("ODE", () => {
+test("ODE", () => {
     class expOde implements ode.eode {
         param: number;
         constructor(param: number) {

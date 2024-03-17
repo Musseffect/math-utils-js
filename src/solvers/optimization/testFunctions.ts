@@ -2,10 +2,10 @@ import Matrix from "../../denseMatrix";
 import { forwardDifference, secondOrderDifference } from "../../numericalDifferentiation";
 import { assert, SmallTolerance } from "../../utils";
 import Vector from "../../vector";
-import { OptimizationProblem } from "./optimizationProblem";
 
 // https://en.wikipedia.org/wiki/Test_functions_for_optimization
-interface OptimizationTestFunction {
+export interface OptimizationTestFunction {
+    name: String;
     numDimensions: number;
     f(x: Vector): number;
     min: { p: number | Vector | Vector[], value: number };
@@ -14,6 +14,7 @@ interface OptimizationTestFunction {
 
 // global minimum f(0,..., 0) = 0
 export const RastriginFunc: OptimizationTestFunction = {
+    name: "Rastrigin",
     f: function (p: Vector): number {
         let result = 10 * p.size();
         for (let i = 0; i < p.size(); ++i) {
@@ -38,6 +39,7 @@ function ackley2DFunc(x: number, y: number) {
 }
 
 export const AckleyFunc: OptimizationTestFunction = {
+    name: "Ackley",
     f: function (p: Vector): number {
         assert(p.size() == 2, "Invalid size");
         return ackley2DFunc(p.get(0), p.get(1));
@@ -55,6 +57,7 @@ export const AckleyFunc: OptimizationTestFunction = {
 
 // global and one local minimum f(0,..., 0) = 0
 export const SphereFunc: OptimizationTestFunction = {
+    name: "Sphere",
     f: function (p: Vector) {
         return p.squaredLength();
     },
@@ -70,7 +73,8 @@ export const SphereFunc: OptimizationTestFunction = {
 };
 
 // global minimum f(1,..., 1) = 0
-const RosenbrockFunc: OptimizationTestFunction = {
+export const RosenbrockFunc: OptimizationTestFunction = {
+    name: "Rosenbrock",
     f: function (p: Vector) {
         assert(p.size() > 1, "Invalid size");
         let result = 0.0;
@@ -96,6 +100,7 @@ function beale2DFunc(x: number, y: number) {
     return Math.pow(1.5 - x + x * y, 2) + Math.pow(2.25 - x + x * y * y, 2) + Math.pow(2.625 - x + x * y * y * y, 2)
 }
 export const Beale: OptimizationTestFunction = {
+    name: "Beale",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return beale2DFunc(p.get(0), p.get(1));
@@ -117,6 +122,7 @@ function GoldsteinPrice2DFunc(x: number, y: number) {
 }
 
 export const GoldsteinPriceFunc: OptimizationTestFunction = {
+    name: "Goldstein-Price",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return GoldsteinPrice2DFunc(p.get(0), p.get(1));
@@ -137,6 +143,7 @@ function BoothFunc2D(x: number, y: number) {
 }
 
 export const BoothFunc: OptimizationTestFunction = {
+    name: "Booth",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return BoothFunc2D(p.get(0), p.get(1));
@@ -152,14 +159,15 @@ export const BoothFunc: OptimizationTestFunction = {
     }
 };
 
-function BukinFunc62D(x: number, y: number) {
+function BukinFunc6_2D(x: number, y: number) {
     return 100 * Math.sqrt(Math.abs(y - 0.01 * x * x)) + 0.01 * Math.abs(x + 10);
 }
 
 export const BukinFunc6: OptimizationTestFunction = {
+    name: "Bukin 6",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
-        return BukinFunc62D(p.get(0), p.get(1));
+        return BukinFunc6_2D(p.get(0), p.get(1));
     },
     numDimensions: 2,
     min: {
@@ -177,6 +185,7 @@ function MatyasFunc2D(x: number, y: number) {
 }
 
 export const MatyasFunc: OptimizationTestFunction = {
+    name: "Matyas",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return MatyasFunc2D(p.get(0), p.get(1));
@@ -198,6 +207,7 @@ function Levi13Func2D(x: number, y: number) {
 }
 
 export const LeviFunc13: OptimizationTestFunction = {
+    name: "Levi 13",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return Levi13Func2D(p.get(0), p.get(1));
@@ -218,6 +228,7 @@ function Himmelblau2DFunc(x: number, y: number) {
 }
 
 export const HimmelblauFunc: OptimizationTestFunction = {
+    name: "Himmelblau",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return Himmelblau2DFunc(p.get(0), p.get(1));
@@ -243,6 +254,7 @@ function ThreeHumpCamel2DFunc(x: number, y: number) {
 }
 
 export const ThreeHumpCamelFunc: OptimizationTestFunction = {
+    name: "Three Hump Camel",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return ThreeHumpCamel2DFunc(p.get(0), p.get(1));
@@ -263,6 +275,7 @@ function Easom2DFunc(x: number, y: number) {
 }
 
 export const EasomFunc: OptimizationTestFunction = {
+    name: "Easom",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return Easom2DFunc(p.get(0), p.get(1));
@@ -270,7 +283,7 @@ export const EasomFunc: OptimizationTestFunction = {
     numDimensions: 2,
     min: {
         p: new Vector([Math.PI, Math.PI]),
-        value: 0
+        value: -1
     },
     searchDomain: {
         min: new Vector([-100, -100]),
@@ -283,6 +296,7 @@ function CrossInTray2DFunc(x: number, y: number) {
 }
 
 export const CrossInTrayFunc: OptimizationTestFunction = {
+    name: "Cross in tray",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return CrossInTray2DFunc(p.get(0), p.get(1));
@@ -308,6 +322,7 @@ function Eggholder2DFunc(x: number, y: number) {
 }
 
 export const EggholderFunc: OptimizationTestFunction = {
+    name: "Eggholder",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return Eggholder2DFunc(p.get(0), p.get(1));
@@ -323,14 +338,15 @@ export const EggholderFunc: OptimizationTestFunction = {
     }
 };
 
-function HolderTable2DFunc(x: number, y: number) {
-    return - Math.abs(Math.sin(x) + Math.cos(y) * Math.exp(Math.abs(1 - Math.sqrt(x * x + y * y) / Math.PI)));
+function HölderTable2DFunc(x: number, y: number) {
+    return - Math.abs(Math.sin(x) * Math.cos(y) * Math.exp(Math.abs(1 - Math.sqrt(x * x + y * y) / Math.PI)));
 }
 
 export const HolderTableFunc: OptimizationTestFunction = {
+    name: "Hölder Table",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
-        return HolderTable2DFunc(p.get(0), p.get(1));
+        return HölderTable2DFunc(p.get(0), p.get(1));
     },
     numDimensions: 2,
     min: {
@@ -353,6 +369,7 @@ function McCormick2DFunc(x: number, y: number) {
 }
 
 export const McCormickFunc: OptimizationTestFunction = {
+    name: "McCormick",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return McCormick2DFunc(p.get(0), p.get(1));
@@ -373,6 +390,7 @@ function Schaffer2DFunc2(x: number, y: number) {
 }
 
 export const SchafferFunc2: OptimizationTestFunction = {
+    name: "Schaffer2",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return Schaffer2DFunc2(p.get(0), p.get(1));
@@ -393,6 +411,7 @@ function Schaffer2DFunc4(x: number, y: number) {
 }
 
 export const SchafferFunc4: OptimizationTestFunction = {
+    name: "Schaffer4",
     f: function (p: Vector) {
         assert(p.size() == 2, "Invalid size");
         return Schaffer2DFunc4(p.get(0), p.get(1));
@@ -414,11 +433,12 @@ export const SchafferFunc4: OptimizationTestFunction = {
 };
 
 export const StyblinskiTangFunc: OptimizationTestFunction = {
+    name: "Styblinski-Tang",
     f: function (p: Vector) {
         let result = 0;
         for (let i = 0; i < p.size(); ++i) {
             let value = p.get(i);
-            result += value * (5 - value * (value * value - 16));
+            result += value * (5 + value * (value * value - 16));
         }
         return result / (2 * p.size());
     },
@@ -428,8 +448,8 @@ export const StyblinskiTangFunc: OptimizationTestFunction = {
         value: -39.166165
     },
     searchDomain: {
-        min: new Vector([-5, -5]),
-        max: new Vector([5, 5])
+        min: -5,
+        max: 5
     }
 };
 

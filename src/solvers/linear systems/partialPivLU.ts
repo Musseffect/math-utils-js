@@ -37,13 +37,13 @@ export default class PartialPivLU {
         if (A == null)
             return;
         assert(A.isSquare(), "Non-square matrix");
-        this.p = PermutationMatrix.identity(this.A._numRows, PermutationType.Row);
+        this.p = PermutationMatrix.identity(this.A.numRows(), PermutationType.Row);
         let lu: Matrix = this.A.clone();
         // todo: check for rectangular matrices
-        for (let step = 0; step + 1 < lu._numRows; step++) {
+        for (let step = 0; step + 1 < lu.numRows(); step++) {
             let maxPivotRow = step;
             let maxPivot = lu.get(step, step);
-            for (let row = step; row < lu._numRows; ++row) {
+            for (let row = step; row < lu.numRows(); ++row) {
                 let value = lu.get(row, step);
                 if (Math.abs(value) > Math.abs(maxPivot)) {
                     maxPivotRow = row;
@@ -56,15 +56,15 @@ export default class PartialPivLU {
 
             lu.swapRows(step, maxPivotRow);
 
-            for (let row = step + 1; row < lu._numRows; row++) {
+            for (let row = step + 1; row < lu.numRows(); row++) {
                 let ratio = lu.get(row, step) / maxPivot;
-                for (let column = step + 1; column < lu._numCols; column++)
+                for (let column = step + 1; column < lu.numCols(); column++)
                     lu.set(row, column, lu.get(row, column) - ratio * lu.get(step, column));
                 lu.set(row, step, ratio);
             }
-            console.log(`Result LU at step ${step} ${lu.toString()}`);
+            //console.log(`Result LU at step ${step} ${lu.toString()}`);
         }
-        console.log(`Result P ${this.p.toMatrix()} ${this.p.array()}`)
+        //console.log(`Result P ${this.p.toMatrix()} ${this.p.array()}`)
         this.lu = lu;
     }
     solveInplace(rhs: Matrix | Vector): Matrix | Vector {
@@ -101,7 +101,7 @@ export default class PartialPivLU {
                     value -= rhs.get(col) * this.LU.get(row, col);
                 rhs.set(row, value / this.LU.get(row, row));
             }
-            console.log(`Rhs ${rhs.toString()}`);
+            //console.log(`Rhs ${rhs.toString()}`);
         }
         return rhs;
     }

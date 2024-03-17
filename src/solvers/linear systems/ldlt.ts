@@ -50,7 +50,6 @@ class TriangularMatrix {
 
 // todo: optimize for large matrices
 
-// todo: option to compute decomposition inplace
 // todo: pivoting
 // todo: block LDLT for indefinite decomposition and LTLT
 export default class LDLT {

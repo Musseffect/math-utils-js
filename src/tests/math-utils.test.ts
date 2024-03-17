@@ -161,7 +161,3 @@ test.skip("Transform components", () => {
     expect(vec2.near(pTRS1_2D, pTRS2_2D, SmallTolerance)).toBeTruthy();
     expect(vec2.near(pTRS1_2D, trs_2D.transformPoint2D(point2D), SmallTolerance)).toBeTruthy();
 });
-
-
-
-

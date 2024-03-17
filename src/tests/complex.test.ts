@@ -2,7 +2,7 @@ import { complex } from "../complex";
 import vec2 from "../vec2";
 
 
-test.skip('Complex cartesian operations', () => {
+test('Complex cartesian operations', () => {
     let z1 = new complex(1, 2);
     let z2 = complex.polar(2.0, 1.1);
     expect(z2.length()).toBeCloseTo(2.0);

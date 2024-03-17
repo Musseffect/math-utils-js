@@ -27,7 +27,7 @@ describe.skip("Root finding: nonlinear", () => {
     })
 });
 
-test.skip("1D root finding", () => {
+test("1D root finding", () => {
     const func = (x: number): number => { return x * x * x - 3.0 * x * x * Math.cos(x * 4) + Math.sin(3.3 * x); };
 
     let xa = -0.5;

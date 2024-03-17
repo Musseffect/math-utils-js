@@ -4,6 +4,11 @@ export const Tolerance = 1e-4;
 export const SmallTolerance = 1e-6;
 export const SmallestTolerance = 1e-8;
 
+enum SolverStatus {
+    FoundSolution = 0,
+    ExceededMaxIterations = 1
+}
+
 export function assert(condition: boolean, message: string): void {
     if (!condition)
         throw new Error(message);

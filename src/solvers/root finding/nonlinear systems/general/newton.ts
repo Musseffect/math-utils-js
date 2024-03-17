@@ -1,20 +1,25 @@
 import Matrix from "../../../../denseMatrix";
 import { assert, SmallTolerance } from "../../../../utils";
-import vector from "../../../../vector";
+import Vector from "../../../../vector";
+import { LineSearch, LineSearchProblem } from "../../../line search/lineSearch";
 import { ConvergenseFailureException } from "../../../linear systems/exceptions";
 import FullPivLU from "../../../linear systems/fullPivLU";
+import PartialPivLU from "../../../linear systems/partialPivLU";
+import { createLineSearch, initializeLineSearch, LineSearchAlgorithm } from "../../../optimization/utils";
 
 
 const SolverName = "Newton";
 class Params {
-    jacobian?: (x: vector) => Matrix;
+    jacobian?: (x: Vector) => Matrix;
     fDotTolAbs: number = SmallTolerance;
     fTolAbs: number = SmallTolerance;
     jacobianEpsilon: number = SmallTolerance;
+    lineSearchAlgo?: LineSearchAlgorithm;
+    step: number;
 }
 
 class Solver {
-    private static numericJacobian(f: (x: vector) => vector, x: vector, step: number): Matrix {
+    private static numericalJacobian(f: (x: Vector) => Vector, x: Vector, step: number): Matrix {
         let result: Matrix = Matrix.empty(x.size(), x.size());
         // forward difference
         let f0 = f(x);
@@ -27,23 +32,39 @@ class Solver {
         }
         return result;
     }
-    static solve(f: (x: vector) => vector, x0: vector, numIters: number, params: Params = new Params()): vector {
+    static solve(f: (x: Vector) => Vector, x0: Vector, numIters: number, params: Params = new Params()): Vector {
         let x = x0.clone();
-        let fVec = vector.negate(f(x));
+        let calcJacobian = params.jacobian ? params.jacobian : (y: Vector) => { return Solver.numericalJacobian(f, y, SmallTolerance) };
+        let lineSearchProblem: LineSearchProblem = {
+            f: (x: Vector): number => {
+                return f(x).l2Norm() / 2;
+            },
+            grad: (x: Vector): Vector => {
+                return Matrix.postMulVec(calcJacobian(x), f(x));
+            },
+            hessian: (x: Vector): Matrix => {
+                throw new Error("Not implemented");
+            }
+        };
+        let lineSearch: LineSearch | null = params.lineSearchAlgo ? createLineSearch(params.lineSearchAlgo, lineSearchProblem) : null;
+        let fVec = Vector.negate(f(x));
         let maxNorm = fVec.lInfNorm();
-        let calcJ = params.jacobian ? params.jacobian : (y: vector) => { return Solver.numericJacobian(f, y, SmallTolerance) };
         for (let iter = 0; iter < numIters; ++iter) {
             if (maxNorm < params.fTolAbs) return x;
-            let J: Matrix = calcJ(x);
+            let J: Matrix = calcJacobian(x);
             if (J.lInfNorm() < params.fDotTolAbs)
                 return x;
             try {
-                let dx = FullPivLU.solve(J, fVec);
-                x.addSelf(dx);
+                // TODO: use QR with column pivoting
+                let dx = PartialPivLU.solve(J, fVec);
+                let step = params.step;
+                if (lineSearch)
+                    lineSearch.step(x, dx, step);
+                x.addSelf(dx.scaleSelf(step));
             } catch (exc) {
                 break;
             }
-            fVec = vector.negate(f(x));
+            fVec = Vector.negate(f(x));
             maxNorm = fVec.lInfNorm();
         }
         throw new ConvergenseFailureException(SolverName);
