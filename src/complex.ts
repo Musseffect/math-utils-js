@@ -4,26 +4,23 @@ export class complex extends vec2 {
     constructor(x: number, y: number) {
         super(x, y);
     }
-    static real(x: number): complex {
-        return new complex(x, 0);
-    }
-    static polar(r: number, theta: number): complex {
-        return new complex(r * Math.cos(theta), r * Math.sin(theta));
-    }
     static empty(): complex {
         return new complex(0, 0);
     }
-    conjugate(): complex {
+    public conjugate(): complex {
         return new complex(this.x, - this.y);
     }
-    arg(): number {
+    public arg(): number {
         return Math.atan2(this.y, this.x);
     }
-    inverse(): complex {
+    public inverse(): complex {
         let out = this.conjugate();
         let sl = out.squaredLength();
         out.scaleSelf(1.0 / sl);
         return out;
+    }
+    public toPolar(): complexPolar{
+        return new complexPolar(this.length(), Math.atan2(this.y, this.x));
     }
     static mul(a: complex, b: complex): complex {
         let out = complex.empty();
@@ -39,7 +36,7 @@ export class complex extends vec2 {
         return out;
     }
     static exp(z: complex): complex {
-        return complex.polar(Math.exp(z.x), z.y);
+        return new complexPolar(Math.exp(z.x), z.y).toCartesian();
     }
     static log(z: complex): complex {
         return new complex(Math.log(z.length()), z.arg());
@@ -49,7 +46,7 @@ export class complex extends vec2 {
         let lnR = Math.log(a.length());
         let r = Math.exp(b.x * lnR - b.y * theta);
         let angle = b.y * lnR + b.x * theta;
-        return complex.polar(r, angle);
+        return new complexPolar(r, angle).toCartesian();
     }
 }
 
@@ -62,10 +59,22 @@ export class complexPolar {
     }
     static empty(): complexPolar {
         return new complexPolar(0, 0);
-    }/*
+    }
+    public toCartesian(): complex {
+        return new complex(this.r * Math.cos(this.angle), this.r * Math.sin(this.angle));
+    }
+    static mul(a: complexPolar, b: complexPolar): complexPolar {
+        return new complexPolar(a.r * b.r, a.angle + b.angle);
+    }
+    static div(a: complexPolar, b: complexPolar): complexPolar {
+        return new complexPolar(a.r / b.r, a.angle - b.angle);
+    }
+    // todo: wrap angle into [0:2PI) region
+    // Todo: add methods
+    /*
     public pow(power: number | complex | complexPolar): complexPolar {
         if (power instanceof Number) {
-            return new complexPolar(this.r, power * this.angle);
+            return new complexPolar(Math.pow(this.r, power), power * this.angle);
         }
         if (power instanceof complex) {
             return new complexPolar();
