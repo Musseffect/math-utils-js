@@ -14,7 +14,7 @@
 		"url": "git+https://github.com/Musseffect/math-utils-js"
 	},
 	"bugs": {
-		"url": "https://Musseffect/math-utils-js/issues"
+		"url": "https://github.com/Musseffect/math-utils-js/issues"
 	},
 	"scripts": {
 		"bundle:min": "webpack --mode production --config webpack.config.js",
