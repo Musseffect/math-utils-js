@@ -15,7 +15,11 @@ class Params {
     fTolAbs: number = SmallTolerance;
     jacobianEpsilon: number = SmallTolerance;
     lineSearchAlgo?: LineSearchAlgorithm;
-    step: number;
+    step: number = 1.0;
+}
+
+interface Out {
+    numIters: number
 }
 
 class Solver {
@@ -32,7 +36,7 @@ class Solver {
         }
         return result;
     }
-    static solve(f: (x: Vector) => Vector, x0: Vector, numIters: number, params: Params = new Params()): Vector {
+    static solve(f: (x: Vector) => Vector, x0: Vector, numIters: number, params: Params = new Params(), out?: Out): Vector {
         let x = x0.clone();
         let calcJacobian = params.jacobian ? params.jacobian : (y: Vector) => { return Solver.numericalJacobian(f, y, SmallTolerance) };
         let lineSearchProblem: LineSearchProblem = {
@@ -51,14 +55,22 @@ class Solver {
         let fVec = Vector.negate(f(x));
         let maxNorm = fVec.lInfNorm();
         for (let iter = 0; iter < numIters; ++iter) {
-            if (maxNorm < params.fTolAbs) return x;
-            let J: Matrix = calcJacobian(x);
-            if (J.lInfNorm() < params.fDotTolAbs)
+            if (maxNorm < params.fTolAbs) {
+                if (out != undefined)
+                    out.numIters = iter;
                 return x;
+            }
+            let J: Matrix = calcJacobian(x);
+            if (J.lInfNorm() < params.fDotTolAbs) {
+                if (out != undefined)
+                    out.numIters = iter;
+                return x;
+            }
             try {
                 // TODO: use QR with column pivoting for non square and
                 // non-full rank systems
-                let dx = PartialPivLU.solve(J, fVec);
+                let solver = new PartialPivLU(J);
+                let dx = solver.solve(fVec) as Vector;
                 let step = params.step;
                 if (lineSearch)
                     lineSearch.step(x, dx, step);

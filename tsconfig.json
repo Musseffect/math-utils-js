@@ -7,7 +7,9 @@
         "module": "commonjs",
         "target": "es5",
         "allowJs": true,
-        "esModuleInterop":true
+        "esModuleInterop": true,
+        //"strictPropertyInitialization": true,
+        "strictNullChecks": false
     },
     "exclude": [
         "node_modules",
@@ -15,5 +17,7 @@
         "jest*",
         "**/*.test.ts"
     ],
-    "include": ["src"]
+    "include": [
+        "src"
+    ]
 }

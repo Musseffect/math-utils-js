@@ -2,7 +2,7 @@ import { complex } from "../complex";
 import Matrix from "./denseMatrix";
 import RandomNumberGenerator from "../random/generator";
 import { randomNormalDistr } from "../random/utils";
-import { QR, ZeroingMethod } from "../solvers/linear systems/qr";
+import { OrthogonalDecompositionParams, QR, ZeroingMethod } from "../solvers/linear systems/qr";
 import { randomArray, sign } from "../utils";
 import { binomial } from "../utils";
 
@@ -37,7 +37,7 @@ export class MatrixGenerator {
     }
     randomOrthogonal(size: number): Matrix {
         let m = Matrix.generate(size, size, (r: number, c: number) => { return randomNormalDistr(this.generator); });
-        const qrSolver = new QR(m, ZeroingMethod.Housholder, false);
+        const qrSolver = new QR(m, new OrthogonalDecompositionParams().setPivoting(false).setMethod(ZeroingMethod.Housholder).setCompact(false));
         let result = qrSolver.Q;
         for (let row = 0; row < size; ++row) {
             for (let col = 0; col < size; ++col)

@@ -1,12 +1,11 @@
-
-
 // support both triangular and hessenberg
 
-import { DiagonalType } from "./matrixView";
+import AbstractDenseMatrix from "./abstractDenseMatrix";
 
-class TriangularMatrix {
+class TriangularMatrix extends AbstractDenseMatrix {
     _shift: number;
-    _type: DiagonalType;
-
-
+    constructor(data: number[], size: number) {
+        super(data, size, size);
+        throw "Not implemented";
+    }
 }

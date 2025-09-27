@@ -7,24 +7,6 @@ import { SmallTolerance, Tolerance, assert } from "../utils";
 import Vector from "../dense/vector";
 import { SparseMatrixTriplets, SparseMatrixTripletsTwinIterator, TwinIteratorValue } from "../sparse/sparseMatrixTriplets";
 
-/*
-test.only("General sparse matrix", () => {
-    expect(Matrix.lInfDistance(singularSparseTrivialMatrix.toDense(), singularDenseTrivialMatrix)).toBeCloseTo(0.0);
-    expect(Matrix.lInfDistance(singularSparseNonTrivialMatrix.toDense(), singularDenseNonTrivialMatrix)).toBeCloseTo(0.0);
-    expect(Matrix.lInfDistance(nonSingularSparseMatrix.toDense(), nonSingularDenseMatrix)).toBeCloseTo(0.0);
-
-    //expect(SparseMatrixCSR.near(SparseMatrixCSR.identity(10).inverse(), SparseMatrixCSR.identity(10))).toBeTruthy();
-    let permutationMatrix = new PermutationMatrix([1, 6, 8, 2, 5, 4, 9, 3, 0, 7], PermutationType.Row);
-    assert(permutationMatrix.isValid(), "Invalid permutation");
-    expect(SparseMatrixCSR.near(permutationMatrix.toSparseMatrix().inverse(), permutationMatrix.inverse().toSparseMatrix()));
-    expect(Math.abs(permutationMatrix.toSparseMatrix().determinant())).toBeCloseTo(1.0);
-    expect(nonSingularSparseMatrix.determinant()).not.toBeCloseTo(0.0);
-    expect(SparseMatrixCSR.near(SparseMatrixCSR.mul(nonSingularSparseMatrix.inverse(), nonSingularSparseMatrix), SparseMatrixCSR.identity(nonSingularDenseMatrix.width())));
-    // test trivial singular matrix
-    expect(singularSparseTrivialMatrix.determinant()).toBeCloseTo(0.0);
-    expect(singularSparseNonTrivialMatrix.determinant()).toBeCloseTo(0.0);
-});
-*/
 describe('Sparse Matrix operations', () => {
     let triplets = [
         { column: 0, row: 0, value: 1 },

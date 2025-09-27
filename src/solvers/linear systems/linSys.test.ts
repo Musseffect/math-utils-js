@@ -85,7 +85,7 @@ const squareSystemTestCases: Tests = { posDef: [], general: [] };
 })();
 
 let id = 0;
-describe.only.each(squareSystemTestCases.general)('General matrices %#', (testCase: TestCase) => {
+describe.each(squareSystemTestCases.general)('General matrices %#', (testCase: TestCase) => {
     console.log(`Test case ${id}`);
     console.log(testCase.m.toString());
     console.log(`Diagonally dominant ${testCase.m.isDiagonallyDominant()}`);

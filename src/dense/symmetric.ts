@@ -26,8 +26,3 @@ class SymmetricMatrix extends AbstractDenseMatrix {
         }
     }
 }
-/*
-class SymmetricMatrixView extends MatrixView {
-    upper: boolean;
-
-}*/

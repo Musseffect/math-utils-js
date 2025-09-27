@@ -7,6 +7,10 @@ export class complex extends vec2 {
     static empty(): complex {
         return new complex(0, 0);
     }
+    static real(value: number): complex { return new complex(value, 0.0); }
+    static im(value: number): complex { return new complex(0.0, value); }
+    public real(): number { return this.x; }
+    public im(): number { return this.y; }
     public conjugate(): complex {
         return new complex(this.x, - this.y);
     }
@@ -19,7 +23,7 @@ export class complex extends vec2 {
         out.scaleSelf(1.0 / sl);
         return out;
     }
-    public toPolar(): complexPolar{
+    public toPolar(): complexPolar {
         return new complexPolar(this.length(), Math.atan2(this.y, this.x));
     }
     static mul(a: complex, b: complex): complex {

@@ -129,7 +129,7 @@ describe("Eigendecomposition", () => {
     test.each(testCases.general)("Schur decomposition %#", (testCase: TestCase) => {
         let decomposition = new RealSchurDecomposition(null);
         decomposition.tolerance = Tolerance;
-        // todo investigate convergese with symmetric matrices
+        // todo investigate convergence with symmetric matrices
         decomposition.factorize(testCase.matrix, 20);
         expect(decomposition.D).not.toBeNull();
         expect(decomposition.Q.isOrthogonal()).toBeTruthy();

@@ -67,7 +67,6 @@ describe("Spectrum", () => {
         test.each(testCases.general)("Schur decomposition %#", (testCase: TestCase) => {
             let decomposition = new RealSchurDecomposition(null);
             decomposition.tolerance = Tolerance;
-            // todo investigate convergese with symmetric matrices
             decomposition.factorize(testCase.matrix, 20);
             expect(decomposition.Q.isOrthogonal()).toBeTruthy();
             expect(decomposition.D.isHessenberg()).toBeTruthy();

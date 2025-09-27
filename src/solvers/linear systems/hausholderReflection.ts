@@ -2,9 +2,10 @@ import Matrix from "../../dense/denseMatrix";
 import { assert, sign } from "../../utils";
 import Vector from "../../dense/vector";
 
-function processHouseholderVectorInplace(v: Vector, pivotIdx: number = 0): Vector {
+export function calcHouseholderVectorInplace(v: Vector, pivotIdx: number = 0): Vector {
     let ro = -sign(v.get(pivotIdx));
     let xNormSqr = v.squaredLength();
+    if (xNormSqr == 0.0) return v;
     let xNorm = Math.sqrt(xNormSqr);
     let firstElement = v.get(pivotIdx);
     v.set(pivotIdx, v.get(pivotIdx) - ro * xNorm);
@@ -33,7 +34,7 @@ export function calcHouseholderVectorCol(A: Matrix, row: number, col: number, si
     else
         assert(size <= A.numRows() - row, "Incorrect size");
     let v = A.subColumn(row, col, size);
-    return processHouseholderVectorInplace(v, pivotIdx);
+    return calcHouseholderVectorInplace(v, pivotIdx);
 }
 
 export function calcHouseholderVectorRow(A: Matrix, row: number, col: number, size?: number, pivotIdx: number = 0): Vector {
@@ -43,7 +44,7 @@ export function calcHouseholderVectorRow(A: Matrix, row: number, col: number, si
     else
         assert(size <= A.numCols() - col, "Incorrect size");
     let v = A.subRow(row, col, size);
-    return processHouseholderVectorInplace(v, pivotIdx);
+    return calcHouseholderVectorInplace(v, pivotIdx);
 }
 
 export function applyHouseholderFromLeft(v: Vector, A: Matrix, idx: number) {

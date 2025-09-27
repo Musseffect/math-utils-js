@@ -1,5 +1,5 @@
 import Matrix from "../../dense/denseMatrix";
-import { assert } from "../../utils";
+import { assert, sign } from "../../utils";
 
 export interface givensCoeffs {
     c: number, s: number, r: number
@@ -11,20 +11,20 @@ export function givens(x: number, y: number): givensCoeffs {
     let s = 0.0;
     let r = 0.0;
     if (y == 0) {
-        c = Math.sign(x);
+        c = sign(x);
         r = Math.abs(x);
     } else if (x == 0) {
-        s = -Math.sign(y);
+        s = -sign(y);
         r = Math.abs(y);
     } else if (Math.abs(x) > Math.abs(y)) {
         let t = y / x;
-        let u = Math.sign(x) * Math.sqrt(1 + t * t);
+        let u = sign(x) * Math.sqrt(1 + t * t);
         c = 1.0 / u;
         s = -c * t;
         r = x * u;
     } else {
         let t = x / y;
-        let u = Math.sign(y) * Math.sqrt(1 + t * t);
+        let u = sign(y) * Math.sqrt(1 + t * t);
         s = -1.0 / u;
         c = t / u;
         r = y * u;

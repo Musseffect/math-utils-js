@@ -24,6 +24,12 @@ export class PermutationMatrix {
         }
         return new PermutationMatrix(indices, type);
     }
+    isIdentity() {
+        for (let i = 0; i < this.permutations.length; ++i) {
+            if (i != this.permutations[i]) return false;
+        }
+        return true;
+    }
     permuteInplace(obj: Matrix | Vector, type?: PermutationType) {
         let elementAtPosition = Array(this.permutations.length);
         let positionOfElement = Array(this.permutations.length);

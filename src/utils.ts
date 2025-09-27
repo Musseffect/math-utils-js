@@ -63,7 +63,7 @@ export function swap<T>(array: Array<T>, firstIdx: number, secondIdx: number): v
 }
 
 export function sign(x: number) {
-    return x > 0 ? 1 : -1;
+    return x >= 0 ? 1 : -1;
 }
 
 export function binomial(n: number, k: number) {

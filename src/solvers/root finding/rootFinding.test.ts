@@ -5,6 +5,7 @@ import * as RootFinding from "./nonlinear systems/exports";
 
 describe("Root finding: nonlinear", () => {
     test("Multidimensional", () => {
+        // without line search
         let func = (p: Vector) => {
             const x = p.get(0);
             const y = p.get(1);
@@ -16,10 +17,12 @@ describe("Root finding: nonlinear", () => {
         params.fTolAbs = SmallTolerance;
         params.fDotTolAbs = SmallTolerance;
         params.jacobianEpsilon = SmallestTolerance;
-        let root: Vector;
-        expect(root = RootFinding.NewtonRaphson.Solver.solve(func, p0, 10, params)).not.toThrow();
+        let out = { numIters: 0 };
+        let root: Vector = Vector.empty(1);
+        expect(() => { root = RootFinding.NewtonRaphson.Solver.solve(func, p0, 10, params, out) }).not.toThrow();
         expect(func(expectedRoot).lInfNorm()).toBeLessThan(params.fTolAbs);
-        expect(Vector.sub(expectedRoot, root)).toBeLessThan(Tolerance);
+        expect(Vector.lInfDistance(expectedRoot, root)).toBeLessThan(Tolerance);
+        // console.log(out.numIters);
     })
 });
 
