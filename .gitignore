@@ -9,3 +9,5 @@ dist/index.html
 /coverage
 
 .vs
+
+package-lock.json
