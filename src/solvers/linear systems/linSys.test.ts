@@ -173,9 +173,9 @@ describe.skip('Linear solvers (dense square matrices)', () => {
             test('QR', () => {
                 for (const method of [linSolvers.ZeroingMethod.Givens, linSolvers.ZeroingMethod.Housholder]) {
                     let solver = new linSolvers.QR(null);
-                    solver.zeroingMethod = method;
+                    solver.Params.zeroingMethod = method;
                     for (const isCompact of [false, true]) {
-                        solver.makeCompact = isCompact;
+                        solver.Params.makeCompact = isCompact;
                         expect(() => solver.factorize(testCase.m)).not.toThrow();
                         expect(solver.Q).not.toBeNull();
                         expect(solver.R).not.toBeNull();
@@ -266,9 +266,10 @@ const rectSystemTestCases: RectSystemTestCase[] = [];
 describe.skip('Linear solvers (dense rectangular matrices)', () => {
     test.each(rectSystemTestCases)("QR", (testData: RectSystemTestCase) => {
         for (const method of [linSolvers.ZeroingMethod.Givens, linSolvers.ZeroingMethod.Housholder]) {
-            let solver = new linSolvers.QR(null, method, false);
+            let solver = new linSolvers.QR(null);
+            solver.Params.zeroingMethod = method;
             for (const makeCompact of [false, true]) {
-                solver.makeCompact = makeCompact;
+                solver.Params.makeCompact = makeCompact;
                 const isColumn = testData.matrix.numRows() >= testData.matrix.numCols();
                 const matrix = isColumn ? testData.matrix : testData.matrix.transpose();
                 const inv = isColumn ? testData.pseudoInverse : testData.pseudoInverse.transpose();
@@ -333,9 +334,10 @@ test.skip("QR tests", () => {
     // rect decomposition
     for (const testData of rectTests) {
         for (const method of [linSolvers.ZeroingMethod.Givens, linSolvers.ZeroingMethod.Housholder]) {
-            let solver = new linSolvers.QR(null, method, false);
+            let solver = new linSolvers.QR(null);
+            solver.Params.setMethod(method);
             for (const makeCompact of [false, true]) {
-                solver.makeCompact = makeCompact;
+                solver.Params.makeCompact = makeCompact;
                 solver.factorize(testData.matrix);
                 expect(Matrix.lInfDistance(Matrix.mul(solver.Q, solver.R), testData.matrix)).toBeLessThan(SmallTolerance);
                 expect(Matrix.lInfDistance(solver.R, testData.R)).toBeLessThan(SmallTolerance);
